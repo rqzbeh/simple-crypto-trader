@@ -57,28 +57,24 @@ def get_market_session():
         }
     
     # Determine active session based on UTC hour
-    # Sessions can overlap, priority: New York > London > Tokyo > Sydney
+    # Priority reflects trading volume: New York > London > Tokyo > Sydney
     active_session = None
     
     if 13 <= current_hour < 22:  # New York (1PM-10PM UTC)
         active_session = 'New York'
     elif 8 <= current_hour < 16:  # London (8AM-4PM UTC)
         active_session = 'London'
-    elif (0 <= current_hour < 9) or current_hour == 23:  # Tokyo (12AM-9AM UTC, wraps to 11PM)
+    elif 0 <= current_hour < 9:  # Tokyo (12AM-9AM UTC)
         active_session = 'Tokyo'
-    elif (22 <= current_hour < 24) or (0 <= current_hour < 7):  # Sydney (10PM-7AM UTC, wraps)
+    elif 22 <= current_hour < 24:  # Sydney start (10PM-midnight UTC)
         active_session = 'Sydney'
     else:
         active_session = 'Off-Hours'
     
     session_config = MARKET_SESSIONS.get(active_session, MARKET_SESSIONS['Off-Hours'])
     
-    # For crypto, allow trading in all sessions except weekends and very low volume periods
-    # Off-Hours and Sydney have reduced activity
+    # For crypto, allow trading in all sessions except weekends
     allow_trading = True
-    if active_session in ['Off-Hours', 'Sydney'] and session_config['multiplier'] < 0.9:
-        # Still allow trading but with reduced expectations
-        allow_trading = True
     
     return {
         'session': active_session,
@@ -264,11 +260,11 @@ NEW_TECHNIQUE_ENABLED = False  # Placeholder for adding new techniques
 
 # Market session configurations
 MARKET_SESSIONS = {
-    'Sydney': {'start_hour': 22, 'end_hour': 7, 'multiplier': 0.95},  # 10PM-7AM UTC
-    'Tokyo': {'start_hour': 0, 'end_hour': 9, 'multiplier': 1.0},     # 12AM-9AM UTC
-    'London': {'start_hour': 8, 'end_hour': 16, 'multiplier': 1.15},  # 8AM-4PM UTC
-    'New York': {'start_hour': 13, 'end_hour': 22, 'multiplier': 1.2}, # 1PM-10PM UTC
-    'Off-Hours': {'multiplier': 0.85}  # Default for off-hours
+    'Sydney': {'multiplier': 0.95},     # 10PM-11:59PM UTC
+    'Tokyo': {'multiplier': 1.0},       # 12AM-9AM UTC
+    'London': {'multiplier': 1.15},     # 8AM-4PM UTC
+    'New York': {'multiplier': 1.2},    # 1PM-10PM UTC
+    'Off-Hours': {'multiplier': 0.85}   # Other hours (9AM-1PM, 4PM-10PM)
 }
 
 def fetch_rss_items(url):
