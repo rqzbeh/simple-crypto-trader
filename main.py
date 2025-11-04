@@ -4,7 +4,6 @@ import math
 import re
 import requests
 import logging
-import json
 from functools import lru_cache
 from datetime import datetime, timedelta
 from newsapi import NewsApiClient
@@ -15,7 +14,7 @@ from textblob import TextBlob
 # Silence yfinance verbosity
 logging.getLogger("yfinance").setLevel(logging.ERROR)
 
-# -------------------- Configuration ---------------- ----
+# -------------------- Configuration --------------------
 NEWS_API_KEY = os.getenv('NEWS_API_KEY')
 if not NEWS_API_KEY:
     raise ValueError('Please set the NEWS_API_KEY environment variable')
@@ -211,6 +210,25 @@ VOLUME_WEIGHT = 1.15
 FVG_WEIGHT = 1.1
 CANDLE_WEIGHT = 1.1
 NEW_TECHNIQUE_ENABLED = False  # Placeholder for adding new techniques
+
+# Market sessions (UTC, Monday-Friday)
+MARKET_SESSIONS = [
+    ('Sydney', 0, 8),
+    ('Tokyo', 0, 8),
+    ('London', 8, 16),
+    ('New York', 13.5, 20),  # 13:30 to 20:00
+]
+
+def get_current_market_session():
+    """Return the current market session name or 'Off-hours' if none."""
+    now = datetime.utcnow()
+    if now.weekday() >= 5:  # Saturday or Sunday
+        return 'Weekend (no trading)'
+    hour = now.hour + now.minute / 60.0
+    for name, start, end in MARKET_SESSIONS:
+        if start <= hour < end:
+            return name
+    return 'Off-hours'
 
 def fetch_rss_items(url):
     '''Fetch RSS/Atom feed and return list of {'title','description'} items (best-effort).'''
@@ -718,6 +736,24 @@ def evaluate_trades():
             json.dump(logs, f, indent=2)
 
 def main():
+    # Check market session
+    current_session = get_current_market_session()
+    print(f"Current market session: {current_session}")
+    
+    # Adjust parameters based on session
+    session_multiplier = 1.0
+    if current_session in ['London', 'New York']:
+        session_multiplier = 1.2  # Boost expected returns during active sessions
+    elif current_session == 'Off-hours':
+        session_multiplier = 0.9  # Reduce during low activity
+    elif current_session == 'Weekend (no trading)':
+        print("It's a weekend—skipping trades to avoid low liquidity.")
+        return []  # Skip trading on weekends
+    
+    global EXPECTED_RETURN_PER_SENTIMENT
+    EXPECTED_RETURN_PER_SENTIMENT *= session_multiplier
+    print(f"Session multiplier applied: {session_multiplier:.1f}")
+    
     print('Crypto News Trading Bot v2.0 - Fetching latest signals...')
     articles = get_news()
     print(f'Retrieved {len(articles)} articles.')
@@ -804,9 +840,9 @@ def main():
         send_telegram_message(message)
         return []
 
-    message = f"Recommended trades:\nGenerated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Total articles: {len(articles)} | Candidates analyzed: {len(symbol_articles)}\n"
+    message = f"Recommended trades:\nGenerated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Current session: {current_session}\nTotal articles: {len(articles)} | Candidates analyzed: {len(symbol_articles)}\n"
     print('\nRecommended trades:')
-    print(f"Generated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Total articles: {len(articles)} | Candidates analyzed: {len(symbol_articles)}")
+    print(f"Generated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Current session: {current_session}")
     for r in results:
         price = r['price']
         direction = r['direction']
