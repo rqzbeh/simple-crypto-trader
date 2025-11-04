@@ -1,32 +1,113 @@
-# Simple Python Trader
+# Crypto News Trading Bot
 
-A Python script that analyzes cryptocurrency news from various sources, performs sentiment analysis, and suggests trading opportunities based on technical indicators, smart money concepts, and ICT methodology.
-
-## Description
-
-This tool fetches recent news articles related to cryptocurrencies from NewsAPI and multiple RSS feeds (e.g., CoinDesk, Cointelegraph, The Block, etc.). It identifies mentioned cryptocurrencies, analyzes sentiment, and integrates market data including technical indicators, smart money volume analysis, and ICT elements like Fair Value Gaps.
-
-It calculates trade plans with expected returns, stop losses, risk-reward ratios, and leverage recommendations. Suggestions include both long and short positions based on sentiment and technical confirmations. For low-capital traders, it adjusts parameters for higher ROI and better R/R, including a longer timeframe to reduce fees.
-
-The bot includes a learning mechanism: it logs all suggestions, evaluates their real-world performance (win/loss rates), and self-adjusts indicator weights and parameters to optimize over time. It also considers current market sessions to adjust trading behavior, boosting activity during peak hours and reducing during off-hours or weekends.
-
-Recommendations are printed to the console and optionally sent via Telegram bot.
+A Python-based automated trading bot that analyzes cryptocurrency news and market data to generate trading signals. It combines sentiment analysis from news articles with technical indicators to recommend long/short positions with appropriate leverage and risk management.
 
 ## Features
 
-- **News Aggregation**: Collects articles from NewsAPI and RSS feeds from prominent crypto news sources.
-- **Cryptocurrency Detection**: Automatically identifies cryptocurrencies mentioned in news (supports BTC, ETH, DOGE, SHIB, SOL, ADA, XRP, LTC, BNB, LINK, AVAX, MATIC, DOT, UNI, AAVE, SUSHI, CAKE, LUNA, ATOM, ALGO, VET, ICP, FIL, TRX, ETC, XLM, THETA, FTT, HBAR, NEAR, FLOW, MANA, SAND, AXS, CHZ, ENJ, BAT, OMG, ZRX, REP, GNT, STORJ, ANT, MKR, COMP, YFI, BAL, REN, LRC, KNC, ZKS, IMX, APE, GMT, GAL, OP, ARB, PEPE, FLOKI, BONK, WIF, MEW, POPCAT, TURBO, BRETT, MOTHER, CUMMIES, SLERF, GOAT, WEN, PUMP, SMOG).
-- **Sentiment Analysis**: Uses TextBlob for polarity scoring of news sentiment, boosted for influential sources.
-- **Market Data Integration**: Fetches 15-minute or 30-minute interval data from yfinance (30m for low-money mode), including price, volatility, ATR, pivot points, support/resistance levels, psychological levels, candle patterns, Ichimoku Cloud, smart money volume signals, and ICT Fair Value Gaps.
-- **Smart Money Concepts**: Analyzes volume to detect institutional order flow, boosting signals aligned with smart money moves.
-- **ICT Methodology**: Incorporates Fair Value Gap detection for liquidity imbalances, enhancing trade confirmations.
-- **Trade Calculation**: Generates trade plans with expected returns, stop losses, risk-reward ratios, and leverage recommendations (up to 100x for crypto). Supports both long and short directions.
-- **Low Money Trading**: Automatically adjusts for small accounts (entry cost < $100) with higher ROI, increased leverage, tighter stops for better R/R, and 30m timeframe to minimize fees.
-- **Learning Mechanism**: Logs all suggested trades to a JSON file, evaluates performance (win/loss rates), and self-adjusts indicator weights (e.g., boosting Ichimoku if it wins >60%) and parameters (e.g., tighter stops if win rate <30%) to optimize over time. Can neutralize underperforming indicators.
-- **Market Session Awareness**: Detects current global market sessions (Sydney, Tokyo, London, New York) based on UTC time and adjusts expected returns (boosting 20% during active sessions like London/New York, reducing 10% during off-hours), skips trades entirely on weekends for low liquidity.
-- **Telegram Notifications**: Sends trade suggestions via Telegram if configured.
-- **Filtering and Safety**: Filters out low-volume or delisted assets, and only suggests trades with reasonable risk-reward ratios.
+- **News Aggregation**: Fetches crypto-related news from NewsAPI and multiple RSS feeds
+- **Sentiment Analysis**: Uses TextBlob to analyze news sentiment
+- **Technical Analysis**: Incorporates Ichimoku Cloud, volume analysis, Fair Value Gaps (FVG), and candlestick patterns
+- **Risk Management**: Calculates optimal stop losses, leverage, and risk-reward ratios
+- **Market Session Awareness**: Adjusts trading parameters based on current market session (Sydney, Tokyo, London, New York)
+- **Telegram Notifications**: Sends trade recommendations via Telegram (optional)
+- **Adaptive Learning**: Evaluates past trades and adjusts indicator weights for improved performance
+- **Low Money Mode**: Optimized settings for smaller trading accounts
+
+## Requirements
+
+- Python 3.8 or higher
+- NewsAPI account (free tier available)
+- Internet connection for data fetching
+
+## Dependencies
+
+Install the required packages using pip:
+
+```bash
+pip install newsapi-python yfinance textblob requests
+```
 
 ## Installation
 
-1. Clone the repository:
+1. Clone this repository:
+
+   ```bash
+   git clone https://github.com/yourusername/crypto-news-trading-bot.git
+   cd crypto-news-trading-bot
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+## Configuration
+
+### Environment Variables
+
+Set the following environment variables:
+
+- `NEWS_API_KEY`: Your NewsAPI key (required)
+- `TELEGRAM_BOT_TOKEN`: Your Telegram bot token (optional, for notifications)
+- `TELEGRAM_CHAT_ID`: Your Telegram chat ID (optional, for notifications)
+
+### Settings
+
+Edit the constants in `main.py` to customize:
+
+- `LOW_MONEY_MODE`: Set to `True` for smaller accounts (< $500)
+- `MAX_LEVERAGE_CRYPTO`: Maximum leverage for crypto trades
+- Risk parameters: `MIN_STOP_PCT`, `EXPECTED_RETURN_PER_SENTIMENT`, etc.
+
+## Usage
+
+Run the bot:
+
+```bash
+python main.py
+```
+
+The bot will:
+
+1. Check the current market session
+2. Fetch recent crypto news
+3. Analyze sentiment and technical indicators
+4. Generate trade recommendations
+5. Send notifications via Telegram (if configured)
+6. Log trades to `trade_log.json`
+7. Evaluate performance and adjust parameters
+
+## Output
+
+The bot outputs recommended trades in the console and via Telegram, including:
+
+- Symbol and direction (LONG/SHORT)
+- Entry price
+- Stop loss and take profit levels
+- Recommended leverage
+- Risk-reward ratio
+
+## Files
+
+- `main.py`: Main bot script
+- `trade_log.json`: Log of recommended trades (created automatically)
+- `README.md`: This file
+
+## Risk Disclaimer
+
+**IMPORTANT**: This software is for educational and research purposes only. It is not intended to provide financial advice, and trading cryptocurrencies involves significant risk of loss. Past performance does not guarantee future results. Always do your own research and consider consulting a financial advisor before making trading decisions.
+
+The authors are not responsible for any financial losses incurred through the use of this software.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## Support
+
+If you find this project helpful, please give it a star on GitHub!
