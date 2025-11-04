@@ -6,7 +6,7 @@ import requests
 import logging
 import json
 from functools import lru_cache
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from newsapi import NewsApiClient
 import yfinance as yf
 from textblob import TextBlob
@@ -37,6 +37,56 @@ def send_telegram_message(message):
             print(f"Failed to send Telegram message: {response.text}")
     except Exception as e:
         print(f"Error sending Telegram message: {e}")
+
+def get_market_session():
+    """
+    Detect the current market session based on UTC time and weekday.
+    Returns a dict with session name, multiplier, and whether trading is allowed.
+    """
+    now_utc = datetime.now(timezone.utc)
+    current_hour = now_utc.hour
+    current_weekday = now_utc.weekday()  # 0=Monday, 6=Sunday
+    
+    # Check if it's weekend (Saturday=5, Sunday=6)
+    if current_weekday >= 5:
+        return {
+            'session': 'Weekend',
+            'multiplier': 0.0,
+            'allow_trading': False,
+            'reason': 'Weekend - Markets closed'
+        }
+    
+    # Determine active session based on UTC hour
+    # Sessions can overlap, priority: New York > London > Tokyo > Sydney
+    active_session = None
+    
+    if 13 <= current_hour < 22:  # New York (1PM-10PM UTC)
+        active_session = 'New York'
+    elif 8 <= current_hour < 16:  # London (8AM-4PM UTC)
+        active_session = 'London'
+    elif (0 <= current_hour < 9) or current_hour == 23:  # Tokyo (12AM-9AM UTC, wraps to 11PM)
+        active_session = 'Tokyo'
+    elif (22 <= current_hour < 24) or (0 <= current_hour < 7):  # Sydney (10PM-7AM UTC, wraps)
+        active_session = 'Sydney'
+    else:
+        active_session = 'Off-Hours'
+    
+    session_config = MARKET_SESSIONS.get(active_session, MARKET_SESSIONS['Off-Hours'])
+    
+    # For crypto, allow trading in all sessions except weekends and very low volume periods
+    # Off-Hours and Sydney have reduced activity
+    allow_trading = True
+    if active_session in ['Off-Hours', 'Sydney'] and session_config['multiplier'] < 0.9:
+        # Still allow trading but with reduced expectations
+        allow_trading = True
+    
+    return {
+        'session': active_session,
+        'multiplier': session_config['multiplier'],
+        'allow_trading': allow_trading,
+        'reason': f'{active_session} session active'
+    }
+
 
 CRYPTO_RSS_FEEDS = [
     ('CoinDesk', 'https://www.coindesk.com/arc/outboundfeeds/rss/'),
@@ -212,6 +262,15 @@ FVG_WEIGHT = 1.1
 CANDLE_WEIGHT = 1.1
 NEW_TECHNIQUE_ENABLED = False  # Placeholder for adding new techniques
 
+# Market session configurations
+MARKET_SESSIONS = {
+    'Sydney': {'start_hour': 22, 'end_hour': 7, 'multiplier': 0.95},  # 10PM-7AM UTC
+    'Tokyo': {'start_hour': 0, 'end_hour': 9, 'multiplier': 1.0},     # 12AM-9AM UTC
+    'London': {'start_hour': 8, 'end_hour': 16, 'multiplier': 1.15},  # 8AM-4PM UTC
+    'New York': {'start_hour': 13, 'end_hour': 22, 'multiplier': 1.2}, # 1PM-10PM UTC
+    'Off-Hours': {'multiplier': 0.85}  # Default for off-hours
+}
+
 def fetch_rss_items(url):
     '''Fetch RSS/Atom feed and return list of {'title','description'} items (best-effort).'''
     try:
@@ -253,7 +312,7 @@ def get_news():
     cutoff = datetime.now() - timedelta(hours=48)  # Last 48 hours for more data
     try:
         # Fetch crypto/business related from NewsAPI (use q to bias crypto)
-        resp_crypto = newsapi.get_everything(q='cryptocurrency OR crypto OR bitcoin OR ethereum OR blockchain OR nft OR defi OR solana OR dogecoin', language='en', sort_by='publishedAt', page_siz[...]
+        resp_crypto = newsapi.get_everything(q='cryptocurrency OR crypto OR bitcoin OR ethereum OR blockchain OR nft OR defi OR solana OR dogecoin', language='en', sort_by='publishedAt', page_size=100)
         resp_general = newsapi.get_top_headlines(category='business', language='en', country='us', page_size=100)
         for a in resp_crypto.get('articles', []) + resp_general.get('articles', []):
             pub_date = a.get('publishedAt')
@@ -468,7 +527,7 @@ def recommend_leverage(rr, volatility, kind='crypto'):
     lev = min(base, max_lev)
     return max(1, lev)
 
-def calculate_trade_plan(avg_sentiment, news_count, market_data):
+def calculate_trade_plan(avg_sentiment, news_count, market_data, session_multiplier=1.0):
     '''Return dict with direction, expected_profit_pct, stop_pct, rr, recommended_leverage.'''
     global ICHIMOKU_WEIGHT, VOLUME_WEIGHT, FVG_WEIGHT, CANDLE_WEIGHT
     if not market_data:
@@ -490,6 +549,9 @@ def calculate_trade_plan(avg_sentiment, news_count, market_data):
     # sentiment-driven expected move
     news_bonus = min(MAX_NEWS_BONUS, NEWS_COUNT_BONUS * news_count)
     expected_return = avg_sentiment * EXPECTED_RETURN_PER_SENTIMENT + news_bonus * (1 if avg_sentiment >= 0 else -1)
+    
+    # Apply market session multiplier to expected return
+    expected_return *= session_multiplier
 
     # Adjust for technical levels
     # Near resistance: reduce bullish
@@ -719,6 +781,19 @@ def evaluate_trades():
 
 def main():
     print('Crypto News Trading Bot v2.0 - Fetching latest signals...')
+    
+    # Check market session
+    session_info = get_market_session()
+    print(f"Current Market Session: {session_info['session']} (Multiplier: {session_info['multiplier']:.2f})")
+    print(f"Trading Status: {'Allowed' if session_info['allow_trading'] else 'Skipped'} - {session_info['reason']}")
+    
+    # Skip trading during weekends or when trading is not allowed
+    if not session_info['allow_trading']:
+        message = f"Trading skipped: {session_info['reason']}"
+        print(message)
+        send_telegram_message(message)
+        return []
+    
     articles = get_news()
     print(f'Retrieved {len(articles)} articles.')
 
@@ -752,7 +827,7 @@ def main():
         if not market:
             continue
 
-        plan = calculate_trade_plan(avg_sent, news_count, market)
+        plan = calculate_trade_plan(avg_sent, news_count, market, session_multiplier=session_info['multiplier'])
         if not plan:
             continue
 
@@ -804,9 +879,10 @@ def main():
         send_telegram_message(message)
         return []
 
-    message = f"Recommended trades:\nGenerated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Total articles: {len(articles)} | Candidates analyzed: {len(symbol_articles)}\n"
+    message = f"Market Session: {session_info['session']} (Volatility Multiplier: {session_info['multiplier']:.2f})\n"
+    message += f"Recommended trades:\nGenerated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC | Total articles: {len(articles)} | Candidates analyzed: {len(symbol_articles)}\n"
     print('\nRecommended trades:')
-    print(f"Generated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Total articles: {len(articles)} | Candidates analyzed: {len(symbol_articles)}")
+    print(f"Generated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC | Total articles: {len(articles)} | Candidates analyzed: {len(symbol_articles)}")
     for r in results:
         price = r['price']
         direction = r['direction']
