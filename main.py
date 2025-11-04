@@ -60,13 +60,13 @@ def get_market_session():
     # Priority reflects trading volume: New York > London > Tokyo > Sydney
     active_session = None
     
-    if 13 <= current_hour < 22:  # New York (1PM-10PM UTC)
+    if 13 <= current_hour < 22:  # New York (1PM-10PM UTC, 9 hours)
         active_session = 'New York'
-    elif 8 <= current_hour < 16:  # London (8AM-4PM UTC)
+    elif 8 <= current_hour < 13:  # London (8AM-1PM UTC, 5 hours)
         active_session = 'London'
-    elif 0 <= current_hour < 9:  # Tokyo (12AM-9AM UTC)
+    elif 0 <= current_hour < 8:  # Tokyo (12AM-8AM UTC, 8 hours)
         active_session = 'Tokyo'
-    elif 22 <= current_hour < 24:  # Sydney start (10PM-midnight UTC)
+    elif 22 <= current_hour < 24:  # Sydney (10PM-midnight UTC, 2 hours)
         active_session = 'Sydney'
     else:
         active_session = 'Off-Hours'
