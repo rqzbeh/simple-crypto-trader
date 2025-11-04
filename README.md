@@ -8,7 +8,7 @@ This tool fetches recent news articles related to cryptocurrencies from NewsAPI 
 
 It calculates trade plans with expected returns, stop losses, risk-reward ratios, and leverage recommendations. Suggestions include both long and short positions based on sentiment and technical confirmations. For low-capital traders, it adjusts parameters for higher ROI and better R/R, including a longer timeframe to reduce fees.
 
-The bot includes a learning mechanism: it logs all suggestions, evaluates their real-world performance (win/loss rates), and self-adjusts indicator weights and parameters to optimize over time.
+The bot includes a learning mechanism: it logs all suggestions, evaluates their real-world performance (win/loss rates), and self-adjusts indicator weights and parameters to optimize over time. It also considers current market sessions to adjust trading behavior, boosting activity during peak hours and reducing during off-hours or weekends.
 
 Recommendations are printed to the console and optionally sent via Telegram bot.
 
@@ -23,74 +23,10 @@ Recommendations are printed to the console and optionally sent via Telegram bot.
 - **Trade Calculation**: Generates trade plans with expected returns, stop losses, risk-reward ratios, and leverage recommendations (up to 100x for crypto). Supports both long and short directions.
 - **Low Money Trading**: Automatically adjusts for small accounts (entry cost < $100) with higher ROI, increased leverage, tighter stops for better R/R, and 30m timeframe to minimize fees.
 - **Learning Mechanism**: Logs all suggested trades to a JSON file, evaluates performance (win/loss rates), and self-adjusts indicator weights (e.g., boosting Ichimoku if it wins >60%) and parameters (e.g., tighter stops if win rate <30%) to optimize over time. Can neutralize underperforming indicators.
+- **Market Session Awareness**: Detects current global market sessions (Sydney, Tokyo, London, New York) based on UTC time and adjusts expected returns (boosting 20% during active sessions like London/New York, reducing 10% during off-hours), skips trades entirely on weekends for low liquidity.
 - **Telegram Notifications**: Sends trade suggestions via Telegram if configured.
 - **Filtering and Safety**: Filters out low-volume or delisted assets, and only suggests trades with reasonable risk-reward ratios.
 
 ## Installation
 
 1. Clone the repository:
-   ```
-   git clone https://github.com/rqzbeh/simple-python-trader.git
-   cd simple-python-trader
-   ```
-
-2. Install the required Python packages:
-   ```
-   pip install requests newsapi-python yfinance textblob
-   ```
-
-3. Set up environment variables:
-   - `NEWS_API_KEY`: Obtain a free API key from [NewsAPI](https://newsapi.org/).
-   - (Optional) `TELEGRAM_BOT_TOKEN`: Create a Telegram bot via [BotFather](https://t.me/botfather) and get the token.
-   - (Optional) `TELEGRAM_CHAT_ID`: Find your chat ID by messaging the bot and checking updates.
-
-   Example:
-   ```
-   export NEWS_API_KEY='your_news_api_key_here'
-   export TELEGRAM_BOT_TOKEN='your_bot_token_here'
-   export TELEGRAM_CHAT_ID='your_chat_id_here'
-   ```
-
-## Usage
-
-Run the script:
-```
-python main.py
-```
-
-The script will:
-- Fetch recent news (last 48 hours).
-- Analyze cryptocurrencies mentioned.
-- Compute trade suggestions (long/short).
-- Log suggestions and evaluate past performance for learning.
-- Print recommendations to the console.
-- Send a summary via Telegram if configured.
-
-Example output:
-```
-Recommended trades:
-Generated at 2025-11-03 21:27:15 | Total articles: 150 | Candidates analyzed: 25
-Symbol: BTC | Direction: LONG | Entry Price: 95000.0000 | Stop Loss: 94500.0000 | Take Profit: 95250.0000 | Leverage: 5
-Symbol: ETH | Direction: SHORT | Entry Price: 3200.0000 | Stop Loss: 3232.0000 | Take Profit: 3168.0000 | Leverage: 3
-...
-Evaluated 20 trades, win rate: 65.0%
-Ichimoku win rate: 70.0%, new weight: 1.32
-Adjusted: tighter stops due to low win rate (<30%).
-Enabled new technique placeholder due to low performance.
-```
-
-## Configuration
-
-- **Risk Settings**: Adjust parameters like `MIN_STOP_PCT`, `EXPECTED_RETURN_PER_SENTIMENT`, `MAX_LEVERAGE_CRYPTO` in the script for customization.
-- **Low Money Mode**: Set `LOW_MONEY_MODE = True` at the top of main.py to enable adjustments for low-capital trading and 30m timeframe.
-- **Learning Logs**: Check `trade_log.json` for logged trades and their statuses. The bot evaluates and adjusts after each run.
-- **News Sources**: Modify `CRYPTO_RSS_FEEDS` to add or remove RSS sources.
-- **Cryptocurrency Map**: Extend `CRYPTO_SYMBOL_MAP` and `CRYPTO_ALIASES` for more assets.
-
-## Disclaimer
-
-This tool is for educational and informational purposes only. It is not financial advice. Cryptocurrency trading involves significant risk of loss. Always do your own research and consider consulting a financial advisor.
-
-## License
-
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
