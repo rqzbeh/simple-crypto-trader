@@ -4,6 +4,7 @@ import math
 import re
 import requests
 import logging
+import json
 from functools import lru_cache
 from datetime import datetime, timedelta
 from newsapi import NewsApiClient
@@ -14,7 +15,7 @@ from textblob import TextBlob
 # Silence yfinance verbosity
 logging.getLogger("yfinance").setLevel(logging.ERROR)
 
-# -------------------- Configuration --------------------
+# -------------------- Configuration ---------------- ----
 NEWS_API_KEY = os.getenv('NEWS_API_KEY')
 if not NEWS_API_KEY:
     raise ValueError('Please set the NEWS_API_KEY environment variable')
@@ -127,7 +128,7 @@ CRYPTO_SYMBOL_MAP = {
     'SLERF': 'SLERF-USD',
     'GOAT': 'GOAT-USD',
     'WEN': 'WEN-USD',
-    'PUMP': 'PUMP-USD',
+    'WIF': 'WIF-USD',
     'SMOG': 'SMOG-USD',
 }
 
@@ -182,15 +183,35 @@ CRYPTO_ALIASES = {
     'CATINME': 'MEW',
 }
 
-# Risk settings (optimized for 15m fast trading)
-MIN_STOP_PCT = 0.001  # 0.1% minimal stop for 15m
-EXPECTED_RETURN_PER_SENTIMENT = 0.001  # 0.1% per full +1.0 sentiment for 15m
+# Risk settings (optimized for 15m or 30m fast trading)
+MIN_STOP_PCT = 0.001  # 0.1% minimal stop for 15m/30m
+EXPECTED_RETURN_PER_SENTIMENT = 0.001  # 0.1% per full +1.0 sentiment for 15m/30m
 NEWS_COUNT_BONUS = 0.0005  # 0.05% per article bonus
 MAX_NEWS_BONUS = 0.002  # Max 0.2%
 
-# Leverage caps
-MAX_LEVERAGE_CRYPTO = 20
+# Leverage caps - Updated to 100x for crypto
+MAX_LEVERAGE_CRYPTO = 100
 MAX_LEVERAGE_STOCK = 5
+
+# Low money mode flag - Set to True for accounts with small capital (< $500 equivalent)
+LOW_MONEY_MODE = False
+
+if LOW_MONEY_MODE:
+    EXPECTED_RETURN_PER_SENTIMENT = 0.002  # Higher ROI to offset fees
+    NEWS_COUNT_BONUS = 0.001  # Increased bonus
+    MAX_NEWS_BONUS = 0.004  # Higher max bonus
+    MIN_STOP_PCT = 0.0005  # Tighter stops for better R/R
+
+# Trade logging file
+TRADE_LOG_FILE = 'trade_log.json'
+
+# Indicator weights (adaptive learning)
+ICHIMOKU_WEIGHT = 1.2
+VOLUME_WEIGHT = 1.15
+FVG_WEIGHT = 1.1
+CANDLE_WEIGHT = 1.1
+NEW_TECHNIQUE_ENABLED = False  # Placeholder for adding new techniques
+
 def fetch_rss_items(url):
     '''Fetch RSS/Atom feed and return list of {'title','description'} items (best-effort).'''
     try:
@@ -212,15 +233,15 @@ def fetch_rss_items(url):
 
 # def fetch_tweets():
 #     '''Fetch recent tweets from influential users.'''
-#     users = ['elonmusk', 'realDonaldTrump', 'vitalikbuterin', 'cz_binance', 'brian_armstrong', 'saylor', 'michaeljburry', 'TimDraper', 'rogerkver', 'BarrySilbert', 'brian_armstrong', 'sandeepnailwal', 'zhusu', 'lexfridman', 'demishassabis', 'brian_armstrong', 'sandeepnailwal', 'zhusu', 'lexfridman', 'demishassabis']
+#     users = ['elonmusk', 'realDonaldTrump', 'vitalikbuterin', 'cz_binance', 'brian_armstrong', 'saylor', 'michaeljburry', 'TimDraper', 'rogerkver', 'BarrySilbert', 'brian_armstrong', 'sandeepna[...]
 #     tweets = []
-#     cutoff = datetime.now() - timedelta(hours=24)  # Last 24 hours for fast trading
+#     cutoff = datetime.now() - timedelta(hours=24) # Last 24 hours for fast trading
 #     for user in users:
 #         try:
 #             query = f'from:{user} since:{cutoff.date()}'
 #             for tweet in sntwitter.TwitterSearchScraper(query).get_items():
 #                 if tweet.date.replace(tzinfo=None) < cutoff:
-#                     break
+#                 break
 #                 tweets.append({'title': tweet.rawContent, 'description': '', 'source': f'Twitter-{user}'})
 #         except Exception as e:
 #             print(f'Failed to fetch tweets from {user}: {e}')
@@ -232,7 +253,7 @@ def get_news():
     cutoff = datetime.now() - timedelta(hours=48)  # Last 48 hours for more data
     try:
         # Fetch crypto/business related from NewsAPI (use q to bias crypto)
-        resp_crypto = newsapi.get_everything(q='cryptocurrency OR crypto OR bitcoin OR ethereum OR blockchain OR nft OR defi OR solana OR dogecoin', language='en', sort_by='publishedAt', page_size=100)
+        resp_crypto = newsapi.get_everything(q='cryptocurrency OR crypto OR bitcoin OR ethereum OR blockchain OR nft OR defi OR solana OR dogecoin', language='en', sort_by='publishedAt', page_siz[...]
         resp_general = newsapi.get_top_headlines(category='business', language='en', country='us', page_size=100)
         for a in resp_crypto.get('articles', []) + resp_general.get('articles', []):
             pub_date = a.get('publishedAt')
@@ -273,7 +294,7 @@ def extract_crypto_and_tickers(text: str):
     """
     text_u = normalize_text(text)
     found = {}
-
+ 
     # 1) $TICKER patterns (common in crypto/news posts)
     for m in re.findall(r'\$([A-Z]{2,6})\b', text_u):
         key = m.upper()
@@ -319,11 +340,12 @@ def analyze_sentiment(texts):
 
 @lru_cache(maxsize=100)
 def get_market_data(yf_symbol, kind='stock'):
-    """Get recent price, volatility/ATR, pivots, S/R, psych levels, candle patterns."""
+    """Get recent price, volatility/ATR, pivots, S/R, psych levels, candle patterns, smart money volume, ICT FVG."""
     try:
         ticker = yf.Ticker(yf_symbol)
-        # Hourly data for 1-hour trading -> change to 15m for fast trading
-        hist_hourly = ticker.history(period='3d', interval='15m')
+        # Use 30m for low money mode (better ROI, fewer fees), else 15m
+        interval = '30m' if LOW_MONEY_MODE else '15m'
+        hist_hourly = ticker.history(period='3d', interval=interval)
         # Daily data for pivots
         hist_daily = ticker.history(period='30d', interval='1d')
         if hist_hourly.empty or len(hist_hourly) < 26 or hist_daily.empty or len(hist_daily) < 2:
@@ -336,6 +358,7 @@ def get_market_data(yf_symbol, kind='stock'):
         close = hist_hourly['Close'].dropna()
         high = hist_hourly['High'].dropna()
         low = hist_hourly['Low'].dropna()
+        volume = hist_hourly['Volume'].dropna()
         current_price = float(close.iloc[-1])
 
         # Volatility and ATR
@@ -390,6 +413,26 @@ def get_market_data(yf_symbol, kind='stock'):
               tenkan.iloc[-1] < kijun.iloc[-1] and senkou_a.iloc[-1] < senkou_b.iloc[-1]):
             ichimoku_signal = -1
 
+        # Smart Money: Volume confirmation (institutional order flow)
+        volume_avg = volume.tail(20).mean()
+        recent_volume = volume.iloc[-1]
+        volume_signal = 0  # 1 smart money buying, -1 smart money selling
+        if recent_volume > volume_avg * 1.2:
+            if close.iloc[-1] > close.iloc[-2]:
+                volume_signal = 1
+            elif close.iloc[-1] < close.iloc[-2]:
+                volume_signal = -1
+
+        # ICT: Fair Value Gap (FVG) detection - simple version
+        fvg_signal = 0  # 1 bullish FVG, -1 bearish FVG
+        if len(close) >= 4:
+            # Bullish FVG: low of current > high of 2 candles ago
+            if low.iloc[-1] > high.iloc[-3]:
+                fvg_signal = 1
+            # Bearish FVG: high of current < low of 2 candles ago
+            elif high.iloc[-1] < low.iloc[-3]:
+                fvg_signal = -1
+
         return {
             'price': current_price,
             'volatility_hourly': float(vol_hourly),
@@ -401,7 +444,9 @@ def get_market_data(yf_symbol, kind='stock'):
             'resistance': float(recent_high),
             'psych_level': float(psych_level),
             'candle_signal': candle_signal,
-            'ichimoku_signal': ichimoku_signal
+            'ichimoku_signal': ichimoku_signal,
+            'volume_signal': volume_signal,
+            'fvg_signal': fvg_signal
         }
     except Exception as e:
         # Suppress yfinance errors for cleaner output
@@ -417,14 +462,15 @@ def recommend_leverage(rr, volatility, kind='crypto'):
     if volatility is None:
         volatility = 1.0
     if volatility > 1.0:  # >100% annualized -> risky
-        max_lev = min(max_lev, 5)
+        max_lev = min(max_lev, 50)  # Adjusted for higher cap
     if volatility > 2.0:
-        max_lev = min(max_lev, 2)
+        max_lev = min(max_lev, 20)
     lev = min(base, max_lev)
     return max(1, lev)
 
 def calculate_trade_plan(avg_sentiment, news_count, market_data):
     '''Return dict with direction, expected_profit_pct, stop_pct, rr, recommended_leverage.'''
+    global ICHIMOKU_WEIGHT, VOLUME_WEIGHT, FVG_WEIGHT, CANDLE_WEIGHT
     if not market_data:
         return None
     price = market_data['price']
@@ -437,7 +483,9 @@ def calculate_trade_plan(avg_sentiment, news_count, market_data):
     resistance = market_data['resistance']
     psych_level = market_data['psych_level']
     candle_signal = market_data['candle_signal']
-    ichimoku_signal = market_data.get('ichimoku_signal', 0)
+    ichimoku_signal = market_data['ichimoku_signal']
+    volume_signal = market_data['volume_signal']
+    fvg_signal = market_data['fvg_signal']
 
     # sentiment-driven expected move
     news_bonus = min(MAX_NEWS_BONUS, NEWS_COUNT_BONUS * news_count)
@@ -455,38 +503,60 @@ def calculate_trade_plan(avg_sentiment, news_count, market_data):
     if abs(price - psych_level) / price < 0.01:
         expected_return *= 1.1
 
-    # Candle confirmation: boost if matches sentiment
+    # Candle confirmation: boost if matches sentiment (using adaptive weight)
     if (avg_sentiment > 0 and candle_signal > 0) or (avg_sentiment < 0 and candle_signal < 0):
-        expected_return *= 1.1
+        expected_return *= CANDLE_WEIGHT
     elif (avg_sentiment > 0 and candle_signal < 0) or (avg_sentiment < 0 and candle_signal > 0):
-        expected_return *= 0.9
+        expected_return *= (2 - CANDLE_WEIGHT)  # Dampen inversely
 
     # Ichimoku confirmation: boost if matches sentiment
     if (avg_sentiment > 0 and ichimoku_signal > 0) or (avg_sentiment < 0 and ichimoku_signal < 0):
-        expected_return *= 1.2
+        expected_return *= ICHIMOKU_WEIGHT
     elif (avg_sentiment > 0 and ichimoku_signal < 0) or (avg_sentiment < 0 and ichimoku_signal > 0):
-        expected_return *= 0.8
+        expected_return *= (2 - ICHIMOKU_WEIGHT)
     elif ichimoku_signal == 0:
         expected_return *= 0.95  # slight dampen if Ichimoku neutral
+
+    # Smart Money: Volume confirmation boost
+    if (avg_sentiment > 0 and volume_signal > 0) or (avg_sentiment < 0 and volume_signal < 0):
+        expected_return *= VOLUME_WEIGHT
+    elif (avg_sentiment > 0 and volume_signal < 0) or (avg_sentiment < 0 and volume_signal > 0):
+        expected_return *= (2 - VOLUME_WEIGHT)
+
+    # ICT: FVG confirmation
+    if (avg_sentiment > 0 and fvg_signal > 0) or (avg_sentiment < 0 and fvg_signal < 0):
+        expected_return *= FVG_WEIGHT
+    elif (avg_sentiment > 0 and fvg_signal < 0) or (avg_sentiment < 0 and fvg_signal > 0):
+        expected_return *= (2 - FVG_WEIGHT)
 
     expected_profit_pct = abs(expected_return)
 
     vol = market_data.get('volatility_hourly', 0.0)
     atr_pct = market_data.get('atr_pct', 0.005)
-    # Determine stop loss percent (use ATR for optimized 15m stops)
-    stop_pct = max(MIN_STOP_PCT, atr_pct * 1.0)  # 1.0x ATR for tighter stops on 15m
+    # Determine stop loss percent (use ATR for optimized 15m/30m stops)
+    stop_pct = max(MIN_STOP_PCT, atr_pct * 1.0)  # 1.0x ATR for tighter stops on 15m/30m
 
     if stop_pct <= 0:
         return None
 
     rr = expected_profit_pct / stop_pct if stop_pct > 0 else 0.0
 
-    # decide direction (very low threshold for 1-hour)
+    # decide direction (adjusted thresholds for short trades)
     direction = 'flat'
-    if expected_return > 0.001:  # 0.1% for long
+    if expected_return > 0.0005:  # 0.05% for long
         direction = 'long'
-    elif expected_return < -0.001:  # -0.1% for short
+    elif expected_return < -0.0002:  # Lower threshold for short to allow more shorts
         direction = 'short'
+
+    # For bearish Ichimoku or candle, allow short even if sentiment neutral
+    if direction == 'flat' and ichimoku_signal == -1:
+        direction = 'short'
+        expected_return = -0.001  # Set small negative
+        expected_profit_pct = 0.001
+    elif direction == 'flat' and candle_signal == -1 and avg_sentiment < 0.1:
+        direction = 'short'
+        expected_return = -0.001
+        expected_profit_pct = 0.001
 
     lev = recommend_leverage(rr, vol, kind='crypto')
 
@@ -507,52 +577,10 @@ def calculate_trade_plan(avg_sentiment, news_count, market_data):
         'psych_level': psych_level,
         'candle_signal': candle_signal,
         'ichimoku_signal': ichimoku_signal,
+        'volume_signal': volume_signal,
+        'fvg_signal': fvg_signal,
     }
-    if not market_data:
-        return None
-    # sentiment-driven expected move
-    news_bonus = min(MAX_NEWS_BONUS, NEWS_COUNT_BONUS * news_count)
-    expected_return = avg_sentiment * EXPECTED_RETURN_PER_SENTIMENT + news_bonus * (1 if avg_sentiment >= 0 else -1)
 
-    expected_profit_pct = abs(expected_return)
-
-    vol = market_data.get('volatility_hourly', 0.0)
-    atr_pct = market_data.get('atr_pct', 0.005)  # Default 0.5%
-    # Determine stop loss percent (use ATR for optimized 1-hour stops)
-    stop_pct = max(MIN_STOP_PCT, atr_pct * 1.5)  # 1.5x ATR for precise stops
-
-    if stop_pct <= 0:
-        return None
-
-    rr = expected_profit_pct / stop_pct if stop_pct > 0 else 0.0
-
-    # decide direction (very low threshold for 1-hour)
-    direction = 'flat'
-    if expected_return > 0.001:  # 0.1% for long
-        direction = 'long'
-    elif expected_return < -0.001:  # -0.1% for short
-        direction = 'short'
-
-    lev = recommend_leverage(rr, vol, kind='crypto')
-
-    return {
-        'direction': direction,
-        'expected_return_pct': expected_return,
-        'expected_profit_pct': expected_profit_pct,
-        'stop_pct': stop_pct,
-        'rr': rr,
-        'recommended_leverage': lev,
-        'volatility_hourly': vol,
-        'atr_pct': atr_pct,
-        'pivot': pivot,
-        'r1': r1, 'r2': r2,
-        's1': s1, 's2': s2,
-        'support': support,
-        'resistance': resistance,
-        'psych_level': psych_level,
-        'candle_signal': candle_signal,
-        'ichimoku_signal': ichimoku_signal,
-    }
 # --- ADD this helper anywhere above main() ---
 @lru_cache(maxsize=2048)
 def _symbol_has_prices(yf_symbol: str) -> bool:
@@ -562,6 +590,132 @@ def _symbol_has_prices(yf_symbol: str) -> bool:
         return (not hist.empty) and (len(hist['Close'].dropna()) >= 5)
     except Exception:
         return False
+
+def log_trades(results):
+    """Log suggested trades to JSON file with indicator signals."""
+    if not os.path.exists(TRADE_LOG_FILE):
+        with open(TRADE_LOG_FILE, 'w') as f:
+            json.dump([], f)
+    
+    with open(TRADE_LOG_FILE, 'r') as f:
+        logs = json.load(f)
+    
+    for r in results:
+        price = r['price']
+        direction = r['direction']
+        stop_pct = r['stop_pct']
+        exp_return_pct = r['expected_return_pct']
+        if direction == 'long':
+            stop_price = price * (1 - stop_pct)
+            target_price = price * (1 + exp_return_pct)
+        elif direction == 'short':
+            stop_price = price * (1 + stop_pct)
+            target_price = price * (1 - exp_return_pct)
+        else:
+            continue  # Skip flat
+        trade = {
+            'timestamp': datetime.now().isoformat(),
+            'symbol': r['symbol'],
+            'direction': direction,
+            'entry_price': price,
+            'stop_price': stop_price,
+            'target_price': target_price,
+            'leverage': r['recommended_leverage'],
+            'status': 'open',
+            'candle_signal': r['candle_signal'],
+            'ichimoku_signal': r['ichimoku_signal'],
+            'volume_signal': r['volume_signal'],
+            'fvg_signal': r['fvg_signal']
+        }
+        logs.append(trade)
+    
+    with open(TRADE_LOG_FILE, 'w') as f:
+        json.dump(logs, f, indent=2)
+
+def evaluate_trades():
+    """Evaluate past trades and adjust indicator weights based on performance."""
+    global ICHIMOKU_WEIGHT, VOLUME_WEIGHT, FVG_WEIGHT, CANDLE_WEIGHT, NEW_TECHNIQUE_ENABLED
+    if not os.path.exists(TRADE_LOG_FILE):
+        return
+    
+    with open(TRADE_LOG_FILE, 'r') as f:
+        logs = json.load(f)
+    
+    indicator_wins = {'candle': 0, 'ichimoku': 0, 'volume': 0, 'fvg': 0}
+    indicator_losses = {'candle': 0, 'ichimoku': 0, 'volume': 0, 'fvg': 0}
+    total_wins = 0
+    total = 0
+    
+    for trade in logs:
+        if trade['status'] != 'open':
+            continue
+        symbol = trade['symbol']
+        yf_symbol = CRYPTO_SYMBOL_MAP.get(symbol, symbol + '-USD')
+        try:
+            ticker = yf.Ticker(yf_symbol)
+            current_price = float(ticker.history(period='1d')['Close'].iloc[-1])
+        except:
+            continue
+        direction = trade['direction']
+        stop = trade['stop_price']
+        target = trade['target_price']
+        win = False
+        if direction == 'long':
+            if current_price >= target:
+                trade['status'] = 'win'
+                win = True
+                total_wins += 1
+            elif current_price <= stop:
+                trade['status'] = 'loss'
+        elif direction == 'short':
+            if current_price <= target:
+                trade['status'] = 'win'
+                win = True
+                total_wins += 1
+            elif current_price >= stop:
+                trade['status'] = 'loss'
+        total += 1
+        
+        # Track indicator performance
+        for ind in ['candle', 'ichimoku', 'volume', 'fvg']:
+            signal = trade[f'{ind}_signal']
+            if win:
+                if (direction == 'long' and signal > 0) or (direction == 'short' and signal < 0):
+                    indicator_wins[ind] += 1
+            else:
+                if (direction == 'long' and signal > 0) or (direction == 'short' and signal < 0):
+                    indicator_losses[ind] += 1
+    
+    if total > 0:
+        win_rate = total_wins / total
+        print(f"Evaluated {total} trades, win rate: {win_rate:.2%}")
+        
+        # Adjust weights per indicator
+        for ind in ['candle', 'ichimoku', 'volume', 'fvg']:
+            wins = indicator_wins[ind]
+            losses = indicator_losses[ind]
+            if wins + losses > 0:
+                ind_win_rate = wins / (wins + losses)
+                if ind_win_rate > 0.6:
+                    globals()[f'{ind.upper()}_WEIGHT'] *= 1.1  # Boost good performers
+                elif ind_win_rate < 0.4:
+                    globals()[f'{ind.upper()}_WEIGHT'] *= 0.9  # Reduce bad performers
+                if globals()[f'{ind.upper()}_WEIGHT'] < 1.0:
+                    globals()[f'{ind.upper()}_WEIGHT'] = 1.0  # Neutralize underperformers
+                print(f"{ind.capitalize()} win rate: {ind_win_rate:.2%}, new weight: {globals()[f'{ind.upper()}_WEIGHT']:.2f}")
+        
+        # Adjust overall parameters if win rate < 30%
+        if win_rate < 0.3:
+            global EXPECTED_RETURN_PER_SENTIMENT, MIN_STOP_PCT
+            MIN_STOP_PCT *= 0.9
+            print("Adjusted: tighter stops due to low win rate (<30%).")
+            # Enable new technique if overall poor
+            NEW_TECHNIQUE_ENABLED = True
+            print("Enabled new technique placeholder due to low performance.")
+        
+        # Save back
+        with open(TRADE_LOG_FILE, 'w') as f:
+            json.dump(logs, f, indent=2)
 
 def main():
     print('Crypto News Trading Bot v2.0 - Fetching latest signals...')
@@ -610,6 +764,15 @@ def main():
         if kind == 'stock' and not _symbol_has_prices(yf_symbol):
             continue
 
+        # Low money adjustments: if entry * leverage < $100, boost ROI and leverage for better R/R
+        entry_cost = market['price'] * plan['recommended_leverage']
+        if entry_cost < 100:
+            plan['expected_return_pct'] *= 1.5  # Higher ROI
+            plan['expected_profit_pct'] *= 1.5
+            plan['recommended_leverage'] = min(plan['recommended_leverage'] * 2, MAX_LEVERAGE_CRYPTO)  # Higher leverage
+            plan['stop_pct'] *= 0.7  # Tighter stops for better R/R
+            plan['rr'] = plan['expected_profit_pct'] / plan['stop_pct'] if plan['stop_pct'] > 0 else 0
+
         results.append({
             'symbol': sym,
             'yf_symbol': yf_symbol,
@@ -627,6 +790,8 @@ def main():
             'psych_level': market['psych_level'],
             'candle_signal': market['candle_signal'],
             'ichimoku_signal': market['ichimoku_signal'],
+            'volume_signal': market['volume_signal'],
+            'fvg_signal': market['fvg_signal'],
             **plan
         })
 
@@ -656,11 +821,18 @@ def main():
         else:
             stop_price = price
             target_price = price
-        trade_line = f"Symbol: {r['symbol']} | Direction: {r['direction'].upper()} | Entry Price: {r['price']:.4f} | Stop Loss: {stop_price:.4f} | Take Profit: {target_price:.4f} | Leverage: {r['recommended_leverage']}x"
+        trade_line = f"Symbol: {r['symbol']} | Direction: {r['direction'].upper()} | Entry Price: {r['price']:.4f} | Stop Loss: {stop_price:.4f} | Take Profit: {target_price:.4f} | Leverage: {r['recommended_leverage']}"
         message += trade_line + "\n"
         print(trade_line)
 
     send_telegram_message(message)
+    
+    # Log trades
+    log_trades(results)
+    
+    # Evaluate and learn every run
+    evaluate_trades()
+    
     return results
 
 
