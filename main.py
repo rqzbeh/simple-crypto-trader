@@ -668,6 +668,10 @@ def evaluate_trades():
     for trade in logs:
         if trade['status'] != 'open':
             continue
+        # Skip trades logged in the last 1 hour to allow time for execution
+        trade_time = datetime.fromisoformat(trade['timestamp'])
+        if datetime.now() - trade_time < timedelta(hours=1):
+            continue
         symbol = trade['symbol']
         yf_symbol = CRYPTO_SYMBOL_MAP.get(symbol, symbol + '-USD')
         try:
