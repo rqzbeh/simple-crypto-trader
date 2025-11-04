@@ -17,12 +17,11 @@ Recommendations are printed to the console and optionally sent via Telegram bot.
 - **News Aggregation**: Collects articles from NewsAPI and RSS feeds from prominent crypto news sources.
 - **Cryptocurrency Detection**: Automatically identifies cryptocurrencies mentioned in news (supports BTC, ETH, DOGE, SHIB, SOL, ADA, XRP, LTC, BNB, LINK, AVAX, MATIC, DOT, UNI, AAVE, SUSHI, CAKE, LUNA, ATOM, ALGO, VET, ICP, FIL, TRX, ETC, XLM, THETA, FTT, HBAR, NEAR, FLOW, MANA, SAND, AXS, CHZ, ENJ, BAT, OMG, ZRX, REP, GNT, STORJ, ANT, MKR, COMP, YFI, BAL, REN, LRC, KNC, ZKS, IMX, APE, GMT, GAL, OP, ARB, PEPE, FLOKI, BONK, WIF, MEW, POPCAT, TURBO, BRETT, MOTHER, CUMMIES, SLERF, GOAT, WEN, PUMP, SMOG).
 - **Sentiment Analysis**: Uses TextBlob for polarity scoring of news sentiment, boosted for influential sources.
-- **Market Session Awareness**: Detects current market session (Sydney, Tokyo, London, New York) based on UTC time and adjusts expected returns accordingly:
-  - **New York Session** (1PM-10PM UTC): +20% expected return boost for higher volatility and trading volume
-  - **London Session** (8AM-4PM UTC): +15% expected return boost for active trading
-  - **Tokyo Session** (12AM-9AM UTC): Neutral (no adjustment)
-  - **Sydney Session** (10PM-7AM UTC): -5% expected return reduction for lower volume
-  - **Off-Hours**: -15% expected return reduction for minimal activity
+- **Market Session Awareness**: Detects current market session based on UTC time and adjusts expected returns accordingly (crypto markets trade 24/7, all hours covered):
+  - **New York Session** (1PM-10PM UTC): +20% expected return boost for highest volatility and trading volume
+  - **London Session** (8AM-1PM UTC): +15% expected return boost for active trading
+  - **Tokyo Session** (12AM-8AM UTC): Neutral baseline (no adjustment)
+  - **Sydney Session** (10PM-midnight UTC): -5% expected return reduction for lower volume
   - **Weekend Trading**: Completely skipped (Saturday-Sunday)
 - **Market Data Integration**: Fetches 15-minute or 30-minute interval data from yfinance (30m for low-money mode), including price, volatility, ATR, pivot points, support/resistance levels, psychological levels, candle patterns, Ichimoku Cloud, smart money volume signals, and ICT Fair Value Gaps.
 - **Smart Money Concepts**: Analyzes volume to detect institutional order flow, boosting signals aligned with smart money moves.

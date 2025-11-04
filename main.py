@@ -259,12 +259,13 @@ CANDLE_WEIGHT = 1.1
 NEW_TECHNIQUE_ENABLED = False  # Placeholder for adding new techniques
 
 # Market session configurations
+# Note: All 24 hours covered by major sessions (crypto trades 24/7)
 MARKET_SESSIONS = {
-    'Sydney': {'multiplier': 0.95},     # 10PM-11:59PM UTC
-    'Tokyo': {'multiplier': 1.0},       # 12AM-9AM UTC
-    'London': {'multiplier': 1.15},     # 8AM-4PM UTC
-    'New York': {'multiplier': 1.2},    # 1PM-10PM UTC
-    'Off-Hours': {'multiplier': 0.85}   # Other hours (9AM-1PM, 4PM-10PM)
+    'Sydney': {'multiplier': 0.95},     # 10PM-midnight UTC (2 hours)
+    'Tokyo': {'multiplier': 1.0},       # 12AM-8AM UTC (8 hours)
+    'London': {'multiplier': 1.15},     # 8AM-1PM UTC (5 hours, NY takes priority 1PM+)
+    'New York': {'multiplier': 1.2},    # 1PM-10PM UTC (9 hours)
+    'Off-Hours': {'multiplier': 0.85}   # Fallback (not used with current ranges)
 }
 
 def fetch_rss_items(url):
