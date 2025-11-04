@@ -2,6 +2,7 @@ import os
 import time
 import math
 import re
+import json
 import requests
 import logging
 from functools import lru_cache
@@ -113,7 +114,7 @@ CRYPTO_SYMBOL_MAP = {
     'GMT': 'GMT-USD',
     'GAL': 'GAL-USD',
     'OP': 'OP-USD',
-    'ARB': 'ARB11841-USD',
+    'ARB': 'ARB-USD',
     'PEPE': 'PEPE-USD',
     'FLOKI': 'FLOKI-USD',
     'BONK': 'BONK-USD',
@@ -193,7 +194,7 @@ MAX_LEVERAGE_CRYPTO = 100
 MAX_LEVERAGE_STOCK = 5
 
 # Low money mode flag - Set to True for accounts with small capital (< $500 equivalent)
-LOW_MONEY_MODE = False
+LOW_MONEY_MODE = True
 
 if LOW_MONEY_MODE:
     EXPECTED_RETURN_PER_SENTIMENT = 0.002  # Higher ROI to offset fees
@@ -271,7 +272,7 @@ def get_news():
     cutoff = datetime.now() - timedelta(hours=48)  # Last 48 hours for more data
     try:
         # Fetch crypto/business related from NewsAPI (use q to bias crypto)
-        resp_crypto = newsapi.get_everything(q='cryptocurrency OR crypto OR bitcoin OR ethereum OR blockchain OR nft OR defi OR solana OR dogecoin', language='en', sort_by='publishedAt', page_siz[...]
+        resp_crypto = newsapi.get_everything(q='cryptocurrency OR crypto OR bitcoin OR ethereum OR blockchain OR nft OR defi OR solana OR dogecoin', language='en', sort_by='publishedAt', page_size=100)
         resp_general = newsapi.get_top_headlines(category='business', language='en', country='us', page_size=100)
         for a in resp_crypto.get('articles', []) + resp_general.get('articles', []):
             pub_date = a.get('publishedAt')
