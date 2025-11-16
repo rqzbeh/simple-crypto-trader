@@ -18,11 +18,14 @@ class CryptoMarketAnalyzer:
     def __init__(self, groq_client=None):
         self.groq_client = groq_client
         self.performance_history = []
+        self.indicator_performance = {}  # Track each indicator's accuracy
         self.strategy_adjustments = {
             'indicator_weights': {},
             'risk_multiplier': 1.0,
             'confidence_threshold': 0.3
         }
+        self.last_optimization = datetime.now()
+        self.optimization_interval = 20  # Optimize every 20 trades
     
     def analyze_with_llm(self, symbol: str, market_data: Dict, sentiment_data: Dict, 
                         news_articles: List[Dict]) -> Dict[str, Any]:
@@ -61,13 +64,13 @@ TECHNICAL INDICATORS:
 Strong Signals: {', '.join(strong_signals) if strong_signals else 'None'}
 Neutral Signals: {', '.join(weak_signals[:5]) if weak_signals else 'None'}
 
-RSI: {indicators['rsi']['value']:.1f} (Oversold<30, Overbought>70)
-Stochastic RSI: {indicators['stoch_rsi']['value']:.1f}
+Stochastic RSI: {indicators['stoch_rsi']['value']:.1f} (Oversold<20, Overbought>80)
 MACD Histogram: {indicators['macd']['value']:.4f}
 Price vs VWAP: {"Above" if indicators['vwap']['signal'] > 0 else "Below"}
 Bollinger Band Position: {indicators['bb']['position']*100:.1f}%
 ADX (Trend Strength): {indicators['adx']['value']:.1f} (Strong>25)
 Supertrend: {"BULLISH" if indicators['supertrend']['signal'] > 0 else "BEARISH"}
+EMA Trend: {indicators['ema_trend'].get('signal', 0)}
 
 SENTIMENT ANALYSIS:
 Score: {sentiment_data.get('score', 0):.2f} (-1 to +1 scale)
@@ -91,7 +94,7 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
 
         try:
             response = self.groq_client.chat.completions.create(
-                model="llama-3.1-70b-versatile",  # Larger model for better analysis
+                model="llama-3.3-70b-versatile",  # Updated model (3.1 deprecated)
                 messages=[{
                     "role": "system",
                     "content": "You are an expert cryptocurrency trader with deep knowledge of technical analysis, market psychology, and risk management."
@@ -268,51 +271,199 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
     def learn_from_trade(self, trade_result: Dict):
         """
         Adaptive learning from trade outcomes
-        Similar to AI-Trader's self-optimization
+        Tracks overall performance AND individual indicator accuracy
         """
         self.performance_history.append({
             'timestamp': datetime.now().isoformat(),
             'result': trade_result
         })
         
+        # Track indicator performance if available
+        if 'indicators' in trade_result and 'profit' in trade_result:
+            profit = trade_result['profit']
+            is_win = profit > 0
+            
+            for indicator, signal in trade_result.get('indicators', {}).items():
+                if indicator not in self.indicator_performance:
+                    self.indicator_performance[indicator] = {
+                        'correct': 0,
+                        'wrong': 0,
+                        'total': 0,
+                        'total_profit': 0.0,
+                        'accuracy': 0.5  # Start neutral
+                    }
+                
+                # Check if indicator was correct
+                direction_match = (
+                    (signal > 0 and is_win) or 
+                    (signal < 0 and is_win) or
+                    (signal == 0)
+                )
+                
+                if direction_match:
+                    self.indicator_performance[indicator]['correct'] += 1
+                else:
+                    self.indicator_performance[indicator]['wrong'] += 1
+                
+                self.indicator_performance[indicator]['total'] += 1
+                self.indicator_performance[indicator]['total_profit'] += profit
+                
+                # Update accuracy
+                total = self.indicator_performance[indicator]['total']
+                correct = self.indicator_performance[indicator]['correct']
+                self.indicator_performance[indicator]['accuracy'] = correct / total if total > 0 else 0.5
+        
         # Keep last 50 trades
         if len(self.performance_history) > 50:
             self.performance_history = self.performance_history[-50:]
         
-        # Analyze performance and adjust
+        # Analyze performance and adjust strategy
         if len(self.performance_history) >= 10:
             self._adjust_strategy()
+        
+        # Optimize indicator weights periodically
+        trades_since_optimization = len(self.performance_history)
+        if trades_since_optimization >= self.optimization_interval:
+            self._optimize_indicator_weights()
+            self.last_optimization = datetime.now()
     
     def _adjust_strategy(self):
-        """Adjust strategy based on recent performance"""
+        """Adjust strategy based on recent performance - DYNAMIC OPTIMIZATION"""
         recent_trades = self.performance_history[-20:]
+        
+        if not recent_trades:
+            return
         
         # Calculate win rate
         wins = sum(1 for t in recent_trades if t['result'].get('profit', 0) > 0)
         win_rate = wins / len(recent_trades)
         
-        # Adjust confidence threshold
-        if win_rate < 0.4:
-            # Losing more - be more selective
+        # Calculate average profit/loss
+        profits = [t['result'].get('profit', 0) for t in recent_trades]
+        avg_profit = sum(profits) / len(profits) if profits else 0
+        
+        # Adjust confidence threshold based on win rate
+        if win_rate < 0.35:
+            # Losing too much - be MUCH more selective
+            self.strategy_adjustments['confidence_threshold'] = min(0.6, 
+                self.strategy_adjustments['confidence_threshold'] + 0.08)
+        elif win_rate < 0.45:
+            # Losing - be more selective
             self.strategy_adjustments['confidence_threshold'] = min(0.5, 
                 self.strategy_adjustments['confidence_threshold'] + 0.05)
-        elif win_rate > 0.6:
-            # Winning more - can be slightly more aggressive
+        elif win_rate > 0.65:
+            # Winning a lot - can be more aggressive
+            self.strategy_adjustments['confidence_threshold'] = max(0.2,
+                self.strategy_adjustments['confidence_threshold'] - 0.03)
+        elif win_rate > 0.55:
+            # Winning - slightly more aggressive
             self.strategy_adjustments['confidence_threshold'] = max(0.25,
                 self.strategy_adjustments['confidence_threshold'] - 0.02)
         
         # Adjust risk based on volatility of returns
-        profits = [t['result'].get('profit', 0) for t in recent_trades]
-        if profits:
+        if profits and len(profits) > 1:
             import statistics
-            volatility = statistics.stdev(profits) if len(profits) > 1 else 0
-            if volatility > 0.1:  # High volatility
-                self.strategy_adjustments['risk_multiplier'] = 0.8  # Reduce risk
+            volatility = statistics.stdev(profits)
+            
+            if volatility > 0.15:  # Very high volatility
+                self.strategy_adjustments['risk_multiplier'] = 0.7
+            elif volatility > 0.10:  # High volatility
+                self.strategy_adjustments['risk_multiplier'] = 0.8
+            elif volatility < 0.05 and avg_profit > 0:  # Low volatility, profitable
+                self.strategy_adjustments['risk_multiplier'] = 1.1  # Can take more risk
             else:
                 self.strategy_adjustments['risk_multiplier'] = 1.0
         
-        print(f"Strategy adjusted - Confidence threshold: {self.strategy_adjustments['confidence_threshold']:.2f}, Risk multiplier: {self.strategy_adjustments['risk_multiplier']:.2f}")
+        print(f"\n📊 Strategy Auto-Adjusted:")
+        print(f"   Win Rate: {win_rate*100:.1f}% | Avg Profit: {avg_profit*100:.2f}%")
+        print(f"   Confidence Threshold: {self.strategy_adjustments['confidence_threshold']:.2f}")
+        print(f"   Risk Multiplier: {self.strategy_adjustments['risk_multiplier']:.2f}\n")
+    
+    def _optimize_indicator_weights(self):
+        """
+        Dynamically optimize indicator weights based on performance
+        Remove underperforming indicators, boost winning ones
+        """
+        if not self.indicator_performance:
+            return
+        
+        print(f"\n🔧 OPTIMIZING INDICATOR WEIGHTS...")
+        print(f"{'='*60}")
+        
+        # Sort indicators by accuracy
+        sorted_indicators = sorted(
+            self.indicator_performance.items(),
+            key=lambda x: x[1]['accuracy'],
+            reverse=True
+        )
+        
+        new_weights = {}
+        
+        for indicator, perf in sorted_indicators:
+            accuracy = perf['accuracy']
+            total = perf['total']
+            avg_profit = perf['total_profit'] / total if total > 0 else 0
+            
+            # Calculate new weight based on performance
+            if accuracy >= 0.65 and avg_profit > 0:
+                # Excellent indicator - BOOST weight
+                weight_multiplier = 1.5
+                status = "⭐ BOOSTED"
+            elif accuracy >= 0.55 and avg_profit >= 0:
+                # Good indicator - slight boost
+                weight_multiplier = 1.2
+                status = "✅ GOOD"
+            elif accuracy >= 0.45:
+                # Neutral - keep base weight
+                weight_multiplier = 1.0
+                status = "➖ NEUTRAL"
+            elif accuracy >= 0.35:
+                # Underperforming - reduce weight
+                weight_multiplier = 0.7
+                status = "⚠️ WEAK"
+            else:
+                # Poor indicator - heavily reduce or remove
+                weight_multiplier = 0.3
+                status = "❌ POOR"
+            
+            new_weights[indicator] = weight_multiplier
+            
+            print(f"   {indicator.upper():15} | Accuracy: {accuracy*100:5.1f}% | "
+                  f"Trades: {total:3} | Profit: {avg_profit*100:+6.2f}% | {status}")
+        
+        # Store optimized weights
+        self.strategy_adjustments['indicator_weights'] = new_weights
+        
+        print(f"{'='*60}")
+        print(f"✅ Indicator weights optimized!\n")
     
     def get_adjusted_parameters(self) -> Dict[str, float]:
         """Get current adjusted parameters for trading"""
         return self.strategy_adjustments
+    
+    def get_indicator_weight_multiplier(self, indicator: str) -> float:
+        """Get the optimized weight multiplier for a specific indicator"""
+        return self.strategy_adjustments['indicator_weights'].get(indicator, 1.0)
+    
+    def get_performance_summary(self) -> Dict[str, Any]:
+        """Get comprehensive performance summary"""
+        if not self.performance_history:
+            return {'status': 'No trades yet'}
+        
+        recent = self.performance_history[-20:]
+        profits = [t['result'].get('profit', 0) for t in recent]
+        wins = sum(1 for p in profits if p > 0)
+        
+        return {
+            'total_trades': len(self.performance_history),
+            'recent_trades': len(recent),
+            'win_rate': wins / len(recent) if recent else 0,
+            'avg_profit': sum(profits) / len(profits) if profits else 0,
+            'best_indicators': sorted(
+                [(k, v['accuracy']) for k, v in self.indicator_performance.items()],
+                key=lambda x: x[1],
+                reverse=True
+            )[:5],
+            'confidence_threshold': self.strategy_adjustments['confidence_threshold'],
+            'risk_multiplier': self.strategy_adjustments['risk_multiplier']
+        }

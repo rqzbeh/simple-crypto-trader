@@ -2,13 +2,13 @@
 """
 Simple Crypto Trader - NEWS-DRIVEN Cryptocurrency Trading Signal Generator
 
-🎯 PRIMARY APPROACH: NEWS TRADING
+[TARGET] PRIMARY APPROACH: NEWS TRADING
 - News sentiment and AI analysis are the MAIN signal sources (70-80%)
 - Technical indicators serve as FILTERS ONLY (20-30%)
 - Trade based on market psychology, news events, and AI reasoning
 - Technicals validate/filter out bad setups, not generate signals
 
-Built for 24/7 crypto markets with 3-hour timeframe optimization
+Built for 24/7 crypto markets with 4-hour timeframe optimization
 """
 
 import os
@@ -76,10 +76,10 @@ else:
 print("=" * 70)
 print("SIMPLE CRYPTO TRADER - AI-Powered Signal Generator")
 print("=" * 70)
-print(f"NEWS_API: {'✓' if NEWS_API_KEY else '✗'}")
-print(f"GROQ_API: {'✓' if GROQ_API_KEY and GROQ_AVAILABLE else '✗'}")
-print(f"TELEGRAM: {'✓' if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID else '✗'}")
-print(f"ML Support: {'✓' if ML_AVAILABLE else '✗'}")
+print(f"NEWS_API: {'OK' if NEWS_API_KEY else 'MISSING'}")
+print(f"GROQ_API: {'OK' if GROQ_API_KEY and GROQ_AVAILABLE else 'MISSING'}")
+print(f"TELEGRAM: {'OK' if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID else 'MISSING'}")
+print(f"ML Support: {'OK' if ML_AVAILABLE else 'MISSING'}")
 print("=" * 70)
 
 # Crypto Symbol Mappings
@@ -147,11 +147,11 @@ CRYPTO_NEWS_SOURCES = [
     ('U.Today', 'https://u.today/rss'),
 ]
 
-# Risk Management Settings (Optimized for 3-hour timeframe)
+# Risk Management Settings (Optimized for 4-hour timeframe)
 # NEWS-DRIVEN TRADING: News and AI are primary signals, technicals filter only
-# 3h candles = less noise = can use tighter stops and higher leverage
-MIN_STOP_PCT = 0.012  # 1.2% minimum stop (tighter for 3h vs 2% for 1h)
-MAX_STOP_PCT = 0.05   # 5% maximum stop
+# 4h candles = less noise = can use tighter stops and higher leverage
+MIN_STOP_PCT = 0.015  # 1.5% minimum stop (balanced for 4h timeframe)
+MAX_STOP_PCT = 0.06   # 6% maximum stop
 TARGET_RR_RATIO = 3.0  # Target 1:3 risk/reward minimum
 
 # NEWS IMPACT PARAMETERS (Primary Signal Source)
@@ -159,20 +159,20 @@ EXPECTED_RETURN_PER_SENTIMENT = 0.06  # 6% base per sentiment point (NEWS DRIVEN
 NEWS_IMPACT_MULTIPLIER = 0.020  # 2% per news article (SIGNIFICANT)
 MAX_NEWS_BONUS = 0.10  # 10% max bonus from news volume (DOUBLED)
 
-# Leverage caps - Higher for 3h timeframe (clearer trends)
-MAX_LEVERAGE_CRYPTO = 10  # 10x max (vs 5x for 1h) - 3h trends more reliable
+# Leverage caps - Higher for 4h timeframe (clearer trends)
+MAX_LEVERAGE_CRYPTO = 10  # 10x max - 4h trends more reliable
 MAX_LEVERAGE_STOCK = 5    # 5x for stocks
 
 DAILY_RISK_LIMIT = 0.05  # 5% max daily loss (can take more risk with better R/R)
 
-# Trading Parameters (3-hour timeframe optimized)
+# Trading Parameters (4-hour timeframe optimized)
 # NEWS TRADING FOCUS: Higher emphasis on news/sentiment
 LOW_MONEY_MODE = True  # Optimized for accounts < $500
 if LOW_MONEY_MODE:
     EXPECTED_RETURN_PER_SENTIMENT = 0.08  # 8% for small accounts (NEWS DRIVEN)
     NEWS_IMPACT_MULTIPLIER = 0.025  # 2.5% per article (STRONG IMPACT)
     MAX_NEWS_BONUS = 0.12  # 12% max bonus (HIGH)
-    MIN_STOP_PCT = 0.010  # 1.0% - aggressive but 3h timeframe allows it
+    MIN_STOP_PCT = 0.012  # 1.2% - aggressive but 4h timeframe allows it
 
 # Technical Indicator Weights (OPTIMIZED - No Conflicts/Redundancies)
 # Reduced from 17 to 10 indicators by removing overlapping ones
@@ -240,9 +240,9 @@ def fetch_rss_feed(url, timeout=10):
         return []
 
 def get_crypto_news():
-    """Fetch cryptocurrency news from multiple sources (optimized for 3-hour timeframe)"""
+    """Fetch cryptocurrency news from multiple sources (optimized for 4-hour timeframe)"""
     articles = []
-    cutoff = datetime.now() - timedelta(hours=6)  # Last 6 hours (2x our trading timeframe)
+    cutoff = datetime.now() - timedelta(hours=8)  # Last 8 hours (2x our trading timeframe)
     
     # NewsAPI
     try:
@@ -275,7 +275,7 @@ def get_crypto_news():
                 'source': name
             })
     
-    print(f"Fetched {len(articles)} news articles (last 6 hours)")
+    print(f"Fetched {len(articles)} news articles (last 8 hours)")
     return articles
 
 def extract_crypto_symbols(text):
@@ -329,6 +329,10 @@ Format: SCORE: [number] | REASON: [text]"""
         
         result = response.choices[0].message.content
         
+        # Check if result is None
+        if result is None:
+            return 0.0, "No response from LLM"
+        
         # Parse response
         score_match = re.search(r'SCORE:\s*([-+]?[0-9]*\.?[0-9]+)', result)
         reason_match = re.search(r'REASON:\s*(.+)', result, re.S)
@@ -342,8 +346,12 @@ Format: SCORE: [number] | REASON: [text]"""
         return score, reason[:200]
     
     except Exception as e:
-        print(f"LLM sentiment error: {e}")
-        return 0.0, f"Error: {str(e)[:100]}"
+        error_msg = str(e)
+        if '403' in error_msg or 'Forbidden' in error_msg:
+            print(f"[WARNING] Groq API access denied - check API key or rate limits")
+        else:
+            print(f"LLM sentiment error: {e}")
+        return 0.0, "LLM unavailable, using fallback sentiment"
 
 def simple_sentiment(text):
     """Simple rule-based sentiment analysis as fallback"""
@@ -364,12 +372,12 @@ def simple_sentiment(text):
     return (pos_count - neg_count) / total
 
 @lru_cache(maxsize=200)
-def get_market_data(symbol, period='10d', interval='3h'):
+def get_market_data(symbol, period='30d', interval='4h'):
     """
     Fetch market data and calculate advanced technical indicators
-    Optimized for 3-hour trading timeframe:
-    - 3h candles: balance between noise and signal
-    - 10 days history: ~80 candles for reliable indicators
+    Optimized for 4-hour trading timeframe:
+    - 4h candles: excellent balance between noise and signal
+    - 30 days history: ~180 candles for reliable indicators
     """
     try:
         ticker = yf.Ticker(symbol)
@@ -381,10 +389,10 @@ def get_market_data(symbol, period='10d', interval='3h'):
         close = df['Close']
         current_price = float(close.iloc[-1])
         
-        # Calculate volatility (annualized for 3h candles)
+        # Calculate volatility (annualized for 4h candles)
         returns = close.pct_change()
-        # 3h candles = 8 periods per day, 365 days
-        volatility = float(returns.std() * np.sqrt(8 * 365))
+        # 4h candles = 6 periods per day, 365 days
+        volatility = float(returns.std() * np.sqrt(6 * 365))
         
         # Get all advanced technical indicators
         indicators = get_all_indicators(df)
@@ -398,10 +406,6 @@ def get_market_data(symbol, period='10d', interval='3h'):
             'atr_pct': atr_pct,
             'indicators': indicators
         }
-    
-    except Exception as e:
-        print(f"Market data error for {symbol}: {e}")
-        return None
     
     except Exception as e:
         print(f"Market data error for {symbol}: {e}")
@@ -427,14 +431,18 @@ def calculate_trade_signal(sentiment_score, news_count, market_data, symbol='', 
     news_bonus = min(news_count * NEWS_IMPACT_MULTIPLIER, MAX_NEWS_BONUS)
     expected_return += news_bonus if sentiment_score > 0 else -news_bonus
     
-    # Technical indicator score (weighted combination)
+    # Technical indicator score (weighted combination with dynamic optimization)
     tech_score = 0
     total_weight = 0
     
     for indicator, weight in INDICATOR_WEIGHTS.items():
         if indicator in indicators and 'signal' in indicators[indicator]:
-            tech_score += indicators[indicator]['signal'] * weight
-            total_weight += weight
+            # Apply dynamic weight multiplier from learning system
+            weight_multiplier = market_analyzer.get_indicator_weight_multiplier(indicator) if market_analyzer else 1.0
+            adjusted_weight = weight * weight_multiplier
+            
+            tech_score += indicators[indicator]['signal'] * adjusted_weight
+            total_weight += adjusted_weight
     
     tech_score_normalized = tech_score / total_weight if total_weight > 0 else 0
     
@@ -481,8 +489,8 @@ def calculate_trade_signal(sentiment_score, news_count, market_data, symbol='', 
     else:
         expected_return *= (1 + abs(tech_score_normalized) * 0.5)
     
-    # Calculate stop loss with adaptive risk (tighter for 3h timeframe)
-    atr_stop = market_data['atr_pct'] * 1.5  # 1.5x ATR (vs 2x for 1h) - 3h has less noise
+    # Calculate stop loss with adaptive risk (optimized for 4h timeframe)
+    atr_stop = market_data['atr_pct'] * 1.5  # 1.5x ATR - 4h has less noise
     stop_pct = max(MIN_STOP_PCT, min(atr_stop, MAX_STOP_PCT))
     stop_pct *= adaptive_params['risk_multiplier']  # Adaptive risk adjustment
     
@@ -500,7 +508,7 @@ def calculate_trade_signal(sentiment_score, news_count, market_data, symbol='', 
     if rr_ratio < TARGET_RR_RATIO:
         return None  # Not worth the risk
     
-    # Leverage recommendation - More aggressive for 3h timeframe
+    # Leverage recommendation - More aggressive for 4h timeframe
     # Formula: Use R/R ratio + confidence to determine leverage
     confidence_factor = combined['confidence']  # 0 to 1
     
@@ -514,7 +522,7 @@ def calculate_trade_signal(sentiment_score, news_count, market_data, symbol='', 
     if llm_analysis and llm_analysis.get('risk') == 'HIGH':
         base_leverage = max(2, base_leverage // 2)  # Halve but minimum 2x
     
-    leverage = max(2, base_leverage)  # Minimum 2x leverage (3h timeframe justifies it)
+    leverage = max(2, base_leverage)  # Minimum 2x leverage (4h timeframe justifies it)
     
     # Calculate prices
     if direction == 'LONG':
@@ -543,8 +551,8 @@ def calculate_trade_signal(sentiment_score, news_count, market_data, symbol='', 
         'adaptive_threshold': adaptive_params['confidence_threshold']
     }
 
-def log_trade(symbol, signal, sentiment_reason=''):
-    """Log trade to file"""
+def log_trade(symbol, signal, sentiment_reason='', indicators_data=None):
+    """Log trade to file with indicator signals for learning"""
     if not signal:
         return
     
@@ -561,7 +569,9 @@ def log_trade(symbol, signal, sentiment_reason=''):
         'sentiment_score': signal['sentiment_score'],
         'technical_score': signal['technical_score'],
         'sentiment_reason': sentiment_reason,
-        'status': 'open'
+        'status': 'open',
+        'check_time': (datetime.now() + timedelta(hours=4)).isoformat(),
+        'indicators': indicators_data  # Store for learning
     }
     
     # Load existing logs
@@ -589,71 +599,160 @@ def check_daily_risk():
         pass
     return False
 
+def check_trade_outcomes():
+    """
+    Check open trades and verify if predictions were correct
+    Updates learning system with actual outcomes
+    """
+    try:
+        with open(TRADE_LOG_FILE, 'r') as f:
+            logs = json.load(f)
+    except:
+        return
+    
+    now = datetime.now()
+    updated = False
+    verified_count = 0
+    
+    for trade in logs:
+        if trade.get('status') != 'open':
+            continue
+        
+        # Check if 4 hours have passed (skip if no check_time)
+        if 'check_time' not in trade:
+            continue
+        
+        check_time = datetime.fromisoformat(trade['check_time'])
+        if now < check_time:
+            continue
+        
+        # Fetch current price to verify outcome
+        symbol = trade['symbol']
+        yf_symbol = CRYPTO_SYMBOL_MAP.get(symbol, f"{symbol}-USD")
+        
+        try:
+            ticker = yf.Ticker(yf_symbol)
+            current_data = ticker.history(period='1d', interval='1h')
+            
+            if current_data.empty:
+                continue
+            
+            current_price = float(current_data['Close'].iloc[-1])
+            entry_price = trade['entry_price']
+            direction = trade['direction']
+            
+            # Calculate actual profit/loss
+            if direction == 'LONG':
+                price_change = (current_price - entry_price) / entry_price
+            else:  # SHORT
+                price_change = (entry_price - current_price) / entry_price
+            
+            actual_profit = price_change * trade.get('leverage', 1)
+            
+            # Check if hit stop loss or take profit
+            if direction == 'LONG':
+                hit_sl = current_price <= trade['stop_loss']
+                hit_tp = current_price >= trade['take_profit']
+            else:
+                hit_sl = current_price >= trade['stop_loss']
+                hit_tp = current_price <= trade['take_profit']
+            
+            if hit_sl:
+                actual_profit = -(trade['stop_loss'] - entry_price) / entry_price * trade.get('leverage', 1)
+                if direction == 'SHORT':
+                    actual_profit = -actual_profit
+                trade['status'] = 'stopped'
+                trade['exit_price'] = trade['stop_loss']
+            elif hit_tp:
+                actual_profit = (trade['take_profit'] - entry_price) / entry_price * trade.get('leverage', 1)
+                if direction == 'SHORT':
+                    actual_profit = -actual_profit
+                trade['status'] = 'completed'
+                trade['exit_price'] = trade['take_profit']
+            else:
+                trade['status'] = 'checked'
+                trade['exit_price'] = current_price
+            
+            trade['actual_profit'] = actual_profit
+            trade['verified_at'] = now.isoformat()
+            
+            # Feed to learning system
+            if market_analyzer and trade.get('indicators'):
+                trade_result = {
+                    'profit': actual_profit,
+                    'indicators': trade['indicators'],
+                    'symbol': symbol,
+                    'direction': direction,
+                    'confidence': trade.get('confidence', 0),
+                    'entry_price': entry_price,
+                    'exit_price': trade['exit_price']
+                }
+                market_analyzer.learn_from_trade(trade_result)
+            
+            verified_count += 1
+            updated = True
+            
+        except Exception as e:
+            print(f"Error verifying {symbol}: {e}")
+            continue
+    
+    # Save updated logs
+    if updated:
+        with open(TRADE_LOG_FILE, 'w') as f:
+            json.dump(logs, f, indent=2)
+        
+        if verified_count > 0:
+            print(f"\n[OK] Verified {verified_count} trade outcomes and updated learning system\n")
+
 def format_trade_message(symbol, signal, sentiment_reason=''):
-    """Format trade signal for output - NEWS-DRIVEN system"""
+    """Format trade signal for output - NEWS-DRIVEN system (compact)"""
     
-    # Determine method description
-    method_desc = signal.get('method', 'unknown')
-    if 'news_driven' in method_desc:
-        approach = "📰 NEWS-DRIVEN (Primary)"
-    elif 'filtered' in method_desc:
-        approach = "🚫 FILTERED by technicals"
-    else:
-        approach = "📊 Analysis"
+    direction_emoji = '[LONG]' if signal['direction'] == 'LONG' else '[SHORT]'
+    rr_emoji = '[HIGH-RR]' if signal['rr_ratio'] >= 3 else '[OK-RR]'
     
-    msg = f"""
-{'='*60}
-🚨 CRYPTO TRADE SIGNAL (NEWS-DRIVEN STRATEGY)
-{'='*60}
-Symbol: {symbol}
-Direction: {signal['direction']} {'🟢' if signal['direction'] == 'LONG' else '🔴'}
+    msg = f"""[SIGNAL] {symbol} {signal['direction']} {direction_emoji}
 Entry: ${signal['entry_price']:.6f}
-Stop Loss: ${signal['stop_loss']:.6f} ({signal['stop_pct']*100:.2f}%)
-Take Profit: ${signal['take_profit']:.6f} ({signal['expected_profit_pct']*100:.2f}%)
-Leverage: {signal['leverage']}x 💪
-Risk/Reward: 1:{signal['rr_ratio']:.1f} {'🎯' if signal['rr_ratio'] >= 3 else '⚡'}
-Confidence: {signal['confidence']*100:.1f}%
-
-📰 Analysis ({approach}):
-News Sentiment: {signal['sentiment_score']:.2f} (PRIMARY)
-Technical Filter: {signal['technical_score']:.2f} (Validation)
-{sentiment_reason[:200]}
-
-⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC | Timeframe: 3H
-{'='*60}
-"""
+SL: ${signal['stop_loss']:.6f} ({signal['stop_pct']*100:.2f}%)
+TP: ${signal['take_profit']:.6f} ({signal['expected_profit_pct']*100:.2f}%)
+Leverage: {signal['leverage']}x | R/R: 1:{signal['rr_ratio']:.1f} {rr_emoji}
+Confidence: {signal['confidence']*100:.1f}% | News: {signal['sentiment_score']:.2f} | Tech: {signal['technical_score']:.2f}"""
+    
     return msg
 
 # ==================== MAIN EXECUTION ====================
 
 def main():
-    """Main trading loop - NEWS-DRIVEN 3-hour timeframe system"""
-    print("\n🚀 Starting Crypto Trading Signal Generator...")
-    print("📰 NEWS-DRIVEN TRADING SYSTEM")
+    """Main trading loop - NEWS-DRIVEN 4-hour timeframe system"""
+    print("\n[*] Starting Crypto Trading Signal Generator...")
+    print("[NEWS] NEWS-DRIVEN TRADING SYSTEM")
     print("=" * 70)
-    print(f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC")
-    print(f"💰 Mode: {'Low Money' if LOW_MONEY_MODE else 'Standard'}")
-    print(f"⏱️  Timeframe: 3 Hours (optimal balance)")
-    print(f"🎯 Strategy: News/AI Primary (70-80%) + Technical Filter (20-30%)")
-    print(f"📊 Max Leverage: {MAX_LEVERAGE_CRYPTO}x")
-    print(f"🎲 Target R/R: 1:{TARGET_RR_RATIO} minimum")
-    print(f"🛡️ Daily Risk Limit: {DAILY_RISK_LIMIT*100}%")
+    print(f"[TIME] {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC")
+    print(f"[MODE] Mode: {'Low Money' if LOW_MONEY_MODE else 'Standard'}")
+    print(f"[TIMEFRAME]  Timeframe: 4 Hours (optimal balance)")
+    print(f"[TARGET] Strategy: News/AI Primary (70-80%) + Technical Filter (20-30%)")
+    print(f"[LEVERAGE] Max Leverage: {MAX_LEVERAGE_CRYPTO}x")
+    print(f"[RR] Target R/R: 1:{TARGET_RR_RATIO} minimum")
+    print(f"[RISK] Daily Risk Limit: {DAILY_RISK_LIMIT*100}%")
     print("=" * 70)
     print()
     
+    # Check and verify outcomes of previous trades
+    print("[CHECK] Checking previous trade outcomes...")
+    check_trade_outcomes()
+    
     # Check daily risk limit
     if check_daily_risk():
-        msg = "⚠️ Daily risk limit reached. No new trades today."
+        msg = "[WARNING] Daily risk limit reached. No new trades today."
         print(msg)
         send_telegram_message(msg)
         return
     
     # Fetch news
-    print("📰 Fetching crypto news...")
+    print("[NEWS] Fetching crypto news...")
     articles = get_crypto_news()
     
     if not articles:
-        print("⚠️ No news articles found")
+        print("[WARNING] No news articles found")
         return
     
     # Extract symbols from news
@@ -673,7 +772,7 @@ def main():
         if yf_symbol not in symbol_articles:
             symbol_articles[yf_symbol] = articles[:5]  # Use general news
     
-    print(f"📈 Analyzing {len(symbol_articles)} cryptocurrencies...\n")
+    print(f"[ANALYZE] Analyzing {len(symbol_articles)} cryptocurrencies...\n")
     
     # Analyze each symbol
     signals = []
@@ -701,7 +800,7 @@ def main():
         # Get market data
         market_data = get_market_data(yf_symbol)
         if not market_data:
-            print(f"  ⚠️ No market data available\n")
+            print(f"  [WARNING] No market data available\n")
             continue
         
         # Calculate signal with LLM enhancement
@@ -709,30 +808,42 @@ def main():
                                        symbol_name, symbol_articles_list)
         
         if signal and signal['confidence'] > 0.3:  # Minimum confidence threshold
+            # Extract indicator signals for learning
+            indicators_signals = {}
+            for ind_name, ind_data in market_data['indicators'].items():
+                if isinstance(ind_data, dict) and 'signal' in ind_data:
+                    indicators_signals[ind_name] = ind_data['signal']
+            
             signals.append({
                 'symbol': symbol_name,
                 'yf_symbol': yf_symbol,
                 'signal': signal,
                 'sentiment_reason': sentiment_reason,
-                'news_count': news_count
+                'news_count': news_count,
+                'indicators': indicators_signals
             })
-            print(f"  ✅ Signal: {signal['direction']} | Confidence: {signal['confidence']*100:.1f}%\n")
+            print(f"  [OK] Signal: {signal['direction']} | Confidence: {signal['confidence']*100:.1f}%\n")
         else:
-            print(f"  ℹ️ No strong signal\n")
+            print(f"  [INFO] No strong signal\n")
     
     # Sort signals by confidence
     signals.sort(key=lambda x: x['signal']['confidence'], reverse=True)
     
     # Output results
     if not signals:
-        msg = "ℹ️ No actionable trading signals found at this time."
+        msg = "[INFO] No actionable trading signals found at this time."
         print(msg)
         send_telegram_message(msg)
         return
     
     print(f"\n{'='*60}")
-    print(f"🎯 FOUND {len(signals)} TRADING SIGNALS")
+    print(f"[TARGET] FOUND {len(signals)} TRADING SIGNALS")
     print(f"{'='*60}\n")
+    
+    # Create summary message for Telegram
+    summary = f"""[NEWS] NEWS-DRIVEN TRADING SYSTEM
+[TIME] {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC | Timeframe: 4H
+[TARGET] {len(signals)} Signals Found\n"""
     
     # Show top signals
     for item in signals[:5]:  # Top 5 signals
@@ -742,24 +853,26 @@ def main():
             item['sentiment_reason']
         )
         print(msg)
+        print()
         
-        # Log trade
-        log_trade(item['symbol'], item['signal'], item['sentiment_reason'])
+        # Add to summary
+        summary += f"\n{msg}"
         
-        # Send to Telegram
-        send_telegram_message(msg)
-        
-        time.sleep(1)  # Rate limiting
+        # Log trade with indicators for learning
+        log_trade(item['symbol'], item['signal'], item['sentiment_reason'], item.get('indicators'))
     
-    print(f"\n✅ Analysis complete. {len(signals)} signals generated.")
-    print(f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC\n")
+    # Send combined message to Telegram
+    send_telegram_message(summary)
+    
+    print(f"\n[OK] Analysis complete. {len(signals)} signals generated.")
+    print(f"[TIME] {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC\n")
 
 if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\n⚠️ Interrupted by user")
+        print("\n\n[WARNING] Interrupted by user")
     except Exception as e:
-        print(f"\n❌ Error: {e}")
+        print(f"\n[ERROR] Error: {e}")
         import traceback
         traceback.print_exc()
