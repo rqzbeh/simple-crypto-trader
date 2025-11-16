@@ -759,9 +759,9 @@ def format_trade_message(symbol, signal, sentiment_reason='', signal_number=None
 {direction_emoji} {symbol} - {direction_text}
 ━━━━━━━━━━━━━━━━━━━━
 
-💵 Entry: {entry}
-🛑 Stop Loss: {stop_loss} ({signal['stop_pct']*100:.2f}%)
-🎯 Take Profit: {take_profit} ({signal['expected_profit_pct']*100:.2f}%)
+💵 Entry: `{entry}`
+🛑 Stop Loss: `{stop_loss}` ({signal['stop_pct']*100:.2f}%)
+🎯 Take Profit: `{take_profit}` ({signal['expected_profit_pct']*100:.2f}%)
 
 ⚡️ Leverage: {signal['leverage']}x
 📊 R/R: 1:{signal['rr_ratio']:.1f} {rr_quality}
