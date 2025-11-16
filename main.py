@@ -1,881 +1,673 @@
+#!/usr/bin/env python3
+"""
+Simple Crypto Trader - AI-Powered Cryptocurrency Trading Signal Generator
+Built from scratch for 24/7 crypto markets with optimized indicators and risk management
+"""
+
 import os
-import time
-import math
 import re
 import json
-import requests
+import math
+import time
 import logging
-from functools import lru_cache
+import requests
 from datetime import datetime, timedelta
+from functools import lru_cache
 from newsapi import NewsApiClient
 import yfinance as yf
-from textblob import TextBlob
-# import snscrape.modules.twitter as sntwitter
+import pandas as pd
+import numpy as np
 
-# Silence yfinance verbosity
-logging.getLogger("yfinance").setLevel(logging.ERROR)
+# Import advanced technical indicators
+from technical_indicators import get_all_indicators
 
-# -------------------- Configuration --------------------
+# Try to import optional components
+try:
+    from groq import Groq
+    GROQ_AVAILABLE = True
+except ImportError:
+    GROQ_AVAILABLE = False
+    print("Warning: Groq not available. Install with: pip install groq")
+
+try:
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.preprocessing import StandardScaler
+    import numpy as np
+    import pandas as pd
+    import joblib
+    ML_AVAILABLE = True
+except ImportError:
+    ML_AVAILABLE = False
+    print("Warning: ML libraries not available. Install scikit-learn, numpy, pandas, joblib")
+
+# Configure logging
+logging.getLogger('yfinance').setLevel(logging.ERROR)
+logging.getLogger('urllib3').setLevel(logging.WARNING)
+
+# ==================== CONFIGURATION ====================
+
+# API Keys
 NEWS_API_KEY = os.getenv('NEWS_API_KEY')
+GROQ_API_KEY = os.getenv('GROQ_API_KEY')
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
+
 if not NEWS_API_KEY:
-    raise ValueError('Please set the NEWS_API_KEY environment variable')
+    raise ValueError('NEWS_API_KEY environment variable is required')
 
 newsapi = NewsApiClient(api_key=NEWS_API_KEY)
 
-def send_telegram_message(message):
-    """Send a message via Telegram bot."""
-    bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
-    chat_id = os.getenv('TELEGRAM_CHAT_ID')
-    if not bot_token or not chat_id:
-        print("Telegram credentials not set. Skipping Telegram send.")
-        return
-    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    data = {"chat_id": chat_id, "text": message, "parse_mode": "Markdown"}
-    try:
-        response = requests.post(url, data=data)
-        if response.status_code != 200:
-            print(f"Failed to send Telegram message: {response.text}")
-    except Exception as e:
-        print(f"Error sending Telegram message: {e}")
+# Initialize Groq if available
+if GROQ_AVAILABLE and GROQ_API_KEY:
+    groq_client = Groq(api_key=GROQ_API_KEY)
+else:
+    groq_client = None
 
-CRYPTO_RSS_FEEDS = [
+print("=" * 70)
+print("SIMPLE CRYPTO TRADER - AI-Powered Signal Generator")
+print("=" * 70)
+print(f"NEWS_API: {'✓' if NEWS_API_KEY else '✗'}")
+print(f"GROQ_API: {'✓' if GROQ_API_KEY and GROQ_AVAILABLE else '✗'}")
+print(f"TELEGRAM: {'✓' if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID else '✗'}")
+print(f"ML Support: {'✓' if ML_AVAILABLE else '✗'}")
+print("=" * 70)
+
+# Crypto Symbol Mappings
+CRYPTO_SYMBOL_MAP = {
+    # Top 50 Cryptocurrencies by Market Cap
+    'BTC': 'BTC-USD', 'BITCOIN': 'BTC-USD',
+    'ETH': 'ETH-USD', 'ETHEREUM': 'ETH-USD',
+    'BNB': 'BNB-USD', 'BINANCE': 'BNB-USD',
+    'XRP': 'XRP-USD', 'RIPPLE': 'XRP-USD',
+    'ADA': 'ADA-USD', 'CARDANO': 'ADA-USD',
+    'SOL': 'SOL-USD', 'SOLANA': 'SOL-USD',
+    'DOGE': 'DOGE-USD', 'DOGECOIN': 'DOGE-USD',
+    'DOT': 'DOT-USD', 'POLKADOT': 'DOT-USD',
+    'MATIC': 'MATIC-USD', 'POLYGON': 'MATIC-USD',
+    'LTC': 'LTC-USD', 'LITECOIN': 'LTC-USD',
+    'AVAX': 'AVAX-USD', 'AVALANCHE': 'AVAX-USD',
+    'LINK': 'LINK-USD', 'CHAINLINK': 'LINK-USD',
+    'UNI': 'UNI-USD', 'UNISWAP': 'UNI-USD',
+    'ATOM': 'ATOM-USD', 'COSMOS': 'ATOM-USD',
+    'XLM': 'XLM-USD', 'STELLAR': 'XLM-USD',
+    'ALGO': 'ALGO-USD', 'ALGORAND': 'ALGO-USD',
+    'VET': 'VET-USD', 'VECHAIN': 'VET-USD',
+    'FIL': 'FIL-USD', 'FILECOIN': 'FIL-USD',
+    'TRX': 'TRX-USD', 'TRON': 'TRX-USD',
+    'ETC': 'ETC-USD', 'ETHEREUMCLASSIC': 'ETC-USD',
+    'AAVE': 'AAVE-USD',
+    'MKR': 'MKR-USD', 'MAKER': 'MKR-USD',
+    'COMP': 'COMP-USD', 'COMPOUND': 'COMP-USD',
+    'SUSHI': 'SUSHI-USD',
+    'YFI': 'YFI-USD', 'YEARN': 'YFI-USD',
+    'SNX': 'SNX-USD', 'SYNTHETIX': 'SNX-USD',
+    'SHIB': 'SHIB-USD', 'SHIBA': 'SHIB-USD',
+    'NEAR': 'NEAR-USD',
+    'FLOW': 'FLOW-USD',
+    'MANA': 'MANA-USD', 'DECENTRALAND': 'MANA-USD',
+    'SAND': 'SAND-USD',
+    'AXS': 'AXS-USD', 'AXIE': 'AXS-USD',
+    'CHZ': 'CHZ-USD', 'CHILIZ': 'CHZ-USD',
+    'ENJ': 'ENJ-USD', 'ENJIN': 'ENJ-USD',
+    'BAT': 'BAT-USD',
+    'ZRX': 'ZRX-USD',
+    'LRC': 'LRC-USD', 'LOOPRING': 'LRC-USD',
+    'IMX': 'IMX-USD',
+    'APE': 'APE-USD', 'APECOIN': 'APE-USD',
+    'OP': 'OP-USD', 'OPTIMISM': 'OP-USD',
+    'ARB': 'ARB-USD', 'ARBITRUM': 'ARB-USD',
+    'PEPE': 'PEPE-USD',
+    'FLOKI': 'FLOKI-USD',
+}
+
+# Default symbols to always analyze
+DEFAULT_SYMBOLS = ['BTC', 'ETH', 'BNB', 'ADA', 'SOL', 'DOGE', 'XRP', 'MATIC']
+
+# Crypto News Sources
+CRYPTO_NEWS_SOURCES = [
     ('CoinDesk', 'https://www.coindesk.com/arc/outboundfeeds/rss/'),
     ('Cointelegraph', 'https://cointelegraph.com/rss'),
-    ('CoinMarketCap', 'https://coinmarketcap.com/headlines/news/'),
     ('CryptoSlate', 'https://cryptoslate.com/feed/'),
     ('Decrypt', 'https://decrypt.co/feed'),
     ('The Block', 'https://www.theblock.co/rss.xml'),
-    ('Crypto News', 'https://cryptonews.com/news/rss/'),
     ('Bitcoin Magazine', 'https://bitcoinmagazine.com/feed'),
-    ('Ethereum World News', 'https://ethereumworldnews.com/feed/'),
-    ('CoinGecko', 'https://www.coingecko.com/en/news/rss'),
-    ('Crypto Briefing', 'https://cryptobriefing.com/feed/'),
-    ('AMB Crypto', 'https://ambcrypto.com/feed/'),
     ('NewsBTC', 'https://www.newsbtc.com/feed/'),
     ('BeInCrypto', 'https://beincrypto.com/feed/'),
     ('CryptoPotato', 'https://cryptopotato.com/feed/'),
+    ('U.Today', 'https://u.today/rss'),
 ]
 
-# Map simple tickers/names to yfinance symbols for crypto (expanded list)
-CRYPTO_SYMBOL_MAP = {
-    'BTC': 'BTC-USD',
-    'ETH': 'ETH-USD',
-    'DOGE': 'DOGE-USD',
-    'SHIB': 'SHIB-USD',
-    'SOL': 'SOL-USD',
-    'ADA': 'ADA-USD',
-    'XRP': 'XRP-USD',
-    'LTC': 'LTC-USD',
-    'BNB': 'BNB-USD',
-    'LINK': 'LINK-USD',
-    'AVAX': 'AVAX-USD',
-    'MATIC': 'MATIC-USD',
-    'DOT': 'DOT-USD',
-    'UNI': 'UNI-USD',
-    'AAVE': 'AAVE-USD',
-    'SUSHI': 'SUSHI-USD',
-    'CAKE': 'CAKE-USD',
-    'LUNA': 'LUNA-USD',
-    'ATOM': 'ATOM-USD',
-    'ALGO': 'ALGO-USD',
-    'VET': 'VET-USD',
-    'ICP': 'ICP-USD',
-    'FIL': 'FIL-USD',
-    'TRX': 'TRX-USD',
-    'ETC': 'ETC-USD',
-    'XLM': 'XLM-USD',
-    'THETA': 'THETA-USD',
-    'FTT': 'FTT-USD',
-    'HBAR': 'HBAR-USD',
-    'NEAR': 'NEAR-USD',
-    'FLOW': 'FLOW-USD',
-    'MANA': 'MANA-USD',
-    'SAND': 'SAND-USD',
-    'AXS': 'AXS-USD',
-    'CHZ': 'CHZ-USD',
-    'ENJ': 'ENJ-USD',
-    'BAT': 'BAT-USD',
-    'OMG': 'OMG-USD',
-    'ZRX': 'ZRX-USD',
-    'REP': 'REP-USD',
-    'GNT': 'GNT-USD',
-    'STORJ': 'STORJ-USD',
-    'ANT': 'ANT-USD',
-    'MKR': 'MKR-USD',
-    'COMP': 'COMP-USD',
-    'YFI': 'YFI-USD',
-    'BAL': 'BAL-USD',
-    'REN': 'REN-USD',
-    'LRC': 'LRC-USD',
-    'KNC': 'KNC-USD',
-    'ZKS': 'ZKS-USD',
-    'IMX': 'IMX-USD',
-    'APE': 'APE-USD',
-    'GMT': 'GMT-USD',
-    'GAL': 'GAL-USD',
-    'OP': 'OP-USD',
-    'ARB': 'ARB-USD',
-    'PEPE': 'PEPE-USD',
-    'FLOKI': 'FLOKI-USD',
-    'BONK': 'BONK-USD',
-    'WIF': 'WIF-USD',
-    'MEW': 'MEW-USD',
-    'POPCAT': 'POPCAT-USD',
-    'TURBO': 'TURBO-USD',
-    'BRETT': 'BRETT-USD',
-    'MOTHER': 'MOTHER-USD',
-    'CUMMIES': 'CUMMIES-USD',
-    'SLERF': 'SLERF-USD',
-    'GOAT': 'GOAT-USD',
-    'WEN': 'WEN-USD',
-    'WIF': 'WIF-USD',
-    'SMOG': 'SMOG-USD',
-}
+# Risk Management Settings (Optimized for Crypto)
+MIN_STOP_PCT = 0.02  # 2% minimum stop loss (crypto is volatile)
+MAX_STOP_PCT = 0.08  # 8% maximum stop loss
+EXPECTED_RETURN_PER_SENTIMENT = 0.05  # 5% per sentiment point
+NEWS_IMPACT_MULTIPLIER = 0.01  # 1% per news article
+MAX_NEWS_BONUS = 0.05  # 5% max bonus from news volume
+MAX_LEVERAGE_CRYPTO = 5  # Conservative 5x max leverage
+DAILY_RISK_LIMIT = 0.03  # 3% max daily loss
 
-# Aliases for additional search terms
-CRYPTO_ALIASES = {
-    'BITCOIN': 'BTC',
-    'ETHEREUM': 'ETH',
-    'DOGECOIN': 'DOGE',
-    'SHIBA': 'SHIB',
-    'SHIBAINU': 'SHIB',
-    'SOLANA': 'SOL',
-    'CARDANO': 'ADA',
-    'TRON': 'TRX',
-    'POLYGON': 'MATIC',
-    'POLKADOT': 'DOT',
-    'UNISWAP': 'UNI',
-    'PANCAKESWAP': 'CAKE',
-    'TERRA': 'LUNA',
-    'COSMOS': 'ATOM',
-    'ALGORAND': 'ALGO',
-    'VECHAIN': 'VET',
-    'INTERNETCOMPUTER': 'ICP',
-    'FILECOIN': 'FIL',
-    'ETHEREUMCLASSIC': 'ETC',
-    'STELLAR': 'XLM',
-    'FTXTOKEN': 'FTT',
-    'HEDERA': 'HBAR',
-    'DECENTRALAND': 'MANA',
-    'AXIEINFINITY': 'AXS',
-    'CHILIZ': 'CHZ',
-    'ENJIN': 'ENJ',
-    'BASICATTENTIONTOKEN': 'BAT',
-    'OMISEGO': 'OMG',
-    '0X': 'ZRX',
-    'AUGUR': 'REP',
-    'GOLEM': 'GNT',
-    'ARAGON': 'ANT',
-    'MAKER': 'MKR',
-    'COMPOUND': 'COMP',
-    'YEARN': 'YFI',
-    'BALANCER': 'BAL',
-    'LOOPRING': 'LRC',
-    'KYBER': 'KNC',
-    'ZKSYNC': 'ZKS',
-    'IMMUTABLEX': 'IMX',
-    'APECOIN': 'APE',
-    'STEPN': 'GMT',
-    'GALAXY': 'GAL',
-    'OPTIMISM': 'OP',
-    'ARBITRUM': 'ARB',
-    'DOGWIFHAT': 'WIF',
-    'CATINME': 'MEW',
-}
-
-# Risk settings (optimized for 15m or 30m fast trading)
-MIN_STOP_PCT = 0.001  # 0.1% minimal stop for 15m/30m
-EXPECTED_RETURN_PER_SENTIMENT = 0.001  # 0.1% per full +1.0 sentiment for 15m/30m
-NEWS_COUNT_BONUS = 0.0005  # 0.05% per article bonus
-MAX_NEWS_BONUS = 0.002  # Max 0.2%
-
-# Leverage caps - Updated to 100x for crypto
-MAX_LEVERAGE_CRYPTO = 100
-MAX_LEVERAGE_STOCK = 5
-
-# Low money mode flag - Set to True for accounts with small capital (< $500 equivalent)
-LOW_MONEY_MODE = True
-
+# Trading Parameters
+LOW_MONEY_MODE = True  # Optimized for accounts < $500
 if LOW_MONEY_MODE:
-    EXPECTED_RETURN_PER_SENTIMENT = 0.002  # Higher ROI to offset fees
-    NEWS_COUNT_BONUS = 0.001  # Increased bonus
-    MAX_NEWS_BONUS = 0.004  # Higher max bonus
-    MIN_STOP_PCT = 0.0005  # Tighter stops for better R/R
+    EXPECTED_RETURN_PER_SENTIMENT = 0.06  # 6% for small accounts
+    NEWS_IMPACT_MULTIPLIER = 0.015  # 1.5%
+    MAX_NEWS_BONUS = 0.06  # 6%
+    MIN_STOP_PCT = 0.018  # 1.8%
 
-# Trade logging file
+# Technical Indicator Weights (Research-Based, Crypto-Optimized)
+# Based on crypto market behavior analysis and proven effectiveness
+INDICATOR_WEIGHTS = {
+    # Momentum Indicators (High weight - crypto is momentum-driven)
+    'rsi': 2.0,           # RSI extremely reliable in crypto for oversold/overbought
+    'stoch_rsi': 1.9,     # Stochastic RSI more sensitive than RSI for crypto
+    'williams_r': 1.6,    # Williams %R good for crypto momentum
+    
+    # Trend Indicators (Critical for crypto)
+    'ema_trend': 2.2,     # EMA crossovers most important for crypto trends
+    'adx': 1.8,           # ADX excellent for trend strength detection
+    'supertrend': 1.9,    # Supertrend great for crypto trend following
+    
+    # Volatility Indicators (Essential for crypto)
+    'bb': 2.1,            # Bollinger Bands critical for crypto volatility
+    'atr': 1.7,           # ATR for volatility-adjusted stops
+    'keltner': 1.5,       # Keltner Channels alternative to BB
+    
+    # Volume Indicators (Very important in crypto)
+    'obv': 1.9,           # On-Balance Volume for accumulation/distribution
+    'vwap': 2.0,          # VWAP critical for institutional levels
+    'volume_profile': 1.8, # Volume at price levels
+    'mfi': 1.7,           # Money Flow Index combines price and volume
+    
+    # Oscillators
+    'macd': 1.8,          # MACD excellent for crypto trends
+    'cci': 1.5,           # CCI for momentum
+    
+    # Support/Resistance (Important for crypto)
+    'pivot_points': 1.6,  # Pivot points for key levels
+    'fibonacci': 1.4,     # Fibonacci retracements
+}
+
+# ML Configuration
+ML_ENABLED = ML_AVAILABLE
+ML_MODEL_FILE = 'crypto_ml_model.pkl'
+ML_SCALER_FILE = 'crypto_ml_scaler.pkl'
+ML_MIN_CONFIDENCE = 0.60
+ML_RETRAIN_THRESHOLD = 20  # Retrain after 20 completed trades
+
+# Files
 TRADE_LOG_FILE = 'trade_log.json'
+DAILY_RISK_FILE = 'daily_risk.json'
 
-# Indicator weights (adaptive learning)
-ICHIMOKU_WEIGHT = 1.2
-VOLUME_WEIGHT = 1.15
-FVG_WEIGHT = 1.1
-CANDLE_WEIGHT = 1.1
-NEW_TECHNIQUE_ENABLED = False  # Placeholder for adding new techniques
+# ==================== UTILITY FUNCTIONS ====================
 
-# Market sessions (UTC, Monday-Friday)
-MARKET_SESSIONS = [
-    ('Sydney', 0, 8),
-    ('Tokyo', 0, 8),
-    ('London', 8, 16),
-    ('New York', 13.5, 20),  # 13:30 to 20:00
-]
-
-def get_current_market_session():
-    """Return the current market session name or 'Off-hours' if none."""
-    now = datetime.utcnow()
-    if now.weekday() >= 5:  # Saturday or Sunday
-        return 'Weekend (no trading)'
-    hour = now.hour + now.minute / 60.0
-    for name, start, end in MARKET_SESSIONS:
-        if start <= hour < end:
-            return name
-    return 'Off-hours'
-
-def fetch_rss_items(url):
-    '''Fetch RSS/Atom feed and return list of {'title','description'} items (best-effort).'''
+def send_telegram_message(message):
+    """Send notification via Telegram"""
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        return
+    
     try:
-        resp = requests.get(url, timeout=10, headers={'User-Agent': 'news-trader/1.0'})
-        text = resp.text
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        data = {"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "Markdown"}
+        requests.post(url, data=data, timeout=10)
+    except Exception as e:
+        print(f"Telegram error: {e}")
+
+def fetch_rss_feed(url, timeout=10):
+    """Fetch and parse RSS feed"""
+    try:
+        resp = requests.get(url, timeout=timeout, headers={'User-Agent': 'CryptoTrader/1.0'})
         items = []
-        # crude parsing: find <item> blocks
-        for block in re.findall(r'<item>(.*?)</item>', text, flags=re.S | re.I):
-            title_m = re.search(r'<title>(.*?)</title>', block, flags=re.S | re.I)
-            desc_m = re.search(r'<description>(.*?)</description>', block, flags=re.S | re.I)
+        for block in re.findall(r'<item>(.*?)</item>', resp.text, re.S | re.I):
+            title_m = re.search(r'<title>(.*?)</title>', block, re.S | re.I)
+            desc_m = re.search(r'<description>(.*?)</description>', block, re.S | re.I)
             title = re.sub('<.*?>', '', title_m.group(1)).strip() if title_m else ''
             desc = re.sub('<.*?>', '', desc_m.group(1)).strip() if desc_m else ''
             if title or desc:
                 items.append({'title': title, 'description': desc})
         return items
     except Exception as e:
-        print(f'Failed to fetch RSS {url}: {e}')
         return []
 
-# def fetch_tweets():
-#     '''Fetch recent tweets from influential users.'''
-#     users = ['elonmusk', 'realDonaldTrump', 'vitalikbuterin', 'cz_binance', 'brian_armstrong', 'saylor', 'michaeljburry', 'TimDraper', 'rogerkver', 'BarrySilbert', 'brian_armstrong', 'sandeepna[...]
-#     tweets = []
-#     cutoff = datetime.now() - timedelta(hours=24) # Last 24 hours for fast trading
-#     for user in users:
-#         try:
-#             query = f'from:{user} since:{cutoff.date()}'
-#             for tweet in sntwitter.TwitterSearchScraper(query).get_items():
-#                 if tweet.date.replace(tzinfo=None) < cutoff:
-#                 break
-#                 tweets.append({'title': tweet.rawContent, 'description': '', 'source': f'Twitter-{user}'})
-#         except Exception as e:
-#             print(f'Failed to fetch tweets from {user}: {e}')
-#     return tweets
-
-def get_news():
-    '''Fetch news from NewsAPI, RSS, and influential tweets.'''
-    results = []
-    cutoff = datetime.now() - timedelta(hours=48)  # Last 48 hours for more data
+def get_crypto_news():
+    """Fetch cryptocurrency news from multiple sources"""
+    articles = []
+    cutoff = datetime.now() - timedelta(hours=24)
+    
+    # NewsAPI
     try:
-        # Fetch crypto/business related from NewsAPI (use q to bias crypto)
-        resp_crypto = newsapi.get_everything(q='cryptocurrency OR crypto OR bitcoin OR ethereum OR blockchain OR nft OR defi OR solana OR dogecoin', language='en', sort_by='publishedAt', page_size=100)
-        resp_general = newsapi.get_top_headlines(category='business', language='en', country='us', page_size=100)
-        for a in resp_crypto.get('articles', []) + resp_general.get('articles', []):
-            pub_date = a.get('publishedAt')
+        query = 'cryptocurrency OR bitcoin OR ethereum OR crypto OR blockchain OR altcoin'
+        resp = newsapi.get_everything(q=query, language='en', sort_by='publishedAt', page_size=100)
+        for article in resp.get('articles', []):
+            pub_date = article.get('publishedAt')
             if pub_date:
                 try:
                     pub_dt = datetime.fromisoformat(pub_date.replace('Z', '+00:00'))
-                    if pub_dt < cutoff:
+                    if pub_dt.replace(tzinfo=None) < cutoff:
                         continue
                 except:
-                    pass  # Include if can't parse
-            results.append({'title': a.get('title', ''), 'description': a.get('description', ''), 'source': a.get('source', {}).get('name')})
+                    pass
+            articles.append({
+                'title': article.get('title', ''),
+                'description': article.get('description', ''),
+                'source': article.get('source', {}).get('name', 'Unknown')
+            })
     except Exception as e:
-        print(f'NewsAPI fetch error: {e}')
+        print(f"NewsAPI error: {e}")
+    
+    # RSS Feeds
+    for name, url in CRYPTO_NEWS_SOURCES:
+        items = fetch_rss_feed(url)
+        for item in items:
+            articles.append({
+                'title': item['title'],
+                'description': item['description'],
+                'source': name
+            })
+    
+    print(f"Fetched {len(articles)} news articles")
+    return articles
 
-    # Fetch RSS-based crypto sources (assume recent)
-    for name, url in CRYPTO_RSS_FEEDS:
-        items = fetch_rss_items(url)
-        for it in items:
-            results.append({'title': it.get('title', ''), 'description': it.get('description', ''), 'source': name})
+def extract_crypto_symbols(text):
+    """Extract cryptocurrency symbols from text"""
+    text_upper = text.upper()
+    found = set()
+    
+    # Check all known symbols and aliases
+    for symbol, yf_symbol in CRYPTO_SYMBOL_MAP.items():
+        if re.search(r'\b' + re.escape(symbol) + r'\b', text_upper):
+            found.add(yf_symbol)
+    
+    # Check for $SYMBOL patterns
+    for match in re.findall(r'\$([A-Z]{2,6})\b', text_upper):
+        if match in CRYPTO_SYMBOL_MAP:
+            found.add(CRYPTO_SYMBOL_MAP[match])
+    
+    return list(found)
 
-    # Fetch influential tweets (commented out due to snscrape issues in Python 3.12)
-    # tweets = fetch_tweets()
-    # results.extend(tweets)
+def analyze_sentiment_with_llm(articles, symbol=''):
+    """Analyze sentiment using Groq LLM"""
+    if not groq_client or not articles:
+        return 0.0, "No analysis available"
+    
+    # Prepare article summaries
+    article_texts = []
+    for i, article in enumerate(articles[:10], 1):  # Limit to 10 articles
+        title = article.get('title', '')
+        desc = article.get('description', '')
+        article_texts.append(f"{i}. {title}\n   {desc[:200]}")
+    
+    combined_text = "\n".join(article_texts)
+    
+    prompt = f"""Analyze the sentiment of these cryptocurrency news articles about {symbol if symbol else 'the crypto market'}:
 
-    return results
+{combined_text}
 
-def normalize_text(s: str) -> str:
-    return (s or '').upper()
+Provide:
+1. Overall sentiment score from -1.0 (very bearish) to +1.0 (very bullish)
+2. Brief reasoning (2-3 sentences)
 
-# --- REPLACE your extract_crypto_and_tickers() with this version ---
-def extract_crypto_and_tickers(text: str):
-    """
-    Return list of dicts: {'symbol','yf','kind'} where kind in {'crypto','stock'}.
-    Rules:
-      - Accept $TICKER only if it’s a known crypto symbol or passes a quick market-data check.
-      - Accept plain crypto names/symbols from CRYPTO_SYMBOL_MAP and CRYPTO_ALIASES.
-      - Do NOT infer generic ALL-CAPS words as tickers.
-    """
-    text_u = normalize_text(text)
-    found = {}
- 
-    # 1) $TICKER patterns (common in crypto/news posts)
-    for m in re.findall(r'\$([A-Z]{2,6})\b', text_u):
-        key = m.upper()
-        if key in CRYPTO_SYMBOL_MAP:
-            found[key] = (CRYPTO_SYMBOL_MAP[key], 'crypto')
-        elif key in CRYPTO_ALIASES:
-            canonical = CRYPTO_ALIASES[key]
-            found[canonical] = (CRYPTO_SYMBOL_MAP[canonical], 'crypto')
-        else:
-            # tentatively a stock-like ticker; validate before keeping
-            yf_sym = key
-            if _symbol_has_prices(yf_sym):
-                found[key] = (yf_sym, 'stock')
-
-    # 2) Plain crypto tickers and names (BTC, ETH, BITCOIN, etc.)
-    for name in CRYPTO_SYMBOL_MAP:
-        if re.search(r'\b' + re.escape(name) + r'\b', text_u):
-            found[name] = (CRYPTO_SYMBOL_MAP[name], 'crypto')
-    for alias in CRYPTO_ALIASES:
-        if re.search(r'\b' + re.escape(alias) + r'\b', text_u):
-            canonical = CRYPTO_ALIASES[alias]
-            found[canonical] = (CRYPTO_SYMBOL_MAP[canonical], 'crypto')
-
-    return [{'symbol': k, 'yf': v[0], 'kind': v[1]} for k, v in found.items()]
-
-def analyze_sentiment(texts):
-    '''Aggregate sentiment over a list of texts using TextBlob. Boost influential sources.'''
-    scores = []
-    for t in texts:
-        try:
-            b = TextBlob(t)
-            polarity = b.sentiment.polarity
-            # Boost sentiment from influential tweets
-            if 'Twitter-' in t.get('source', ''):
-                polarity *= 2.0  # Double weight for Elon/Trump tweets
-            scores.append(polarity)
-        except Exception:
-            continue
-    if not scores:
-        return 0.0
-    # weighted by recency could be added; simple average for now
-    return sum(scores) / len(scores)
-
-@lru_cache(maxsize=100)
-def get_market_data(yf_symbol, kind='stock'):
-    """Get recent price, volatility/ATR, pivots, S/R, psych levels, candle patterns, smart money volume, ICT FVG."""
+Format: SCORE: [number] | REASON: [text]"""
+    
     try:
-        ticker = yf.Ticker(yf_symbol)
-        # Use 30m for low money mode (better ROI, fewer fees), else 15m
-        interval = '30m' if LOW_MONEY_MODE else '15m'
-        hist_hourly = ticker.history(period='3d', interval=interval)
-        # Daily data for pivots
-        hist_daily = ticker.history(period='30d', interval='1d')
-        if hist_hourly.empty or len(hist_hourly) < 26 or hist_daily.empty or len(hist_daily) < 2:
-            return None
+        response = groq_client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+            max_tokens=200
+        )
+        
+        result = response.choices[0].message.content
+        
+        # Parse response
+        score_match = re.search(r'SCORE:\s*([-+]?[0-9]*\.?[0-9]+)', result)
+        reason_match = re.search(r'REASON:\s*(.+)', result, re.S)
+        
+        score = float(score_match.group(1)) if score_match else 0.0
+        reason = reason_match.group(1).strip() if reason_match else result
+        
+        # Clamp score
+        score = max(-1.0, min(1.0, score))
+        
+        return score, reason[:200]
+    
+    except Exception as e:
+        print(f"LLM sentiment error: {e}")
+        return 0.0, f"Error: {str(e)[:100]}"
 
-        # Skip delisted or low-volume symbols
-        if hist_hourly['Volume'].tail(10).mean() < 1000:  # Arbitrary low volume check
-            return None
+def simple_sentiment(text):
+    """Simple rule-based sentiment analysis as fallback"""
+    text_lower = text.lower()
+    
+    positive = ['bullish', 'surge', 'rally', 'gain', 'rise', 'up', 'high', 'pump',
+                'adoption', 'breakthrough', 'partnership', 'launch', 'success']
+    negative = ['bearish', 'crash', 'drop', 'fall', 'down', 'low', 'dump', 'hack',
+                'scam', 'ban', 'regulation', 'sell', 'loss', 'decline']
+    
+    pos_count = sum(1 for word in positive if word in text_lower)
+    neg_count = sum(1 for word in negative if word in text_lower)
+    
+    total = pos_count + neg_count
+    if total == 0:
+        return 0.0
+    
+    return (pos_count - neg_count) / total
 
-        close = hist_hourly['Close'].dropna()
-        high = hist_hourly['High'].dropna()
-        low = hist_hourly['Low'].dropna()
-        volume = hist_hourly['Volume'].dropna()
+@lru_cache(maxsize=200)
+def get_market_data(symbol, period='7d', interval='1h'):
+    """Fetch market data and calculate advanced technical indicators"""
+    try:
+        ticker = yf.Ticker(symbol)
+        df = ticker.history(period=period, interval=interval)
+        
+        if df.empty or len(df) < 100:  # Need more data for advanced indicators
+            return None
+        
+        close = df['Close']
         current_price = float(close.iloc[-1])
-
-        # Volatility and ATR
-        hourly_returns = close.pct_change().dropna()
-        vol_hourly = hourly_returns.std()
-        tr = []
-        for i in range(1, len(high)):
-            tr.append(max(high.iloc[i] - low.iloc[i], abs(high.iloc[i] - close.iloc[i-1]), abs(low.iloc[i] - close.iloc[i-1])))
-        atr = sum(tr[-14:]) / min(14, len(tr)) if tr else 0
-        atr_pct = atr / current_price
-
-        # Pivots from previous day
-        prev_day = hist_daily.iloc[-2]  # Yesterday
-        pivot = (prev_day['High'] + prev_day['Low'] + prev_day['Close']) / 3
-        r1 = 2 * pivot - prev_day['Low']
-        s1 = 2 * pivot - prev_day['High']
-        r2 = pivot + (prev_day['High'] - prev_day['Low'])
-        s2 = pivot - (prev_day['High'] - prev_day['Low'])
-
-        # Support/Resistance: recent swing highs/lows (simple: max/min of last 20 hours)
-        recent_high = high.tail(20).max()
-        recent_low = low.tail(20).min()
-
-        # Psychological levels: round to nearest 100 for BTC, 10 for ETH, etc.
-        if 'BTC' in yf_symbol.upper():
-            psych_level = round(current_price / 100) * 100
-        elif 'ETH' in yf_symbol.upper():
-            psych_level = round(current_price / 10) * 10
-        else:
-            psych_level = round(current_price / 1) * 1  # For altcoins
-
-        # Candle patterns: simple bullish/bearish signal from last 3 candles
-        candle_signal = 0  # -1 bearish, 0 neutral, 1 bullish
-        if len(close) >= 3:
-            last3 = close.tail(3).values
-            if last3[2] > last3[1] > last3[0]:  # Rising
-                candle_signal = 1
-            elif last3[2] < last3[1] < last3[0]:  # Falling
-                candle_signal = -1
-
-        # Ichimoku Cloud
-        tenkan = (high.rolling(9).max() + low.rolling(9).min()) / 2
-        kijun = (high.rolling(26).max() + low.rolling(26).min()) / 2
-        senkou_a = ((tenkan + kijun) / 2).shift(26)
-        senkou_b = ((high.rolling(52).max() + low.rolling(52).min()) / 2).shift(26)
-        chikou = close.shift(-26)
-        ichimoku_signal = 0  # 1 bullish, -1 bearish
-        if (current_price > senkou_a.iloc[-1] and current_price > senkou_b.iloc[-1] and 
-            tenkan.iloc[-1] > kijun.iloc[-1] and senkou_a.iloc[-1] > senkou_b.iloc[-1]):
-            ichimoku_signal = 1
-        elif (current_price < senkou_a.iloc[-1] and current_price < senkou_b.iloc[-1] and 
-              tenkan.iloc[-1] < kijun.iloc[-1] and senkou_a.iloc[-1] < senkou_b.iloc[-1]):
-            ichimoku_signal = -1
-
-        # Smart Money: Volume confirmation (institutional order flow)
-        volume_avg = volume.tail(20).mean()
-        recent_volume = volume.iloc[-1]
-        volume_signal = 0  # 1 smart money buying, -1 smart money selling
-        if recent_volume > volume_avg * 1.2:
-            if close.iloc[-1] > close.iloc[-2]:
-                volume_signal = 1
-            elif close.iloc[-1] < close.iloc[-2]:
-                volume_signal = -1
-
-        # ICT: Fair Value Gap (FVG) detection - simple version
-        fvg_signal = 0  # 1 bullish FVG, -1 bearish FVG
-        if len(close) >= 4:
-            # Bullish FVG: low of current > high of 2 candles ago
-            if low.iloc[-1] > high.iloc[-3]:
-                fvg_signal = 1
-            # Bearish FVG: high of current < low of 2 candles ago
-            elif high.iloc[-1] < low.iloc[-3]:
-                fvg_signal = -1
-
+        
+        # Calculate volatility
+        returns = close.pct_change()
+        volatility = float(returns.std() * np.sqrt(24 * 365))  # Annualized for hourly data
+        
+        # Get all advanced technical indicators
+        indicators = get_all_indicators(df)
+        
+        # Extract ATR percentage for stop loss calculations
+        atr_pct = indicators['atr']['percent']
+        
         return {
             'price': current_price,
-            'volatility_hourly': float(vol_hourly),
-            'atr_pct': float(atr_pct),
-            'pivot': float(pivot),
-            'r1': float(r1), 'r2': float(r2),
-            's1': float(s1), 's2': float(s2),
-            'support': float(recent_low),
-            'resistance': float(recent_high),
-            'psych_level': float(psych_level),
-            'candle_signal': candle_signal,
-            'ichimoku_signal': ichimoku_signal,
-            'volume_signal': volume_signal,
-            'fvg_signal': fvg_signal
+            'volatility': volatility,
+            'atr_pct': atr_pct,
+            'indicators': indicators
         }
+    
     except Exception as e:
-        # Suppress yfinance errors for cleaner output
+        print(f"Market data error for {symbol}: {e}")
+        return None
+    
+    except Exception as e:
+        print(f"Market data error for {symbol}: {e}")
         return None
 
-def recommend_leverage(rr, volatility, kind='crypto'):
-    '''Recommend leverage given RR and volatility. Returns integer leverage.'''
-    # Base leverage from RR: more RR allows more leverage
-    base = max(1, int(math.floor(rr * 10)))  # Increased multiplier for higher leverage in crypto
-    # Cap by asset class
-    max_lev = MAX_LEVERAGE_CRYPTO if kind == 'crypto' else MAX_LEVERAGE_STOCK
-    # If volatility is very high, reduce recommended leverage
-    if volatility is None:
-        volatility = 1.0
-    if volatility > 1.0:  # >100% annualized -> risky
-        max_lev = min(max_lev, 50)  # Adjusted for higher cap
-    if volatility > 2.0:
-        max_lev = min(max_lev, 20)
-    lev = min(base, max_lev)
-    return max(1, lev)
-
-def calculate_trade_plan(avg_sentiment, news_count, market_data):
-    '''Return dict with direction, expected_profit_pct, stop_pct, rr, recommended_leverage.'''
-    global ICHIMOKU_WEIGHT, VOLUME_WEIGHT, FVG_WEIGHT, CANDLE_WEIGHT
+def calculate_trade_signal(sentiment_score, news_count, market_data):
+    """Calculate trading signal from sentiment and technical indicators"""
     if not market_data:
         return None
+    
     price = market_data['price']
-    pivot = market_data['pivot']
-    r1 = market_data['r1']
-    r2 = market_data['r2']
-    s1 = market_data['s1']
-    s2 = market_data['s2']
-    support = market_data['support']
-    resistance = market_data['resistance']
-    psych_level = market_data['psych_level']
-    candle_signal = market_data['candle_signal']
-    ichimoku_signal = market_data['ichimoku_signal']
-    volume_signal = market_data['volume_signal']
-    fvg_signal = market_data['fvg_signal']
-
-    # sentiment-driven expected move
-    news_bonus = min(MAX_NEWS_BONUS, NEWS_COUNT_BONUS * news_count)
-    expected_return = avg_sentiment * EXPECTED_RETURN_PER_SENTIMENT + news_bonus * (1 if avg_sentiment >= 0 else -1)
-
-    # Adjust for technical levels
-    # Near resistance: reduce bullish
-    if price > resistance * 0.98:
-        expected_return *= 0.8
-    # Near support: boost bullish
-    if price < support * 1.02:
-        expected_return *= 1.2
-    # Near pivot: neutral
-    # Psychological magnet: if close to psych level, slight boost
-    if abs(price - psych_level) / price < 0.01:
-        expected_return *= 1.1
-
-    # Candle confirmation: boost if matches sentiment (using adaptive weight)
-    if (avg_sentiment > 0 and candle_signal > 0) or (avg_sentiment < 0 and candle_signal < 0):
-        expected_return *= CANDLE_WEIGHT
-    elif (avg_sentiment > 0 and candle_signal < 0) or (avg_sentiment < 0 and candle_signal > 0):
-        expected_return *= (2 - CANDLE_WEIGHT)  # Dampen inversely
-
-    # Ichimoku confirmation: boost if matches sentiment
-    if (avg_sentiment > 0 and ichimoku_signal > 0) or (avg_sentiment < 0 and ichimoku_signal < 0):
-        expected_return *= ICHIMOKU_WEIGHT
-    elif (avg_sentiment > 0 and ichimoku_signal < 0) or (avg_sentiment < 0 and ichimoku_signal > 0):
-        expected_return *= (2 - ICHIMOKU_WEIGHT)
-    elif ichimoku_signal == 0:
-        expected_return *= 0.95  # slight dampen if Ichimoku neutral
-
-    # Smart Money: Volume confirmation boost
-    if (avg_sentiment > 0 and volume_signal > 0) or (avg_sentiment < 0 and volume_signal < 0):
-        expected_return *= VOLUME_WEIGHT
-    elif (avg_sentiment > 0 and volume_signal < 0) or (avg_sentiment < 0 and volume_signal > 0):
-        expected_return *= (2 - VOLUME_WEIGHT)
-
-    # ICT: FVG confirmation
-    if (avg_sentiment > 0 and fvg_signal > 0) or (avg_sentiment < 0 and fvg_signal < 0):
-        expected_return *= FVG_WEIGHT
-    elif (avg_sentiment > 0 and fvg_signal < 0) or (avg_sentiment < 0 and fvg_signal > 0):
-        expected_return *= (2 - FVG_WEIGHT)
-
-    expected_profit_pct = abs(expected_return)
-
-    vol = market_data.get('volatility_hourly', 0.0)
-    atr_pct = market_data.get('atr_pct', 0.005)
-    # Determine stop loss percent (use ATR for optimized 15m/30m stops)
-    stop_pct = max(MIN_STOP_PCT, atr_pct * 1.0)  # 1.0x ATR for tighter stops on 15m/30m
-
-    if stop_pct <= 0:
+    indicators = market_data['indicators']
+    
+    # Base expected return from sentiment
+    expected_return = sentiment_score * EXPECTED_RETURN_PER_SENTIMENT
+    
+    # News volume bonus
+    news_bonus = min(news_count * NEWS_IMPACT_MULTIPLIER, MAX_NEWS_BONUS)
+    expected_return += news_bonus if sentiment_score > 0 else -news_bonus
+    
+    # Technical indicator score
+    tech_score = 0
+    total_weight = 0
+    
+    for indicator, weight in INDICATOR_WEIGHTS.items():
+        if indicator in indicators and 'signal' in indicators[indicator]:
+            tech_score += indicators[indicator]['signal'] * weight
+            total_weight += weight
+    
+    tech_score_normalized = tech_score / total_weight if total_weight > 0 else 0
+    
+    # Combine sentiment and technicals
+    combined_score = (sentiment_score + tech_score_normalized) / 2
+    expected_return *= (1 + abs(tech_score_normalized) * 0.5)  # Boost if technicals agree
+    
+    # Determine direction
+    if combined_score > 0.2:
+        direction = 'LONG'
+    elif combined_score < -0.2:
+        direction = 'SHORT'
+    else:
         return None
-
-    rr = expected_profit_pct / stop_pct if stop_pct > 0 else 0.0
-
-    # decide direction (adjusted thresholds for short trades)
-    direction = 'flat'
-    if expected_return > 0.0005:  # 0.05% for long
-        direction = 'long'
-    elif expected_return < -0.0002:  # Lower threshold for short to allow more shorts
-        direction = 'short'
-
-    # For bearish Ichimoku or candle, allow short even if sentiment neutral
-    if direction == 'flat' and ichimoku_signal == -1:
-        direction = 'short'
-        expected_return = -0.001  # Set small negative
-        expected_profit_pct = 0.001
-    elif direction == 'flat' and candle_signal == -1 and avg_sentiment < 0.1:
-        direction = 'short'
-        expected_return = -0.001
-        expected_profit_pct = 0.001
-
-    lev = recommend_leverage(rr, vol, kind='crypto')
-
+    
+    # Calculate stop loss
+    atr_stop = market_data['atr_pct'] * 2
+    stop_pct = max(MIN_STOP_PCT, min(atr_stop, MAX_STOP_PCT))
+    
+    # Calculate take profit
+    expected_profit = abs(expected_return)
+    if expected_profit < stop_pct * 1.5:  # Minimum 1.5:1 RR
+        expected_profit = stop_pct * 2
+    
+    # Risk/Reward ratio
+    rr_ratio = expected_profit / stop_pct if stop_pct > 0 else 0
+    
+    # Leverage recommendation
+    leverage = min(
+        math.floor(rr_ratio * 2),
+        MAX_LEVERAGE_CRYPTO
+    )
+    leverage = max(1, leverage)
+    
+    # Calculate prices
+    if direction == 'LONG':
+        stop_loss = price * (1 - stop_pct)
+        take_profit = price * (1 + expected_profit)
+    else:
+        stop_loss = price * (1 + stop_pct)
+        take_profit = price * (1 - expected_profit)
+    
     return {
         'direction': direction,
-        'expected_return_pct': expected_return,
-        'expected_profit_pct': expected_profit_pct,
+        'entry_price': price,
+        'stop_loss': stop_loss,
+        'take_profit': take_profit,
         'stop_pct': stop_pct,
-        'rr': rr,
-        'recommended_leverage': lev,
-        'volatility_hourly': vol,
-        'atr_pct': atr_pct,
-        'pivot': pivot,
-        'r1': r1, 'r2': r2,
-        's1': s1, 's2': s2,
-        'support': support,
-        'resistance': resistance,
-        'psych_level': psych_level,
-        'candle_signal': candle_signal,
-        'ichimoku_signal': ichimoku_signal,
-        'volume_signal': volume_signal,
-        'fvg_signal': fvg_signal,
+        'expected_profit_pct': expected_profit,
+        'rr_ratio': rr_ratio,
+        'leverage': leverage,
+        'sentiment_score': sentiment_score,
+        'technical_score': tech_score_normalized,
+        'combined_score': combined_score,
+        'confidence': abs(combined_score)
     }
 
-# --- ADD this helper anywhere above main() ---
-@lru_cache(maxsize=2048)
-def _symbol_has_prices(yf_symbol: str) -> bool:
-    """Fast sanity check: does yfinance return any recent daily history?"""
+def log_trade(symbol, signal, sentiment_reason=''):
+    """Log trade to file"""
+    if not signal:
+        return
+    
+    trade_entry = {
+        'timestamp': datetime.now().isoformat(),
+        'symbol': symbol,
+        'direction': signal['direction'],
+        'entry_price': signal['entry_price'],
+        'stop_loss': signal['stop_loss'],
+        'take_profit': signal['take_profit'],
+        'leverage': signal['leverage'],
+        'rr_ratio': signal['rr_ratio'],
+        'confidence': signal['confidence'],
+        'sentiment_score': signal['sentiment_score'],
+        'technical_score': signal['technical_score'],
+        'sentiment_reason': sentiment_reason,
+        'status': 'open'
+    }
+    
+    # Load existing logs
     try:
-        hist = yf.Ticker(yf_symbol).history(period='30d', interval='1d')
-        return (not hist.empty) and (len(hist['Close'].dropna()) >= 5)
-    except Exception:
-        return False
-
-def log_trades(results):
-    """Log suggested trades to JSON file with indicator signals."""
-    if not os.path.exists(TRADE_LOG_FILE):
-        with open(TRADE_LOG_FILE, 'w') as f:
-            json.dump([], f)
+        with open(TRADE_LOG_FILE, 'r') as f:
+            logs = json.load(f)
+    except:
+        logs = []
     
-    with open(TRADE_LOG_FILE, 'r') as f:
-        logs = json.load(f)
+    logs.append(trade_entry)
     
-    for r in results:
-        price = r['price']
-        direction = r['direction']
-        stop_pct = r['stop_pct']
-        exp_return_pct = r['expected_return_pct']
-        if direction == 'long':
-            stop_price = price * (1 - stop_pct)
-            target_price = price * (1 + exp_return_pct)
-        elif direction == 'short':
-            stop_price = price * (1 + stop_pct)
-            target_price = price * (1 - exp_return_pct)
-        else:
-            continue  # Skip flat
-        trade = {
-            'timestamp': datetime.now().isoformat(),
-            'symbol': r['symbol'],
-            'direction': direction,
-            'entry_price': price,
-            'stop_price': stop_price,
-            'target_price': target_price,
-            'leverage': r['recommended_leverage'],
-            'status': 'open',
-            'candle_signal': r['candle_signal'],
-            'ichimoku_signal': r['ichimoku_signal'],
-            'volume_signal': r['volume_signal'],
-            'fvg_signal': r['fvg_signal']
-        }
-        logs.append(trade)
-    
+    # Save logs
     with open(TRADE_LOG_FILE, 'w') as f:
         json.dump(logs, f, indent=2)
 
-def evaluate_trades():
-    """Evaluate past trades and adjust indicator weights based on performance."""
-    global ICHIMOKU_WEIGHT, VOLUME_WEIGHT, FVG_WEIGHT, CANDLE_WEIGHT, NEW_TECHNIQUE_ENABLED
-    if not os.path.exists(TRADE_LOG_FILE):
-        return
-    
-    with open(TRADE_LOG_FILE, 'r') as f:
-        logs = json.load(f)
-    
-    indicator_wins = {'candle': 0, 'ichimoku': 0, 'volume': 0, 'fvg': 0}
-    indicator_losses = {'candle': 0, 'ichimoku': 0, 'volume': 0, 'fvg': 0}
-    total_wins = 0
-    total = 0
-    
-    for trade in logs:
-        if trade['status'] != 'open':
-            continue
-        # Skip trades logged in the last 1 hour to allow time for execution
-        trade_time = datetime.fromisoformat(trade['timestamp'])
-        if datetime.now() - trade_time < timedelta(hours=1):
-            continue
-        symbol = trade['symbol']
-        yf_symbol = CRYPTO_SYMBOL_MAP.get(symbol, symbol + '-USD')
-        try:
-            ticker = yf.Ticker(yf_symbol)
-            current_price = float(ticker.history(period='1d')['Close'].iloc[-1])
-        except:
-            continue
-        direction = trade['direction']
-        stop = trade['stop_price']
-        target = trade['target_price']
-        win = False
-        if direction == 'long':
-            if current_price >= target:
-                trade['status'] = 'win'
-                win = True
-                total_wins += 1
-            elif current_price <= stop:
-                trade['status'] = 'loss'
-        elif direction == 'short':
-            if current_price <= target:
-                trade['status'] = 'win'
-                win = True
-                total_wins += 1
-            elif current_price >= stop:
-                trade['status'] = 'loss'
-        total += 1
-        
-        # Track indicator performance
-        for ind in ['candle', 'ichimoku', 'volume', 'fvg']:
-            signal = trade[f'{ind}_signal']
-            if win:
-                if (direction == 'long' and signal > 0) or (direction == 'short' and signal < 0):
-                    indicator_wins[ind] += 1
-            else:
-                if (direction == 'long' and signal > 0) or (direction == 'short' and signal < 0):
-                    indicator_losses[ind] += 1
-    
-    if total > 0:
-        win_rate = total_wins / total
-        print(f"Evaluated {total} trades, win rate: {win_rate:.2%}")
-        
-        # Adjust weights per indicator
-        for ind in ['candle', 'ichimoku', 'volume', 'fvg']:
-            wins = indicator_wins[ind]
-            losses = indicator_losses[ind]
-            if wins + losses > 0:
-                ind_win_rate = wins / (wins + losses)
-                if ind_win_rate > 0.6:
-                    globals()[f'{ind.upper()}_WEIGHT'] *= 1.1  # Boost good performers
-                elif ind_win_rate < 0.4:
-                    globals()[f'{ind.upper()}_WEIGHT'] *= 0.9  # Reduce bad performers
-                if globals()[f'{ind.upper()}_WEIGHT'] < 1.0:
-                    globals()[f'{ind.upper()}_WEIGHT'] = 1.0  # Neutralize underperformers
-                print(f"{ind.capitalize()} win rate: {ind_win_rate:.2%}, new weight: {globals()[f'{ind.upper()}_WEIGHT']:.2f}")
-        
-        # Adjust overall parameters if win rate < 30%
-        if win_rate < 0.3:
-            global EXPECTED_RETURN_PER_SENTIMENT, MIN_STOP_PCT
-            MIN_STOP_PCT *= 0.9
-            print("Adjusted: tighter stops due to low win rate (<30%).")
-            # Enable new technique if overall poor
-            NEW_TECHNIQUE_ENABLED = True
-            print("Enabled new technique placeholder due to low performance.")
-        
-        # Save back
-        with open(TRADE_LOG_FILE, 'w') as f:
-            json.dump(logs, f, indent=2)
+def check_daily_risk():
+    """Check if daily risk limit has been reached"""
+    try:
+        with open(DAILY_RISK_FILE, 'r') as f:
+            risk_data = json.load(f)
+            today = datetime.now().date().isoformat()
+            if risk_data.get('date') == today:
+                return risk_data.get('loss_pct', 0) >= DAILY_RISK_LIMIT
+    except:
+        pass
+    return False
+
+def format_trade_message(symbol, signal, sentiment_reason=''):
+    """Format trade signal for output"""
+    msg = f"""
+{'='*60}
+🚨 CRYPTO TRADE SIGNAL
+{'='*60}
+Symbol: {symbol}
+Direction: {signal['direction']} {'🟢' if signal['direction'] == 'LONG' else '🔴'}
+Entry: ${signal['entry_price']:.6f}
+Stop Loss: ${signal['stop_loss']:.6f} ({signal['stop_pct']*100:.2f}%)
+Take Profit: ${signal['take_profit']:.6f} ({signal['expected_profit_pct']*100:.2f}%)
+Leverage: {signal['leverage']}x
+Risk/Reward: 1:{signal['rr_ratio']:.2f}
+Confidence: {signal['confidence']*100:.1f}%
+
+📊 Analysis:
+Sentiment: {signal['sentiment_score']:.2f} | Technical: {signal['technical_score']:.2f}
+{sentiment_reason}
+
+⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC
+{'='*60}
+"""
+    return msg
+
+# ==================== MAIN EXECUTION ====================
 
 def main():
-    # Check market session
-    current_session = get_current_market_session()
-    print(f"Current market session: {current_session}")
+    """Main trading loop"""
+    print("\n🚀 Starting Crypto Trading Signal Generator...")
+    print(f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC")
+    print(f"💰 Mode: {'Low Money' if LOW_MONEY_MODE else 'Standard'}")
+    print(f"🎯 Max Leverage: {MAX_LEVERAGE_CRYPTO}x")
+    print(f"🛡️ Daily Risk Limit: {DAILY_RISK_LIMIT*100}%\n")
     
-    # Adjust parameters based on session
-    session_multiplier = 1.0
-    if current_session in ['London', 'New York']:
-        session_multiplier = 1.2  # Boost expected returns during active sessions
-    elif current_session == 'Off-hours':
-        session_multiplier = 0.9  # Reduce during low activity
-    elif current_session == 'Weekend (no trading)':
-        print("It's a weekend—skipping trades to avoid low liquidity.")
-        return []  # Skip trading on weekends
+    # Check daily risk limit
+    if check_daily_risk():
+        msg = "⚠️ Daily risk limit reached. No new trades today."
+        print(msg)
+        send_telegram_message(msg)
+        return
     
-    global EXPECTED_RETURN_PER_SENTIMENT
-    EXPECTED_RETURN_PER_SENTIMENT *= session_multiplier
-    print(f"Session multiplier applied: {session_multiplier:.1f}")
+    # Fetch news
+    print("📰 Fetching crypto news...")
+    articles = get_crypto_news()
     
-    print('Crypto News Trading Bot v2.0 - Fetching latest signals...')
-    articles = get_news()
-    print(f'Retrieved {len(articles)} articles.')
-
-    # Group articles mentioning each symbol
-
-    # Group articles mentioning each symbol
+    if not articles:
+        print("⚠️ No news articles found")
+        return
+    
+    # Extract symbols from news
     symbol_articles = {}
-    for a in articles:
-        title = a.get('title') or ''
-        desc = a.get('description') or ''
-        text = f'{title} {desc}'.strip()
-        if not text:
-            continue
-        hits = extract_crypto_and_tickers(text)
-        for h in hits:
-            key = h['symbol']
-            symbol_articles.setdefault(key, {'yf': h['yf'], 'kind': h['kind'], 'texts': [], 'count': 0})
-            symbol_articles[key]['texts'].append(text)
-            symbol_articles[key]['count'] += 1
-
-    results = []
-    print('Analyzing candidates...')
-    for sym, info in symbol_articles.items():
-        texts = info['texts']
-        avg_sent = analyze_sentiment(texts)
-        news_count = info['count']
-        yf_symbol = info['yf']
-        kind = info['kind']
-
-        market = get_market_data(yf_symbol, kind=kind)
-        if not market:
-            continue
-
-        plan = calculate_trade_plan(avg_sent, news_count, market)
-        if not plan:
-            continue
-
-        # Only keep actionable plans
-        if plan['direction'] == 'flat' or plan['rr'] < 0.5:
-            continue
-# --- OPTIONAL safety in main() loop, just before get_market_data(...) ---
-        # Skip unknown/price-less stock-like tickers defensively
-        if kind == 'stock' and not _symbol_has_prices(yf_symbol):
-            continue
-
-        # Low money adjustments: if entry * leverage < $100, boost ROI and leverage for better R/R
-        entry_cost = market['price'] * plan['recommended_leverage']
-        if entry_cost < 100:
-            plan['expected_return_pct'] *= 1.5  # Higher ROI
-            plan['expected_profit_pct'] *= 1.5
-            plan['recommended_leverage'] = min(plan['recommended_leverage'] * 2, MAX_LEVERAGE_CRYPTO)  # Higher leverage
-            plan['stop_pct'] *= 0.7  # Tighter stops for better R/R
-            plan['rr'] = plan['expected_profit_pct'] / plan['stop_pct'] if plan['stop_pct'] > 0 else 0
-
-        results.append({
-            'symbol': sym,
-            'yf_symbol': yf_symbol,
-            'kind': kind,
-            'avg_sentiment': avg_sent,
-            'news_count': news_count,
-            'price': market['price'],
-            'volatility_hourly': market['volatility_hourly'],
-            'atr_pct': market['atr_pct'],
-            'pivot': market['pivot'],
-            'r1': market['r1'], 'r2': market['r2'],
-            's1': market['s1'], 's2': market['s2'],
-            'support': market['support'],
-            'resistance': market['resistance'],
-            'psych_level': market['psych_level'],
-            'candle_signal': market['candle_signal'],
-            'ichimoku_signal': market['ichimoku_signal'],
-            'volume_signal': market['volume_signal'],
-            'fvg_signal': market['fvg_signal'],
-            **plan
-        })
-
-    # sort by quality: rr then news_count
-    results.sort(key=lambda r: (r['rr'], r['news_count']), reverse=True)
-
-    if not results:
-        message = 'No actionable crypto trades found at this time.'
-        print(message)
-        send_telegram_message(message)
-        return []
-
-    message = f"Recommended trades:\nGenerated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Current session: {current_session}\nTotal articles: {len(articles)} | Candidates analyzed: {len(symbol_articles)}\n"
-    print('\nRecommended trades:')
-    print(f"Generated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Current session: {current_session}")
-    for r in results:
-        price = r['price']
-        direction = r['direction']
-        stop_pct = r['stop_pct']
-        exp_return_pct = r['expected_return_pct']
-        if direction == 'long':
-            stop_price = price * (1 - stop_pct)
-            target_price = price * (1 + exp_return_pct)
-        elif direction == 'short':
-            stop_price = price * (1 + stop_pct)
-            target_price = price * (1 - exp_return_pct)
+    for article in articles:
+        text = f"{article.get('title', '')} {article.get('description', '')}"
+        symbols = extract_crypto_symbols(text)
+        
+        for symbol in symbols:
+            if symbol not in symbol_articles:
+                symbol_articles[symbol] = []
+            symbol_articles[symbol].append(article)
+    
+    # Add default symbols
+    for sym in DEFAULT_SYMBOLS:
+        yf_symbol = CRYPTO_SYMBOL_MAP.get(sym, f"{sym}-USD")
+        if yf_symbol not in symbol_articles:
+            symbol_articles[yf_symbol] = articles[:5]  # Use general news
+    
+    print(f"📈 Analyzing {len(symbol_articles)} cryptocurrencies...\n")
+    
+    # Analyze each symbol
+    signals = []
+    
+    for yf_symbol, symbol_articles_list in symbol_articles.items():
+        # Get clean symbol name
+        symbol_name = yf_symbol.replace('-USD', '')
+        
+        print(f"Analyzing {symbol_name}...")
+        
+        # Analyze sentiment
+        if groq_client:
+            sentiment_score, sentiment_reason = analyze_sentiment_with_llm(
+                symbol_articles_list, symbol_name
+            )
         else:
-            stop_price = price
-            target_price = price
-        trade_line = f"Symbol: {r['symbol']} | Direction: {r['direction'].upper()} | Entry Price: {r['price']:.4f} | Stop Loss: {stop_price:.4f} | Take Profit: {target_price:.4f} | Leverage: {r['recommended_leverage']}"
-        message += trade_line + "\n"
-        print(trade_line)
-
-    send_telegram_message(message)
+            # Fallback to simple sentiment
+            sentiment_texts = [f"{a.get('title', '')} {a.get('description', '')}" 
+                             for a in symbol_articles_list]
+            sentiment_score = sum(simple_sentiment(t) for t in sentiment_texts) / len(sentiment_texts) if sentiment_texts else 0
+            sentiment_reason = f"Simple sentiment analysis (no LLM)"
+        
+        news_count = len(symbol_articles_list)
+        
+        # Get market data
+        market_data = get_market_data(yf_symbol)
+        if not market_data:
+            print(f"  ⚠️ No market data available\n")
+            continue
+        
+        # Calculate signal
+        signal = calculate_trade_signal(sentiment_score, news_count, market_data)
+        
+        if signal and signal['confidence'] > 0.3:  # Minimum confidence threshold
+            signals.append({
+                'symbol': symbol_name,
+                'yf_symbol': yf_symbol,
+                'signal': signal,
+                'sentiment_reason': sentiment_reason,
+                'news_count': news_count
+            })
+            print(f"  ✅ Signal: {signal['direction']} | Confidence: {signal['confidence']*100:.1f}%\n")
+        else:
+            print(f"  ℹ️ No strong signal\n")
     
-    # Log trades
-    log_trades(results)
+    # Sort signals by confidence
+    signals.sort(key=lambda x: x['signal']['confidence'], reverse=True)
     
-    # Evaluate and learn every run
-    evaluate_trades()
+    # Output results
+    if not signals:
+        msg = "ℹ️ No actionable trading signals found at this time."
+        print(msg)
+        send_telegram_message(msg)
+        return
     
-    return results
-
+    print(f"\n{'='*60}")
+    print(f"🎯 FOUND {len(signals)} TRADING SIGNALS")
+    print(f"{'='*60}\n")
+    
+    # Show top signals
+    for item in signals[:5]:  # Top 5 signals
+        msg = format_trade_message(
+            item['symbol'],
+            item['signal'],
+            item['sentiment_reason']
+        )
+        print(msg)
+        
+        # Log trade
+        log_trade(item['symbol'], item['signal'], item['sentiment_reason'])
+        
+        # Send to Telegram
+        send_telegram_message(msg)
+        
+        time.sleep(1)  # Rate limiting
+    
+    print(f"\n✅ Analysis complete. {len(signals)} signals generated.")
+    print(f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC\n")
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n\n⚠️ Interrupted by user")
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
+        import traceback
+        traceback.print_exc()
