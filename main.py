@@ -728,18 +728,47 @@ def check_trade_outcomes():
         if verified_count > 0:
             print(f"\n[OK] Verified {verified_count} trade outcomes and updated learning system\n")
 
-def format_trade_message(symbol, signal, sentiment_reason=''):
-    """Format trade signal for output - NEWS-DRIVEN system (compact)"""
+def format_trade_message(symbol, signal, sentiment_reason='', signal_number=None):
+    """Format trade signal for output - NEWS-DRIVEN system (compact and beautiful)"""
     
-    direction_emoji = '[LONG]' if signal['direction'] == 'LONG' else '[SHORT]'
-    rr_emoji = '[HIGH-RR]' if signal['rr_ratio'] >= 3 else '[OK-RR]'
+    # Direction emoji
+    direction_emoji = '📈' if signal['direction'] == 'LONG' else '📉'
+    direction_text = 'LONG (BUY)' if signal['direction'] == 'LONG' else 'SHORT (SELL)'
     
-    msg = f"""[SIGNAL] {symbol} {signal['direction']} {direction_emoji}
-Entry: ${signal['entry_price']:.6f}
-SL: ${signal['stop_loss']:.6f} ({signal['stop_pct']*100:.2f}%)
-TP: ${signal['take_profit']:.6f} ({signal['expected_profit_pct']*100:.2f}%)
-Leverage: {signal['leverage']}x | R/R: 1:{signal['rr_ratio']:.1f} {rr_emoji}
-Confidence: {signal['confidence']*100:.1f}% | News: {signal['sentiment_score']:.2f} | Tech: {signal['technical_score']:.2f}"""
+    # R/R quality indicator
+    if signal['rr_ratio'] >= 5:
+        rr_quality = '🔥 EXCELLENT'
+    elif signal['rr_ratio'] >= 3:
+        rr_quality = '✨ GREAT'
+    else:
+        rr_quality = '✅ GOOD'
+    
+    # Confidence emoji
+    confidence_emoji = '✅' if signal['confidence'] >= 0.7 else '🎯'
+    
+    # Format numbers more compactly
+    entry = f"${signal['entry_price']:.6f}".rstrip('0').rstrip('.')
+    stop_loss = f"${signal['stop_loss']:.6f}".rstrip('0').rstrip('.')
+    take_profit = f"${signal['take_profit']:.6f}".rstrip('0').rstrip('.')
+    
+    # Build message with signal number if provided
+    signal_header = f"Signal #{signal_number}" if signal_number else "Signal"
+    
+    msg = f"""{signal_header}
+━━━━━━━━━━━━━━━━━━━━
+{direction_emoji} {symbol} - {direction_text}
+━━━━━━━━━━━━━━━━━━━━
+
+💵 Entry: {entry}
+🛑 Stop Loss: {stop_loss} ({signal['stop_pct']*100:.2f}%)
+🎯 Take Profit: {take_profit} ({signal['expected_profit_pct']*100:.2f}%)
+
+⚡️ Leverage: {signal['leverage']}x
+📊 R/R: 1:{signal['rr_ratio']:.1f} {rr_quality}
+
+{confidence_emoji} Confidence: {signal['confidence']*100:.1f}%
+📰 News: {signal['sentiment_score']:.2f}
+📈 Technical: {signal['technical_score']:.2f}"""
     
     return msg
 
@@ -871,17 +900,18 @@ def main():
 [TARGET] {len(signals)} Signals Found\n"""
     
     # Show top signals
-    for item in signals[:5]:  # Top 5 signals
+    for idx, item in enumerate(signals[:5], start=1):  # Top 5 signals
         msg = format_trade_message(
             item['symbol'],
             item['signal'],
-            item['sentiment_reason']
+            item['sentiment_reason'],
+            signal_number=idx
         )
         print(msg)
         print()
         
         # Add to summary
-        summary += f"\n{msg}"
+        summary += f"\n{msg}\n"
         
         # Log trade with indicators for learning
         log_trade(item['symbol'], item['signal'], item['sentiment_reason'], item.get('indicators'))
