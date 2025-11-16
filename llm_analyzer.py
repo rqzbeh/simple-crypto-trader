@@ -163,14 +163,14 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
         """
         Combine multiple analysis methods - NEWS-DRIVEN APPROACH
         
-        PRIMARY SIGNAL (70-80%):
-        - News sentiment analysis (market psychology)
-        - LLM reasoning (qualitative, adaptive, context-aware)
+        PRIMARY SIGNAL (85-100%):
+        - News sentiment analysis (market psychology) - MAIN DRIVER
+        - LLM reasoning (qualitative, adaptive, context-aware) - MAIN DRIVER
         
-        FILTER ONLY (20-30%):
-        - Technical indicators (filter out bad setups)
+        FILTER ONLY (0-15%):
+        - Technical indicators (filter out bad setups, calculate entry/SL/TP/leverage)
         
-        This is a NEWS TRADING SYSTEM - technicals only validate/filter signals
+        This is a NEWS TRADING SYSTEM - technicals only validate/filter signals and provide execution levels
         """
         
         # News/sentiment is the PRIMARY signal source
@@ -178,30 +178,30 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
         news_confidence = abs(sentiment_score)
         
         if not llm_analysis or not llm_analysis.get('llm_available'):
-            # Without LLM, news sentiment is 80%, technicals 20% (filter)
+            # Without LLM, news sentiment is 90%, technicals 10% (filter only)
             # Only trade if technicals don't contradict strongly
-            if abs(technical_score) > 0.5 and (technical_score * sentiment_score < 0):
-                # Strong technical contradiction - filter out this signal
+            if abs(technical_score) > 0.6 and (technical_score * sentiment_score < -0.4):
+                # Very strong technical contradiction - filter out this signal
                 return {
                     'final_score': 0,
                     'confidence': 0,
                     'method': 'filtered_by_technicals',
                     'direction': 'NEUTRAL',
-                    'filter_reason': 'Strong technical contradiction with news sentiment'
+                    'filter_reason': 'Very strong technical contradiction with news sentiment'
                 }
             
-            # Technicals don't contradict - use news sentiment
-            final_score = 0.8 * news_sentiment_score + 0.2 * technical_score
-            final_confidence = news_confidence * (0.9 if technical_score * sentiment_score > 0 else 0.7)
+            # Technicals don't contradict - use news sentiment as PRIMARY driver (90%)
+            final_score = 0.9 * news_sentiment_score + 0.1 * technical_score
+            final_confidence = news_confidence * (0.95 if technical_score * sentiment_score > 0 else 0.75)
             
             return {
                 'final_score': final_score,
                 'confidence': final_confidence,
-                'method': 'news_driven',
+                'method': 'news_driven_primary',
                 'direction': 'LONG' if final_score > 0.2 else ('SHORT' if final_score < -0.2 else 'NEUTRAL')
             }
         
-        # LLM available - NEWS + LLM is the primary signal (70%)
+        # LLM available - NEWS + LLM is the primary signal (90%)
         llm_direction = llm_analysis['direction']
         llm_confidence = llm_analysis['confidence'] / 100.0
         
@@ -216,23 +216,23 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
         news_llm_combined = (sentiment_score + llm_score) / 2
         news_llm_confidence = (news_confidence + llm_confidence) / 2
         
-        # Technical filter check
+        # Technical filter check - MORE LENIENT (only filter extreme contradictions)
         technical_filter_passed = True
         filter_reason = ''
         
-        # Strong technical contradiction filters out the signal
-        if abs(technical_score) > 0.6 and (technical_score * news_llm_combined < -0.3):
+        # Only filter if VERY strong technical contradiction (raised threshold)
+        if abs(technical_score) > 0.7 and (technical_score * news_llm_combined < -0.5):
             technical_filter_passed = False
-            filter_reason = 'Strong technical indicators contradict news/LLM analysis'
+            filter_reason = 'Extreme technical contradiction with news/LLM analysis'
         
-        # Weak technical support reduces confidence slightly
+        # Minimal technical impact on confidence
         technical_support = 1.0
-        if technical_score * news_llm_combined < 0:
-            technical_support = 0.8  # Slight reduction if technicals oppose
-        elif technical_score * news_llm_combined > 0.3:
-            technical_support = 1.1  # Slight boost if technicals agree
+        if technical_score * news_llm_combined < -0.2:
+            technical_support = 0.9  # Minor reduction if technicals oppose
+        elif technical_score * news_llm_combined > 0.4:
+            technical_support = 1.05  # Minor boost if technicals agree
         
-        # Final weighting: 70% news/LLM, 30% technical filter effect
+        # Final weighting: 90% news/LLM (PRIMARY), 10% technical filter effect
         if not technical_filter_passed:
             return {
                 'final_score': 0,
@@ -242,7 +242,7 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
                 'filter_reason': filter_reason
             }
         
-        final_score = 0.7 * news_llm_combined + 0.3 * technical_score
+        final_score = 0.9 * news_llm_combined + 0.1 * technical_score
         final_confidence = min(news_llm_confidence * technical_support, 1.0)
         
         # Agreement boost if everything aligns

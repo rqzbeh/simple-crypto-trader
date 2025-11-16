@@ -12,8 +12,9 @@ A sophisticated crypto trading bot that **trades primarily based on news, sentim
 ## 🌟 Key Features
 
 ### 📰 NEWS-DRIVEN Trading Strategy
-- **Primary Signals (70-80%)**: News sentiment + AI/LLM analysis
-- **Technical Filters (20-30%)**: Validate and filter out bad setups
+- **Primary Signals (85-90%)**: News sentiment + AI/LLM analysis
+- **Technical Filters (10-15%)**: Validate and filter out bad setups
+- **Technical Usage**: Calculate entry price, stop loss, take profit, leverage
 - **News Impact**: Up to 12% expected return based on news volume
 - **Real-Time Analysis**: Multi-source news aggregation with AI reasoning
 
@@ -33,7 +34,8 @@ A sophisticated crypto trading bot that **trades primarily based on news, sentim
 - **10 Optimized Indicators**: No conflicts, serve as filters only
 - **AI Reasoning**: Groq LLM analyzes market like a human trader
 - **Adaptive Learning**: Self-adjusts based on performance
-- **70/30 Balance**: 70% news/AI, 30% technical filter
+- **90/10 Balance**: 90% news/AI, 10% technical filter
+- **Technical Role**: Entry price, stop loss, take profit, leverage calculation
 
 ### 📊 Technical Excellence
 - **Conflict-Free**: Removed 7 redundant indicators
@@ -45,21 +47,22 @@ A sophisticated crypto trading bot that **trades primarily based on news, sentim
 
 ## 📰 News Trading Philosophy
 
-### Primary Signal Sources (70-80%)
+### Primary Signal Sources (85-90%)
 1. **News Sentiment Analysis**
    - Multi-source aggregation (CoinDesk, Cointelegraph, etc.)
    - 6-hour validity window for relevance
    - Weighted by article count and quality
 
 2. **AI/LLM Analysis** 
-   - Groq's Llama 3.1 for market context
+   - Groq's Llama 3.3 for market context
    - Risk assessment and reasoning
    - Detects market psychology and sentiment
 
-### Technical Filters (20-30%)
+### Technical Filters (10-15%)
 - **Not signal generators** - only validate/filter
+- **Calculate execution levels**: Entry price, stop loss, take profit, leverage
 - Strong technical contradiction → Signal filtered out
-- Weak technical support → Confidence reduced
+- Weak technical support → Confidence reduced slightly
 - Strong technical agreement → Confidence boost
 
 ---
@@ -68,12 +71,13 @@ A sophisticated crypto trading bot that **trades primarily based on news, sentim
 
 ### Why News-Driven Approach?
 
-| Factor | Technical-Only | **News-Driven** | Advantage |
-|--------|---------------|-----------------|-----------|
+| Factor | Technical-Only | **News-Driven (85-90%)** | Advantage |
+|--------|---------------|--------------------------|-----------|
 | Signal Source | Lagging | ✅ Leading | Earlier entries |
 | Market Events | Misses | ✅ Captures | Better timing |
 | Volatility | Reacts after | ✅ Anticipates | Higher R/R |
 | Psychology | Ignores | ✅ Analyzes | Edge |
+| Execution | N/A | ✅ Technical precision | Optimal levels |
 
 ### Why 3-Hour Timeframe?
 
@@ -214,9 +218,12 @@ The system uses Groq's Llama 3.1 for:
 
 ### Hybrid Decision Making
 ```
-Final Score = (60% × Technical Score) + (40% × LLM Score)
+Signal Generation = 90% News/AI + 10% Technical Filter
 
-Agreement Boost: +30% confidence when all methods align
+Primary: News Sentiment (40%) + LLM Analysis (50%)
+Filter: Technical Indicators (10% - filter contradictions)
+
+Agreement Boost: +5% confidence when all methods align
 ```
 
 ### Adaptive Learning
@@ -231,9 +238,10 @@ Agreement Boost: +30% confidence when all methods align
 
 ### Stop Loss Strategy
 ```python
-Base Stop = 1.2% minimum
+Base Stop = 1.5% minimum (4h timeframe)
 ATR Stop = 1.5× ATR percentage
-Final Stop = max(Base, min(ATR, 5%))
+Final Stop = max(Base, min(ATR, 6%))  # Capped at 6% max
+Validation = Ensure 1.5% to 6% range (realistic bounds)
 ```
 
 ### Leverage Calculation
@@ -242,6 +250,15 @@ R/R = Take Profit % / Stop Loss %
 Confidence = 0 to 1
 Leverage = floor(R/R + Confidence×5)
 Max = 10x, Min = 2x
+Adjusted for high-risk LLM signals
+```
+
+### Take Profit Strategy
+```python
+Expected Return = Sentiment Score × 6-8%
+News Bonus = News Count × 2-2.5% (max 10-12%)
+Minimum TP = Stop Loss × 3 (enforce 1:3 R/R)
+Maximum TP = 15% (realistic cap for 4h timeframe)
 ```
 
 ### Position Sizing
@@ -282,19 +299,21 @@ simple-crypto-trader/
 
 ```python
 # Timeframe
-interval = '3h'  # 3-hour candles
-period = '10d'   # 10 days history
+interval = '4h'  # 4-hour candles (was 3h)
+period = '30d'   # 30 days history for reliable indicators
 
 # Risk
-MIN_STOP_PCT = 0.012      # 1.2% minimum stop
-TARGET_RR_RATIO = 3.0     # 1:3 minimum R/R
+MIN_STOP_PCT = 0.015      # 1.5% minimum stop (validated)
+MAX_STOP_PCT = 0.06       # 6% maximum stop (prevent extremes)
+TARGET_RR_RATIO = 3.0     # 1:3 minimum R/R (enforced)
 MAX_LEVERAGE_CRYPTO = 10  # 10x maximum
 
-# News
-NEWS_LOOKBACK = 6  # Hours
+# News (Primary Signal Source)
+NEWS_LOOKBACK = 8  # Hours (2x timeframe for context)
 
-# Leverage
-LOW_MONEY_MODE = True  # Optimized for <$500 accounts
+# Signal Generation
+NEWS_AI_WEIGHT = 0.90     # 90% news/AI driven
+TECHNICAL_WEIGHT = 0.10   # 10% technical filter
 ```
 
 ---
@@ -303,24 +322,25 @@ LOW_MONEY_MODE = True  # Optimized for <$500 accounts
 
 ```
 ============================================================
-🚨 CRYPTO TRADE SIGNAL (3H TIMEFRAME)
+🚨 CRYPTO TRADE SIGNAL (4H TIMEFRAME - NEWS DRIVEN)
 ============================================================
 Symbol: BTC
 Direction: LONG 🟢
 Entry: $67234.50
-Stop Loss: $66427.85 (1.20%)
-Take Profit: $69654.20 (3.60%)
+Stop Loss: $66227.46 (1.50%)
+Take Profit: $70255.98 (4.50%)
 Leverage: 7x 💪
 Risk/Reward: 1:3.0 🎯
 Confidence: 82.5%
 
 📊 Analysis:
-Sentiment: 0.68 | Technical: 0.76
-Strong bullish momentum with Stochastic RSI oversold. 
-EMA trend aligned upward. MACD histogram positive and increasing.
-OBV showing accumulation. Price above VWAP.
+News Sentiment: 0.68 (PRIMARY) | Technical Filter: PASSED
+Strong bullish news momentum with multiple positive articles.
+LLM confirms bullish outlook based on market psychology.
+Technical indicators support trend (Stoch RSI oversold, EMA aligned).
+Stop loss at 1.5% (ATR-based), Take profit at 4.5% (news-driven).
 
-⏰ 2025-11-16 13:30:00 UTC | Timeframe: 3H
+⏰ 2025-11-16 17:09:00 UTC | Timeframe: 4H | NEWS-DRIVEN (90/10)
 ============================================================
 ```
 
