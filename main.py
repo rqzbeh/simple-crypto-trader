@@ -140,22 +140,28 @@ CRYPTO_NEWS_SOURCES = [
     ('U.Today', 'https://u.today/rss'),
 ]
 
-# Risk Management Settings (Optimized for Crypto)
-MIN_STOP_PCT = 0.02  # 2% minimum stop loss (crypto is volatile)
-MAX_STOP_PCT = 0.08  # 8% maximum stop loss
-EXPECTED_RETURN_PER_SENTIMENT = 0.05  # 5% per sentiment point
-NEWS_IMPACT_MULTIPLIER = 0.01  # 1% per news article
-MAX_NEWS_BONUS = 0.05  # 5% max bonus from news volume
-MAX_LEVERAGE_CRYPTO = 5  # Conservative 5x max leverage
-DAILY_RISK_LIMIT = 0.03  # 3% max daily loss
+# Risk Management Settings (Optimized for 3-hour timeframe)
+# 3h candles = less noise = can use tighter stops and higher leverage
+MIN_STOP_PCT = 0.012  # 1.2% minimum stop (tighter for 3h vs 2% for 1h)
+MAX_STOP_PCT = 0.05   # 5% maximum stop
+TARGET_RR_RATIO = 3.0  # Target 1:3 risk/reward minimum
+EXPECTED_RETURN_PER_SENTIMENT = 0.04  # 4% base per sentiment point (3h moves)
+NEWS_IMPACT_MULTIPLIER = 0.012  # 1.2% per news article
+MAX_NEWS_BONUS = 0.06  # 6% max bonus from news
 
-# Trading Parameters
+# Leverage caps - Higher for 3h timeframe (clearer trends)
+MAX_LEVERAGE_CRYPTO = 10  # 10x max (vs 5x for 1h) - 3h trends more reliable
+MAX_LEVERAGE_STOCK = 5    # 5x for stocks
+
+DAILY_RISK_LIMIT = 0.05  # 5% max daily loss (can take more risk with better R/R)
+
+# Trading Parameters (3-hour timeframe optimized)
 LOW_MONEY_MODE = True  # Optimized for accounts < $500
 if LOW_MONEY_MODE:
-    EXPECTED_RETURN_PER_SENTIMENT = 0.06  # 6% for small accounts
+    EXPECTED_RETURN_PER_SENTIMENT = 0.05  # 5% for small accounts (3h moves are bigger)
     NEWS_IMPACT_MULTIPLIER = 0.015  # 1.5%
-    MAX_NEWS_BONUS = 0.06  # 6%
-    MIN_STOP_PCT = 0.018  # 1.8%
+    MAX_NEWS_BONUS = 0.07  # 7%
+    MIN_STOP_PCT = 0.010  # 1.0% - aggressive but 3h timeframe allows it
 
 # Technical Indicator Weights (OPTIMIZED - No Conflicts/Redundancies)
 # Reduced from 17 to 10 indicators by removing overlapping ones
@@ -223,9 +229,9 @@ def fetch_rss_feed(url, timeout=10):
         return []
 
 def get_crypto_news():
-    """Fetch cryptocurrency news from multiple sources"""
+    """Fetch cryptocurrency news from multiple sources (optimized for 3-hour timeframe)"""
     articles = []
-    cutoff = datetime.now() - timedelta(hours=24)
+    cutoff = datetime.now() - timedelta(hours=6)  # Last 6 hours (2x our trading timeframe)
     
     # NewsAPI
     try:
@@ -248,17 +254,17 @@ def get_crypto_news():
     except Exception as e:
         print(f"NewsAPI error: {e}")
     
-    # RSS Feeds
+    # RSS Feeds (recent only)
     for name, url in CRYPTO_NEWS_SOURCES:
         items = fetch_rss_feed(url)
-        for item in items:
+        for item in items[:10]:  # Limit to 10 most recent per source
             articles.append({
                 'title': item['title'],
                 'description': item['description'],
                 'source': name
             })
     
-    print(f"Fetched {len(articles)} news articles")
+    print(f"Fetched {len(articles)} news articles (last 6 hours)")
     return articles
 
 def extract_crypto_symbols(text):
@@ -347,21 +353,27 @@ def simple_sentiment(text):
     return (pos_count - neg_count) / total
 
 @lru_cache(maxsize=200)
-def get_market_data(symbol, period='7d', interval='1h'):
-    """Fetch market data and calculate advanced technical indicators"""
+def get_market_data(symbol, period='10d', interval='3h'):
+    """
+    Fetch market data and calculate advanced technical indicators
+    Optimized for 3-hour trading timeframe:
+    - 3h candles: balance between noise and signal
+    - 10 days history: ~80 candles for reliable indicators
+    """
     try:
         ticker = yf.Ticker(symbol)
         df = ticker.history(period=period, interval=interval)
         
-        if df.empty or len(df) < 100:  # Need more data for advanced indicators
+        if df.empty or len(df) < 80:  # Need ~80 candles for 200 EMA
             return None
         
         close = df['Close']
         current_price = float(close.iloc[-1])
         
-        # Calculate volatility
+        # Calculate volatility (annualized for 3h candles)
         returns = close.pct_change()
-        volatility = float(returns.std() * np.sqrt(24 * 365))  # Annualized for hourly data
+        # 3h candles = 8 periods per day, 365 days
+        volatility = float(returns.std() * np.sqrt(8 * 365))
         
         # Get all advanced technical indicators
         indicators = get_all_indicators(df)
@@ -458,26 +470,40 @@ def calculate_trade_signal(sentiment_score, news_count, market_data, symbol='', 
     else:
         expected_return *= (1 + abs(tech_score_normalized) * 0.5)
     
-    # Calculate stop loss with adaptive risk
-    atr_stop = market_data['atr_pct'] * 2
+    # Calculate stop loss with adaptive risk (tighter for 3h timeframe)
+    atr_stop = market_data['atr_pct'] * 1.5  # 1.5x ATR (vs 2x for 1h) - 3h has less noise
     stop_pct = max(MIN_STOP_PCT, min(atr_stop, MAX_STOP_PCT))
     stop_pct *= adaptive_params['risk_multiplier']  # Adaptive risk adjustment
     
-    # Calculate take profit
+    # Calculate take profit - TARGET 1:3 minimum R/R
     expected_profit = abs(expected_return)
-    if expected_profit < stop_pct * 1.5:  # Minimum 1.5:1 RR
-        expected_profit = stop_pct * 2
+    min_profit_for_target_rr = stop_pct * TARGET_RR_RATIO  # 1:3 minimum
+    
+    if expected_profit < min_profit_for_target_rr:
+        expected_profit = min_profit_for_target_rr  # Force 1:3 minimum
     
     # Risk/Reward ratio
     rr_ratio = expected_profit / stop_pct if stop_pct > 0 else 0
     
-    # Leverage recommendation (reduced if LLM flags high risk)
-    base_leverage = min(math.floor(rr_ratio * 2), MAX_LEVERAGE_CRYPTO)
+    # Skip trades that don't meet minimum R/R even after adjustment
+    if rr_ratio < TARGET_RR_RATIO:
+        return None  # Not worth the risk
     
+    # Leverage recommendation - More aggressive for 3h timeframe
+    # Formula: Use R/R ratio + confidence to determine leverage
+    confidence_factor = combined['confidence']  # 0 to 1
+    
+    # Base leverage from R/R: Higher R/R = can use more leverage
+    base_leverage = min(
+        math.floor(rr_ratio + (confidence_factor * 5)),  # Add up to 5x based on confidence
+        MAX_LEVERAGE_CRYPTO
+    )
+    
+    # Reduce if LLM flags high risk
     if llm_analysis and llm_analysis.get('risk') == 'HIGH':
-        base_leverage = max(1, base_leverage // 2)  # Halve leverage on high risk
+        base_leverage = max(2, base_leverage // 2)  # Halve but minimum 2x
     
-    leverage = max(1, base_leverage)
+    leverage = max(2, base_leverage)  # Minimum 2x leverage (3h timeframe justifies it)
     
     # Calculate prices
     if direction == 'LONG':
@@ -556,22 +582,22 @@ def format_trade_message(symbol, signal, sentiment_reason=''):
     """Format trade signal for output"""
     msg = f"""
 {'='*60}
-🚨 CRYPTO TRADE SIGNAL
+🚨 CRYPTO TRADE SIGNAL (3H TIMEFRAME)
 {'='*60}
 Symbol: {symbol}
 Direction: {signal['direction']} {'🟢' if signal['direction'] == 'LONG' else '🔴'}
 Entry: ${signal['entry_price']:.6f}
 Stop Loss: ${signal['stop_loss']:.6f} ({signal['stop_pct']*100:.2f}%)
 Take Profit: ${signal['take_profit']:.6f} ({signal['expected_profit_pct']*100:.2f}%)
-Leverage: {signal['leverage']}x
-Risk/Reward: 1:{signal['rr_ratio']:.2f}
+Leverage: {signal['leverage']}x 💪
+Risk/Reward: 1:{signal['rr_ratio']:.1f} {'🎯' if signal['rr_ratio'] >= 3 else '⚡'}
 Confidence: {signal['confidence']*100:.1f}%
 
 📊 Analysis:
 Sentiment: {signal['sentiment_score']:.2f} | Technical: {signal['technical_score']:.2f}
-{sentiment_reason}
+{sentiment_reason[:200]}
 
-⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC
+⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC | Timeframe: 3H
 {'='*60}
 """
     return msg
@@ -579,11 +605,13 @@ Sentiment: {signal['sentiment_score']:.2f} | Technical: {signal['technical_score
 # ==================== MAIN EXECUTION ====================
 
 def main():
-    """Main trading loop"""
+    """Main trading loop - 3-hour timeframe optimized"""
     print("\n🚀 Starting Crypto Trading Signal Generator...")
     print(f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC")
     print(f"💰 Mode: {'Low Money' if LOW_MONEY_MODE else 'Standard'}")
+    print(f"⏱️  Timeframe: 3 Hours (optimal balance)")
     print(f"🎯 Max Leverage: {MAX_LEVERAGE_CRYPTO}x")
+    print(f"🎲 Target R/R: 1:{TARGET_RR_RATIO} minimum")
     print(f"🛡️ Daily Risk Limit: {DAILY_RISK_LIMIT*100}%\n")
     
     # Check daily risk limit
