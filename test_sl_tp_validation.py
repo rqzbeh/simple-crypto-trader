@@ -55,13 +55,13 @@ def test_scenarios():
     # Test scenarios with different ATR values (SHORT-TERM 2-4h trades)
     test_cases = [
         # (ATR%, Expected Return, Adaptive Multiplier, Description)
-        (0.005, 0.03, 1.0, "Very low volatility - strong signal (6:1 R/R)"),
-        (0.01, 0.04, 1.0, "Low volatility - good signal (4:1 R/R)"),
-        (0.01, 0.06, 1.0, "Low volatility - excellent signal (6:1 R/R)"),
-        (0.015, 0.05, 1.0, "Normal volatility - decent signal (3.3:1 R/R)"),
-        (0.02, 0.06, 1.0, "Medium volatility - good signal (3:1 R/R)"),
-        (0.02, 0.08, 1.0, "Medium volatility - strong signal (4:1 R/R)"),
-        (0.03, 0.10, 1.0, "High volatility (caps at 7.5% TP)"),
+        (0.005, 0.03, 1.0, "Very low volatility - strong signal (3.8:1 R/R)"),
+        (0.01, 0.04, 1.0, "Low volatility - good signal (3.3:1 R/R)"),
+        (0.01, 0.06, 1.0, "Low volatility - excellent signal (5:1 R/R)"),
+        (0.015, 0.05, 1.0, "Normal volatility - decent signal (3:1 R/R)"),
+        (0.02, 0.06, 1.0, "Medium volatility - decent signal (3:1 R/R)"),
+        (0.02, 0.08, 1.0, "Medium volatility - strong signal (3.1:1 R/R)"),
+        (0.025, 0.10, 1.0, "High volatility - very strong (caps both, 3:1 R/R)"),
         (0.01, 0.015, 1.0, "Low expected return (enforces 3:1 minimum)"),
         (0.015, 0.05, 0.8, "With risk reduction"),
     ]
