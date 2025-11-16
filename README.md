@@ -1,8 +1,8 @@
 # 🚀 Simple Crypto Trader
 
-**AI-Powered Cryptocurrency Trading Signal Generator with 3-Hour Optimization**
+**📰 NEWS-DRIVEN Cryptocurrency Trading Signal Generator**
 
-A sophisticated crypto trading bot combining proven technical analysis, AI reasoning, and optimized risk management to generate high-quality signals with 1:3+ risk/reward ratios.
+A sophisticated crypto trading bot that **trades primarily based on news, sentiment, and AI analysis**, with technical indicators serving as filters to validate setups. Built for 24/7 crypto markets with 3-hour timeframe optimization.
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -10,6 +10,12 @@ A sophisticated crypto trading bot combining proven technical analysis, AI reaso
 ---
 
 ## 🌟 Key Features
+
+### 📰 NEWS-DRIVEN Trading Strategy
+- **Primary Signals (70-80%)**: News sentiment + AI/LLM analysis
+- **Technical Filters (20-30%)**: Validate and filter out bad setups
+- **News Impact**: Up to 12% expected return based on news volume
+- **Real-Time Analysis**: Multi-source news aggregation with AI reasoning
 
 ### ⚡ 3-Hour Timeframe Optimization
 - **Perfect Balance**: Filters noise while keeping signals timely
@@ -24,20 +30,50 @@ A sophisticated crypto trading bot combining proven technical analysis, AI reaso
 - **Risk Management**: 5% daily loss limit, ATR-based stops
 
 ### 🤖 Hybrid Intelligence
-- **10 Optimized Indicators**: No conflicts, each serves unique purpose
+- **10 Optimized Indicators**: No conflicts, serve as filters only
 - **AI Reasoning**: Groq LLM analyzes market like a human trader
 - **Adaptive Learning**: Self-adjusts based on performance
-- **60/40 Balance**: 60% quantitative, 40% qualitative analysis
+- **70/30 Balance**: 70% news/AI, 30% technical filter
 
 ### 📊 Technical Excellence
 - **Conflict-Free**: Removed 7 redundant indicators
-- **Proven Methods**: RSI, EMA, MACD, Bollinger Bands, VWAP, etc.
-- **Crypto-Optimized**: Weights tuned for cryptocurrency markets
+- **Proven Methods**: Stoch RSI, EMA, MACD, Bollinger Bands, VWAP
+- **Filter Purpose**: Technicals validate news signals, don't generate them
 - **Real-Time Data**: yfinance integration for live prices
 
 ---
 
+## 📰 News Trading Philosophy
+
+### Primary Signal Sources (70-80%)
+1. **News Sentiment Analysis**
+   - Multi-source aggregation (CoinDesk, Cointelegraph, etc.)
+   - 6-hour validity window for relevance
+   - Weighted by article count and quality
+
+2. **AI/LLM Analysis** 
+   - Groq's Llama 3.1 for market context
+   - Risk assessment and reasoning
+   - Detects market psychology and sentiment
+
+### Technical Filters (20-30%)
+- **Not signal generators** - only validate/filter
+- Strong technical contradiction → Signal filtered out
+- Weak technical support → Confidence reduced
+- Strong technical agreement → Confidence boost
+
+---
+
 ## 📈 Performance Strategy
+
+### Why News-Driven Approach?
+
+| Factor | Technical-Only | **News-Driven** | Advantage |
+|--------|---------------|-----------------|-----------|
+| Signal Source | Lagging | ✅ Leading | Earlier entries |
+| Market Events | Misses | ✅ Captures | Better timing |
+| Volatility | Reacts after | ✅ Anticipates | Higher R/R |
+| Psychology | Ignores | ✅ Analyzes | Edge |
 
 ### Why 3-Hour Timeframe?
 

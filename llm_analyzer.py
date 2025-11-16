@@ -158,25 +158,47 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
     def combine_analyses(self, technical_score: float, sentiment_score: float, 
                         llm_analysis: Optional[Dict]) -> Dict[str, Any]:
         """
-        Combine multiple analysis methods
-        - Technical indicators (proven, quantitative)
-        - Sentiment analysis (market psychology)
-        - LLM reasoning (qualitative, adaptive)
+        Combine multiple analysis methods - NEWS-DRIVEN APPROACH
+        
+        PRIMARY SIGNAL (70-80%):
+        - News sentiment analysis (market psychology)
+        - LLM reasoning (qualitative, adaptive, context-aware)
+        
+        FILTER ONLY (20-30%):
+        - Technical indicators (filter out bad setups)
+        
+        This is a NEWS TRADING SYSTEM - technicals only validate/filter signals
         """
         
-        # Start with technical + sentiment
-        base_score = (technical_score + sentiment_score) / 2
-        base_confidence = abs(base_score)
+        # News/sentiment is the PRIMARY signal source
+        news_sentiment_score = sentiment_score
+        news_confidence = abs(sentiment_score)
         
         if not llm_analysis or not llm_analysis.get('llm_available'):
+            # Without LLM, news sentiment is 80%, technicals 20% (filter)
+            # Only trade if technicals don't contradict strongly
+            if abs(technical_score) > 0.5 and (technical_score * sentiment_score < 0):
+                # Strong technical contradiction - filter out this signal
+                return {
+                    'final_score': 0,
+                    'confidence': 0,
+                    'method': 'filtered_by_technicals',
+                    'direction': 'NEUTRAL',
+                    'filter_reason': 'Strong technical contradiction with news sentiment'
+                }
+            
+            # Technicals don't contradict - use news sentiment
+            final_score = 0.8 * news_sentiment_score + 0.2 * technical_score
+            final_confidence = news_confidence * (0.9 if technical_score * sentiment_score > 0 else 0.7)
+            
             return {
-                'final_score': base_score,
-                'confidence': base_confidence,
-                'method': 'technical_sentiment',
-                'direction': 'LONG' if base_score > 0.2 else ('SHORT' if base_score < -0.2 else 'NEUTRAL')
+                'final_score': final_score,
+                'confidence': final_confidence,
+                'method': 'news_driven',
+                'direction': 'LONG' if final_score > 0.2 else ('SHORT' if final_score < -0.2 else 'NEUTRAL')
             }
         
-        # LLM available - use it to enhance decision
+        # LLM available - NEWS + LLM is the primary signal (70%)
         llm_direction = llm_analysis['direction']
         llm_confidence = llm_analysis['confidence'] / 100.0
         
@@ -187,29 +209,60 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
         elif llm_direction == 'SHORT':
             llm_score = -llm_confidence
         
-        # Weighted combination (60% quantitative, 40% LLM reasoning)
-        # This balances proven indicators with adaptive AI reasoning
-        final_score = 0.6 * base_score + 0.4 * llm_score
+        # Combine news sentiment + LLM (both are news-based analysis)
+        news_llm_combined = (sentiment_score + llm_score) / 2
+        news_llm_confidence = (news_confidence + llm_confidence) / 2
         
-        # Confidence boost if all agree
+        # Technical filter check
+        technical_filter_passed = True
+        filter_reason = ''
+        
+        # Strong technical contradiction filters out the signal
+        if abs(technical_score) > 0.6 and (technical_score * news_llm_combined < -0.3):
+            technical_filter_passed = False
+            filter_reason = 'Strong technical indicators contradict news/LLM analysis'
+        
+        # Weak technical support reduces confidence slightly
+        technical_support = 1.0
+        if technical_score * news_llm_combined < 0:
+            technical_support = 0.8  # Slight reduction if technicals oppose
+        elif technical_score * news_llm_combined > 0.3:
+            technical_support = 1.1  # Slight boost if technicals agree
+        
+        # Final weighting: 70% news/LLM, 30% technical filter effect
+        if not technical_filter_passed:
+            return {
+                'final_score': 0,
+                'confidence': 0,
+                'method': 'filtered_by_technicals',
+                'direction': 'NEUTRAL',
+                'filter_reason': filter_reason
+            }
+        
+        final_score = 0.7 * news_llm_combined + 0.3 * technical_score
+        final_confidence = min(news_llm_confidence * technical_support, 1.0)
+        
+        # Agreement boost if everything aligns
         agreement_boost = 1.0
-        if (base_score > 0.2 and llm_score > 0.2) or (base_score < -0.2 and llm_score < -0.2):
-            agreement_boost = 1.3  # 30% boost when all methods agree
+        if (news_llm_combined > 0.3 and technical_score > 0.3) or (news_llm_combined < -0.3 and technical_score < -0.3):
+            agreement_boost = 1.2  # 20% boost when news and technicals strongly agree
         
-        final_confidence = min((base_confidence * 0.6 + llm_confidence * 0.4) * agreement_boost, 1.0)
+        final_confidence = min(final_confidence * agreement_boost, 1.0)
         
         return {
             'final_score': final_score,
             'confidence': final_confidence,
-            'method': 'combined',
+            'method': 'news_driven_with_technical_filter',
             'direction': 'LONG' if final_score > 0.2 else ('SHORT' if final_score < -0.2 else 'NEUTRAL'),
             'technical_score': technical_score,
             'sentiment_score': sentiment_score,
             'llm_score': llm_score,
+            'news_llm_combined': news_llm_combined,
             'llm_reasoning': llm_analysis.get('reasoning', ''),
             'llm_risk': llm_analysis.get('risk', 'MEDIUM'),
             'llm_timeframe': llm_analysis.get('timeframe', 'HOURS'),
-            'agreement_boost': agreement_boost > 1.0
+            'agreement_boost': agreement_boost > 1.0,
+            'technical_filter': 'PASSED' if technical_filter_passed else 'FAILED'
         }
     
     def learn_from_trade(self, trade_result: Dict):

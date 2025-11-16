@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
 """
-Simple Crypto Trader - AI-Powered Cryptocurrency Trading Signal Generator
-Built from scratch for 24/7 crypto markets with optimized indicators and risk management
+Simple Crypto Trader - NEWS-DRIVEN Cryptocurrency Trading Signal Generator
+
+🎯 PRIMARY APPROACH: NEWS TRADING
+- News sentiment and AI analysis are the MAIN signal sources (70-80%)
+- Technical indicators serve as FILTERS ONLY (20-30%)
+- Trade based on market psychology, news events, and AI reasoning
+- Technicals validate/filter out bad setups, not generate signals
+
+Built for 24/7 crypto markets with 3-hour timeframe optimization
 """
 
 import os
@@ -141,13 +148,16 @@ CRYPTO_NEWS_SOURCES = [
 ]
 
 # Risk Management Settings (Optimized for 3-hour timeframe)
+# NEWS-DRIVEN TRADING: News and AI are primary signals, technicals filter only
 # 3h candles = less noise = can use tighter stops and higher leverage
 MIN_STOP_PCT = 0.012  # 1.2% minimum stop (tighter for 3h vs 2% for 1h)
 MAX_STOP_PCT = 0.05   # 5% maximum stop
 TARGET_RR_RATIO = 3.0  # Target 1:3 risk/reward minimum
-EXPECTED_RETURN_PER_SENTIMENT = 0.04  # 4% base per sentiment point (3h moves)
-NEWS_IMPACT_MULTIPLIER = 0.012  # 1.2% per news article
-MAX_NEWS_BONUS = 0.06  # 6% max bonus from news
+
+# NEWS IMPACT PARAMETERS (Primary Signal Source)
+EXPECTED_RETURN_PER_SENTIMENT = 0.06  # 6% base per sentiment point (NEWS DRIVEN)
+NEWS_IMPACT_MULTIPLIER = 0.020  # 2% per news article (SIGNIFICANT)
+MAX_NEWS_BONUS = 0.10  # 10% max bonus from news volume (DOUBLED)
 
 # Leverage caps - Higher for 3h timeframe (clearer trends)
 MAX_LEVERAGE_CRYPTO = 10  # 10x max (vs 5x for 1h) - 3h trends more reliable
@@ -156,11 +166,12 @@ MAX_LEVERAGE_STOCK = 5    # 5x for stocks
 DAILY_RISK_LIMIT = 0.05  # 5% max daily loss (can take more risk with better R/R)
 
 # Trading Parameters (3-hour timeframe optimized)
+# NEWS TRADING FOCUS: Higher emphasis on news/sentiment
 LOW_MONEY_MODE = True  # Optimized for accounts < $500
 if LOW_MONEY_MODE:
-    EXPECTED_RETURN_PER_SENTIMENT = 0.05  # 5% for small accounts (3h moves are bigger)
-    NEWS_IMPACT_MULTIPLIER = 0.015  # 1.5%
-    MAX_NEWS_BONUS = 0.07  # 7%
+    EXPECTED_RETURN_PER_SENTIMENT = 0.08  # 8% for small accounts (NEWS DRIVEN)
+    NEWS_IMPACT_MULTIPLIER = 0.025  # 2.5% per article (STRONG IMPACT)
+    MAX_NEWS_BONUS = 0.12  # 12% max bonus (HIGH)
     MIN_STOP_PCT = 0.010  # 1.0% - aggressive but 3h timeframe allows it
 
 # Technical Indicator Weights (OPTIMIZED - No Conflicts/Redundancies)
@@ -579,10 +590,20 @@ def check_daily_risk():
     return False
 
 def format_trade_message(symbol, signal, sentiment_reason=''):
-    """Format trade signal for output"""
+    """Format trade signal for output - NEWS-DRIVEN system"""
+    
+    # Determine method description
+    method_desc = signal.get('method', 'unknown')
+    if 'news_driven' in method_desc:
+        approach = "📰 NEWS-DRIVEN (Primary)"
+    elif 'filtered' in method_desc:
+        approach = "🚫 FILTERED by technicals"
+    else:
+        approach = "📊 Analysis"
+    
     msg = f"""
 {'='*60}
-🚨 CRYPTO TRADE SIGNAL (3H TIMEFRAME)
+🚨 CRYPTO TRADE SIGNAL (NEWS-DRIVEN STRATEGY)
 {'='*60}
 Symbol: {symbol}
 Direction: {signal['direction']} {'🟢' if signal['direction'] == 'LONG' else '🔴'}
@@ -593,8 +614,9 @@ Leverage: {signal['leverage']}x 💪
 Risk/Reward: 1:{signal['rr_ratio']:.1f} {'🎯' if signal['rr_ratio'] >= 3 else '⚡'}
 Confidence: {signal['confidence']*100:.1f}%
 
-📊 Analysis:
-Sentiment: {signal['sentiment_score']:.2f} | Technical: {signal['technical_score']:.2f}
+📰 Analysis ({approach}):
+News Sentiment: {signal['sentiment_score']:.2f} (PRIMARY)
+Technical Filter: {signal['technical_score']:.2f} (Validation)
 {sentiment_reason[:200]}
 
 ⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC | Timeframe: 3H
@@ -605,14 +627,19 @@ Sentiment: {signal['sentiment_score']:.2f} | Technical: {signal['technical_score
 # ==================== MAIN EXECUTION ====================
 
 def main():
-    """Main trading loop - 3-hour timeframe optimized"""
+    """Main trading loop - NEWS-DRIVEN 3-hour timeframe system"""
     print("\n🚀 Starting Crypto Trading Signal Generator...")
+    print("📰 NEWS-DRIVEN TRADING SYSTEM")
+    print("=" * 70)
     print(f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC")
     print(f"💰 Mode: {'Low Money' if LOW_MONEY_MODE else 'Standard'}")
     print(f"⏱️  Timeframe: 3 Hours (optimal balance)")
-    print(f"🎯 Max Leverage: {MAX_LEVERAGE_CRYPTO}x")
+    print(f"🎯 Strategy: News/AI Primary (70-80%) + Technical Filter (20-30%)")
+    print(f"📊 Max Leverage: {MAX_LEVERAGE_CRYPTO}x")
     print(f"🎲 Target R/R: 1:{TARGET_RR_RATIO} minimum")
-    print(f"🛡️ Daily Risk Limit: {DAILY_RISK_LIMIT*100}%\n")
+    print(f"🛡️ Daily Risk Limit: {DAILY_RISK_LIMIT*100}%")
+    print("=" * 70)
+    print()
     
     # Check daily risk limit
     if check_daily_risk():
