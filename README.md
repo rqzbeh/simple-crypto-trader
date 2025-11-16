@@ -2,7 +2,7 @@
 
 **📰 NEWS-DRIVEN Cryptocurrency Trading Signal Generator**
 
-A sophisticated crypto trading bot that **trades primarily based on news, sentiment, and AI analysis**, with technical indicators serving as filters to validate setups. Built for 24/7 crypto markets with 3-hour timeframe optimization.
+A sophisticated crypto trading bot that **trades primarily based on news, sentiment, and AI analysis**, with technical indicators serving as filters to validate setups. Built for 24/7 crypto markets with **SHORT-TERM trades (2-4 hours max duration)**.
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -12,28 +12,31 @@ A sophisticated crypto trading bot that **trades primarily based on news, sentim
 ## 🌟 Key Features
 
 ### 📰 NEWS-DRIVEN Trading Strategy
-- **Primary Signals (70-80%)**: News sentiment + AI/LLM analysis
-- **Technical Filters (20-30%)**: Validate and filter out bad setups
+- **Primary Signals (85-90%)**: News sentiment + AI/LLM analysis
+- **Technical Filters (10-15%)**: Validate and filter out bad setups
+- **Technical Usage**: Calculate entry price, stop loss, take profit, leverage
 - **News Impact**: Up to 12% expected return based on news volume
 - **Real-Time Analysis**: Multi-source news aggregation with AI reasoning
 
-### ⚡ 3-Hour Timeframe Optimization
-- **Perfect Balance**: Filters noise while keeping signals timely
-- **News Validity**: 6-hour lookback (2x timeframe) for relevant context
-- **Tighter Stops**: 1.2% minimum (vs 2% for 1h) - less noise allows precision
+### ⚡ SHORT-TERM Trading Optimization
+- **Trade Duration**: 2-4 hours maximum (quick in and out)
+- **Tight Stops**: 0.8%-2.5% stop loss (appropriate for short duration)
+- **Realistic Targets**: Max 7.5% take profit (achievable in 2-4h)
 - **Better R/R**: Consistent 1:3 minimum risk/reward ratios
+- **News Relevance**: 6-8 hour lookback for fresh context
 
 ### 🎯 Aggressive But Smart
-- **10x Max Leverage**: 3h timeframes justify higher leverage
+- **10x Max Leverage**: Short-term trades with tight stops allow higher leverage
 - **2x Minimum Leverage**: Take advantage of clear trends
 - **Dynamic Sizing**: Leverage = floor(R/R + confidence×5)
-- **Risk Management**: 5% daily loss limit, ATR-based stops
+- **Risk Management**: Tight stops (0.8%-2.5%), ATR-based
 
 ### 🤖 Hybrid Intelligence
 - **10 Optimized Indicators**: No conflicts, serve as filters only
 - **AI Reasoning**: Groq LLM analyzes market like a human trader
 - **Adaptive Learning**: Self-adjusts based on performance
-- **70/30 Balance**: 70% news/AI, 30% technical filter
+- **90/10 Balance**: 90% news/AI, 10% technical filter
+- **Technical Role**: Entry price, stop loss, take profit, leverage calculation
 
 ### 📊 Technical Excellence
 - **Conflict-Free**: Removed 7 redundant indicators
@@ -45,21 +48,22 @@ A sophisticated crypto trading bot that **trades primarily based on news, sentim
 
 ## 📰 News Trading Philosophy
 
-### Primary Signal Sources (70-80%)
+### Primary Signal Sources (85-90%)
 1. **News Sentiment Analysis**
    - Multi-source aggregation (CoinDesk, Cointelegraph, etc.)
-   - 6-hour validity window for relevance
+   - 6-8 hour validity window for relevance
    - Weighted by article count and quality
 
 2. **AI/LLM Analysis** 
-   - Groq's Llama 3.1 for market context
+   - Groq's Llama 3.3 for market context
    - Risk assessment and reasoning
    - Detects market psychology and sentiment
 
-### Technical Filters (20-30%)
+### Technical Filters (10-15%)
 - **Not signal generators** - only validate/filter
+- **Calculate execution levels**: Entry price, stop loss, take profit, leverage
 - Strong technical contradiction → Signal filtered out
-- Weak technical support → Confidence reduced
+- Weak technical support → Confidence reduced slightly
 - Strong technical agreement → Confidence boost
 
 ---
@@ -68,44 +72,65 @@ A sophisticated crypto trading bot that **trades primarily based on news, sentim
 
 ### Why News-Driven Approach?
 
-| Factor | Technical-Only | **News-Driven** | Advantage |
-|--------|---------------|-----------------|-----------|
+| Factor | Technical-Only | **News-Driven (85-90%)** | Advantage |
+|--------|---------------|--------------------------|-----------|
 | Signal Source | Lagging | ✅ Leading | Earlier entries |
 | Market Events | Misses | ✅ Captures | Better timing |
 | Volatility | Reacts after | ✅ Anticipates | Higher R/R |
 | Psychology | Ignores | ✅ Analyzes | Edge |
+| Execution | N/A | ✅ Technical precision | Optimal levels |
 
-### Why 3-Hour Timeframe?
+### Why SHORT-TERM (2-4h) Trades?
 
-| Aspect | 1-Hour | **3-Hour** | Daily |
-|--------|--------|------------|-------|
+| Aspect | 1-Hour | **2-4 Hour** | Daily |
+|--------|--------|--------------|-------|
 | Noise Level | High | ✅ Low | Very Low |
 | Signal Quality | Medium | ✅ High | High |
 | Opportunities | Many | ✅ Optimal | Few |
-| News Relevance | 24h (stale) | ✅ 6h (fresh) | Days (old) |
-| Stop Loss | 2% | ✅ 1.2% | 5% |
-| Typical Move | 1-2% | ✅ 3-5% | 10-15% |
+| News Relevance | 12h (stale) | ✅ 6-8h (fresh) | Days (old) |
+| Stop Loss | 1.5% | ✅ 0.8-2.5% | 3-5% |
+| Typical Move | 0.5-1% | ✅ 2-4% | 5-10% |
+| Trade Duration | Quick | ✅ Optimal | Long |
 
 ### Risk/Reward Targets
 
-**Minimum 1:3 R/R Enforced:**
+**Minimum 1:3 R/R Enforced (Can Be Higher):**
 ```
-Risk: 1.2% stop loss
-Reward: 3.6% take profit (minimum)
-Win Rate Needed: 25% to break even
+Risk: 0.8-2.5% stop loss
+Reward: 2.4-7.5% take profit
+MINIMUM R/R: 1:3 (enforced)
+ACTUAL R/R: Can be 4:1, 5:1, 6:1+ for strong signals
+Win Rate Needed: 25% to break even (at 3:1)
 Target Win Rate: 40-50%
+Trade Duration: 2-4 hours max
 ```
 
-**Example with Leverage:**
+**Example with Good Signal (3:1 R/R):**
 ```
 BTC Entry: $50,000
-Stop Loss: $49,400 (1.2% = $600 risk)
-Take Profit: $51,800 (3.6% = $1,800 gain)
+Stop Loss: $49,500 (1.0% = $500 risk)
+Take Profit: $51,500 (3.0% = $1,500 gain)
+R/R Ratio: 1:3.0
 Leverage: 7x
 Confidence: 82%
+Duration: 2-4 hours
 
-Win: $1,800 × 7 = $12,600 profit
-Loss: $600 × 7 = $4,200 loss
+Win: $1,500 × 7 = $10,500 profit
+Loss: $500 × 7 = $3,500 loss
+```
+
+**Example with Strong Signal (6:1 R/R):**
+```
+ETH Entry: $3,000
+Stop Loss: $2,988 (0.8% = $24 risk)
+Take Profit: $3,144 (4.8% = $144 gain)
+R/R Ratio: 1:6.0 🔥
+Leverage: 8x
+Confidence: 91%
+Duration: 2-4 hours
+
+Win: $144 × 8 = $1,152 profit
+Loss: $24 × 8 = $192 loss
 ```
 
 ---
@@ -214,9 +239,12 @@ The system uses Groq's Llama 3.1 for:
 
 ### Hybrid Decision Making
 ```
-Final Score = (60% × Technical Score) + (40% × LLM Score)
+Signal Generation = 90% News/AI + 10% Technical Filter
 
-Agreement Boost: +30% confidence when all methods align
+Primary: News Sentiment (40%) + LLM Analysis (50%)
+Filter: Technical Indicators (10% - filter contradictions)
+
+Agreement Boost: +5% confidence when all methods align
 ```
 
 ### Adaptive Learning
@@ -231,9 +259,10 @@ Agreement Boost: +30% confidence when all methods align
 
 ### Stop Loss Strategy
 ```python
-Base Stop = 1.2% minimum
-ATR Stop = 1.5× ATR percentage
-Final Stop = max(Base, min(ATR, 5%))
+Base Stop = 0.8% minimum (SHORT-TERM trades)
+ATR Stop = 1.2× ATR percentage (tighter multiplier)
+Final Stop = max(Base, min(ATR, 2.5%))  # Capped at 2.5% max
+Validation = Ensure 0.8% to 2.5% range (maintains 3:1 R/R)
 ```
 
 ### Leverage Calculation
@@ -242,6 +271,20 @@ R/R = Take Profit % / Stop Loss %
 Confidence = 0 to 1
 Leverage = floor(R/R + Confidence×5)
 Max = 10x, Min = 2x
+Adjusted for high-risk LLM signals
+```
+
+### Take Profit Strategy
+```python
+Expected Return = Sentiment Score × 4-5% (realistic for 2-4h)
+News Bonus = News Count × 1.5-1.8% (max 5-6%)
+Minimum TP = Stop Loss × 3 (enforce 1:3 minimum R/R)
+Maximum TP = 7.5% (realistic cap for 2-4h trades)
+
+Strong signals naturally achieve higher R/R:
+- Weak signal: 3:1 R/R (minimum enforced)
+- Good signal: 4:1 to 5:1 R/R
+- Excellent signal: 6:1+ R/R
 ```
 
 ### Position Sizing
@@ -282,19 +325,21 @@ simple-crypto-trader/
 
 ```python
 # Timeframe
-interval = '3h'  # 3-hour candles
-period = '10d'   # 10 days history
+interval = '1h'  # 1-hour candles for analysis
+period = '7d'    # 7 days history for indicators
 
-# Risk
-MIN_STOP_PCT = 0.012      # 1.2% minimum stop
-TARGET_RR_RATIO = 3.0     # 1:3 minimum R/R
+# Risk (SHORT-TERM 2-4h trades)
+MIN_STOP_PCT = 0.008      # 0.8% minimum stop (tight for short-term)
+MAX_STOP_PCT = 0.025      # 2.5% maximum stop (realistic)
+TARGET_RR_RATIO = 3.0     # 1:3 MINIMUM R/R (can be 4:1, 5:1, 6:1+ for strong signals)
 MAX_LEVERAGE_CRYPTO = 10  # 10x maximum
 
-# News
-NEWS_LOOKBACK = 6  # Hours
+# News (Primary Signal Source)
+NEWS_LOOKBACK = 6  # Hours (fresh news for short-term trades)
 
-# Leverage
-LOW_MONEY_MODE = True  # Optimized for <$500 accounts
+# Signal Generation
+NEWS_AI_WEIGHT = 0.90     # 90% news/AI driven
+TECHNICAL_WEIGHT = 0.10   # 10% technical filter
 ```
 
 ---
@@ -303,24 +348,27 @@ LOW_MONEY_MODE = True  # Optimized for <$500 accounts
 
 ```
 ============================================================
-🚨 CRYPTO TRADE SIGNAL (3H TIMEFRAME)
+🚨 CRYPTO TRADE SIGNAL (SHORT-TERM 2-4H - NEWS DRIVEN)
 ============================================================
 Symbol: BTC
 Direction: LONG 🟢
 Entry: $67234.50
-Stop Loss: $66427.85 (1.20%)
-Take Profit: $69654.20 (3.60%)
+Stop Loss: $66560.97 (1.00%)
+Take Profit: $69247.97 (3.00%)
 Leverage: 7x 💪
 Risk/Reward: 1:3.0 🎯
 Confidence: 82.5%
+Duration: 2-4 hours
 
 📊 Analysis:
-Sentiment: 0.68 | Technical: 0.76
-Strong bullish momentum with Stochastic RSI oversold. 
-EMA trend aligned upward. MACD histogram positive and increasing.
-OBV showing accumulation. Price above VWAP.
+News Sentiment: 0.68 (PRIMARY) | Technical Filter: PASSED
+Strong bullish news momentum with multiple positive articles.
+LLM confirms bullish outlook based on market psychology.
+Technical indicators support trend (no major contradiction).
+Stop loss at 1.0% (ATR-based, tight for 2-4h).
+Take profit at 3.0% (news-driven, achievable in 2-4h).
 
-⏰ 2025-11-16 13:30:00 UTC | Timeframe: 3H
+⏰ 2025-11-16 17:09:00 UTC | Duration: 2-4H | NEWS-DRIVEN (90/10)
 ============================================================
 ```
 
