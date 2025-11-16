@@ -18,8 +18,9 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 
-# Import advanced technical indicators
+# Import advanced technical indicators and LLM analyzer
 from technical_indicators import get_all_indicators
+from llm_analyzer import CryptoMarketAnalyzer
 
 # Try to import optional components
 try:
@@ -60,8 +61,10 @@ newsapi = NewsApiClient(api_key=NEWS_API_KEY)
 # Initialize Groq if available
 if GROQ_AVAILABLE and GROQ_API_KEY:
     groq_client = Groq(api_key=GROQ_API_KEY)
+    market_analyzer = CryptoMarketAnalyzer(groq_client)
 else:
     groq_client = None
+    market_analyzer = CryptoMarketAnalyzer(None)
 
 print("=" * 70)
 print("SIMPLE CRYPTO TRADER - AI-Powered Signal Generator")
@@ -154,37 +157,28 @@ if LOW_MONEY_MODE:
     MAX_NEWS_BONUS = 0.06  # 6%
     MIN_STOP_PCT = 0.018  # 1.8%
 
-# Technical Indicator Weights (Research-Based, Crypto-Optimized)
-# Based on crypto market behavior analysis and proven effectiveness
+# Technical Indicator Weights (OPTIMIZED - No Conflicts/Redundancies)
+# Reduced from 17 to 10 indicators by removing overlapping ones
 INDICATOR_WEIGHTS = {
-    # Momentum Indicators (High weight - crypto is momentum-driven)
-    'rsi': 2.0,           # RSI extremely reliable in crypto for oversold/overbought
-    'stoch_rsi': 1.9,     # Stochastic RSI more sensitive than RSI for crypto
-    'williams_r': 1.6,    # Williams %R good for crypto momentum
+    # Momentum (Only the best one)
+    'stoch_rsi': 2.5,     # Most sensitive momentum indicator for crypto
     
-    # Trend Indicators (Critical for crypto)
-    'ema_trend': 2.2,     # EMA crossovers most important for crypto trends
-    'adx': 1.8,           # ADX excellent for trend strength detection
-    'supertrend': 1.9,    # Supertrend great for crypto trend following
+    # Trend Indicators (Each serves unique purpose)
+    'ema_trend': 2.3,     # Multi-timeframe trend direction
+    'macd': 2.0,          # Convergence/divergence (different from EMA)
+    'supertrend': 1.9,    # Volatility-adjusted trend following
+    'adx': 1.8,           # Trend STRENGTH filter (not direction)
     
-    # Volatility Indicators (Essential for crypto)
-    'bb': 2.1,            # Bollinger Bands critical for crypto volatility
-    'atr': 1.7,           # ATR for volatility-adjusted stops
-    'keltner': 1.5,       # Keltner Channels alternative to BB
+    # Volatility (Best one + ATR for stops)
+    'bb': 2.0,            # Bollinger Bands (industry standard)
+    'atr': 0.0,           # Not directional - used only for stop-loss calculation
     
-    # Volume Indicators (Very important in crypto)
-    'obv': 1.9,           # On-Balance Volume for accumulation/distribution
-    'vwap': 2.0,          # VWAP critical for institutional levels
-    'volume_profile': 1.8, # Volume at price levels
-    'mfi': 1.7,           # Money Flow Index combines price and volume
+    # Volume (Unique purposes)
+    'obv': 1.7,           # Accumulation/distribution
+    'vwap': 2.1,          # Institutional price levels
     
-    # Oscillators
-    'macd': 1.8,          # MACD excellent for crypto trends
-    'cci': 1.5,           # CCI for momentum
-    
-    # Support/Resistance (Important for crypto)
-    'pivot_points': 1.6,  # Pivot points for key levels
-    'fibonacci': 1.4,     # Fibonacci retracements
+    # Support/Resistance
+    'pivot_points': 1.5,  # Classical S/R levels
 }
 
 # ML Configuration
@@ -390,8 +384,13 @@ def get_market_data(symbol, period='7d', interval='1h'):
         print(f"Market data error for {symbol}: {e}")
         return None
 
-def calculate_trade_signal(sentiment_score, news_count, market_data):
-    """Calculate trading signal from sentiment and technical indicators"""
+def calculate_trade_signal(sentiment_score, news_count, market_data, symbol='', news_articles=None):
+    """
+    Enhanced trading signal calculation using:
+    1. Technical indicators (quantitative, proven)
+    2. Sentiment analysis (market psychology)
+    3. LLM reasoning (adaptive, qualitative) - inspired by AI-Trader
+    """
     if not market_data:
         return None
     
@@ -405,7 +404,7 @@ def calculate_trade_signal(sentiment_score, news_count, market_data):
     news_bonus = min(news_count * NEWS_IMPACT_MULTIPLIER, MAX_NEWS_BONUS)
     expected_return += news_bonus if sentiment_score > 0 else -news_bonus
     
-    # Technical indicator score
+    # Technical indicator score (weighted combination)
     tech_score = 0
     total_weight = 0
     
@@ -416,21 +415,53 @@ def calculate_trade_signal(sentiment_score, news_count, market_data):
     
     tech_score_normalized = tech_score / total_weight if total_weight > 0 else 0
     
-    # Combine sentiment and technicals
-    combined_score = (sentiment_score + tech_score_normalized) / 2
-    expected_return *= (1 + abs(tech_score_normalized) * 0.5)  # Boost if technicals agree
+    # Get LLM analysis if available
+    llm_analysis = None
+    if market_analyzer and news_articles:
+        sentiment_data = {'score': sentiment_score, 'count': news_count}
+        llm_analysis = market_analyzer.analyze_with_llm(
+            symbol, market_data, sentiment_data, news_articles
+        )
     
-    # Determine direction
-    if combined_score > 0.2:
-        direction = 'LONG'
-    elif combined_score < -0.2:
-        direction = 'SHORT'
-    else:
+    # Combine all analyses
+    combined = market_analyzer.combine_analyses(
+        tech_score_normalized, 
+        sentiment_score, 
+        llm_analysis
+    ) if market_analyzer else {
+        'final_score': (sentiment_score + tech_score_normalized) / 2,
+        'confidence': abs((sentiment_score + tech_score_normalized) / 2),
+        'method': 'basic'
+    }
+    
+    # Get adaptive parameters
+    adaptive_params = market_analyzer.get_adjusted_parameters() if market_analyzer else {
+        'confidence_threshold': 0.3,
+        'risk_multiplier': 1.0
+    }
+    
+    # Check confidence threshold (adaptive)
+    if combined['confidence'] < adaptive_params['confidence_threshold']:
         return None
     
-    # Calculate stop loss
+    # Determine direction
+    direction = combined['direction']
+    if direction == 'NEUTRAL':
+        return None
+    
+    # Adjust expected return based on LLM if available
+    if llm_analysis and llm_analysis.get('llm_available'):
+        # LLM provides additional context
+        expected_return *= (1 + abs(tech_score_normalized) * 0.5)
+        if combined.get('agreement_boost'):
+            expected_return *= 1.2  # Boost when all methods agree
+    else:
+        expected_return *= (1 + abs(tech_score_normalized) * 0.5)
+    
+    # Calculate stop loss with adaptive risk
     atr_stop = market_data['atr_pct'] * 2
     stop_pct = max(MIN_STOP_PCT, min(atr_stop, MAX_STOP_PCT))
+    stop_pct *= adaptive_params['risk_multiplier']  # Adaptive risk adjustment
     
     # Calculate take profit
     expected_profit = abs(expected_return)
@@ -440,12 +471,13 @@ def calculate_trade_signal(sentiment_score, news_count, market_data):
     # Risk/Reward ratio
     rr_ratio = expected_profit / stop_pct if stop_pct > 0 else 0
     
-    # Leverage recommendation
-    leverage = min(
-        math.floor(rr_ratio * 2),
-        MAX_LEVERAGE_CRYPTO
-    )
-    leverage = max(1, leverage)
+    # Leverage recommendation (reduced if LLM flags high risk)
+    base_leverage = min(math.floor(rr_ratio * 2), MAX_LEVERAGE_CRYPTO)
+    
+    if llm_analysis and llm_analysis.get('risk') == 'HIGH':
+        base_leverage = max(1, base_leverage // 2)  # Halve leverage on high risk
+    
+    leverage = max(1, base_leverage)
     
     # Calculate prices
     if direction == 'LONG':
@@ -466,8 +498,12 @@ def calculate_trade_signal(sentiment_score, news_count, market_data):
         'leverage': leverage,
         'sentiment_score': sentiment_score,
         'technical_score': tech_score_normalized,
-        'combined_score': combined_score,
-        'confidence': abs(combined_score)
+        'combined_score': combined['final_score'],
+        'confidence': combined['confidence'],
+        'method': combined.get('method', 'basic'),
+        'llm_reasoning': combined.get('llm_reasoning', ''),
+        'llm_risk': combined.get('llm_risk', 'UNKNOWN'),
+        'adaptive_threshold': adaptive_params['confidence_threshold']
     }
 
 def log_trade(symbol, signal, sentiment_reason=''):
@@ -613,8 +649,9 @@ def main():
             print(f"  ⚠️ No market data available\n")
             continue
         
-        # Calculate signal
-        signal = calculate_trade_signal(sentiment_score, news_count, market_data)
+        # Calculate signal with LLM enhancement
+        signal = calculate_trade_signal(sentiment_score, news_count, market_data, 
+                                       symbol_name, symbol_articles_list)
         
         if signal and signal['confidence'] > 0.3:  # Minimum confidence threshold
             signals.append({
