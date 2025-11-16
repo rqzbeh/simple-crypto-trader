@@ -2,30 +2,31 @@
 """
 Test Stop Loss and Take Profit validation improvements
 Ensures realistic values with proper bounds
+Minimum 3:1 R/R enforced, but can be higher for strong signals
 """
 
 import sys
 from datetime import datetime
 
-# Test parameters
-MIN_STOP_PCT = 0.015  # 1.5% minimum
-MAX_STOP_PCT = 0.05   # 5% maximum (maintains 3:1 R/R with 15% TP cap)
+# Test parameters (SHORT-TERM 2-4h trades)
+MIN_STOP_PCT = 0.008  # 0.8% minimum
+MAX_STOP_PCT = 0.025  # 2.5% maximum
 TARGET_RR_RATIO = 3.0  # 1:3 minimum
-MAX_TP_PCT = 0.15     # 15% maximum
+MAX_TP_PCT = 0.075    # 7.5% maximum (realistic for 2-4h)
 
 def validate_stop_loss(atr_pct, adaptive_multiplier=1.0):
     """Validate stop loss calculation matches main.py logic"""
-    # Calculate ATR-based stop
-    atr_stop = atr_pct * 1.5
+    # Calculate ATR-based stop (tighter for 2-4h)
+    atr_stop = atr_pct * 1.2
     
-    # Apply bounds (5% max to maintain 3:1 R/R with 15% TP cap)
-    stop_pct = max(MIN_STOP_PCT, min(atr_stop, 0.05))
+    # Apply bounds (2.5% max for short-term)
+    stop_pct = max(MIN_STOP_PCT, min(atr_stop, MAX_STOP_PCT))
     
     # Apply adaptive multiplier
     stop_pct *= adaptive_multiplier
     
     # Final validation - hard limits
-    stop_pct = max(0.015, min(stop_pct, 0.05))
+    stop_pct = max(0.008, min(stop_pct, 0.025))
     
     return stop_pct
 
@@ -34,11 +35,11 @@ def validate_take_profit(expected_return, stop_pct):
     expected_profit = abs(expected_return)
     min_profit_for_target_rr = stop_pct * TARGET_RR_RATIO
     
-    # Ensure minimum R/R
+    # Ensure MINIMUM R/R (but allow higher)
     if expected_profit < min_profit_for_target_rr:
-        expected_profit = min_profit_for_target_rr
+        expected_profit = min_profit_for_target_rr  # Only enforce minimum
     
-    # Cap at maximum
+    # Cap at maximum (strong signals can have higher R/R)
     expected_profit = min(expected_profit, MAX_TP_PCT)
     
     return expected_profit
@@ -51,18 +52,18 @@ def test_scenarios():
     print("=" * 70)
     print()
     
-    # Test scenarios with different ATR values
+    # Test scenarios with different ATR values (SHORT-TERM 2-4h trades)
     test_cases = [
         # (ATR%, Expected Return, Adaptive Multiplier, Description)
-        (0.01, 0.08, 1.0, "Low volatility"),
-        (0.02, 0.10, 1.0, "Normal volatility"),
-        (0.03, 0.12, 1.0, "Medium volatility"),
-        (0.05, 0.15, 1.0, "High volatility"),
-        (0.08, 0.20, 1.0, "Very high volatility (should cap)"),
-        (0.10, 0.25, 1.0, "Extreme volatility (should cap)"),
-        (0.02, 0.03, 1.0, "Low expected return (should enforce min R/R)"),
-        (0.02, 0.10, 0.8, "With risk reduction"),
-        (0.02, 0.10, 1.2, "With risk increase"),
+        (0.005, 0.03, 1.0, "Very low volatility - strong signal (6:1 R/R)"),
+        (0.01, 0.04, 1.0, "Low volatility - good signal (4:1 R/R)"),
+        (0.01, 0.06, 1.0, "Low volatility - excellent signal (6:1 R/R)"),
+        (0.015, 0.05, 1.0, "Normal volatility - decent signal (3.3:1 R/R)"),
+        (0.02, 0.06, 1.0, "Medium volatility - good signal (3:1 R/R)"),
+        (0.02, 0.08, 1.0, "Medium volatility - strong signal (4:1 R/R)"),
+        (0.03, 0.10, 1.0, "High volatility (caps at 7.5% TP)"),
+        (0.01, 0.015, 1.0, "Low expected return (enforces 3:1 minimum)"),
+        (0.015, 0.05, 0.8, "With risk reduction"),
     ]
     
     all_passed = True
@@ -99,9 +100,9 @@ def test_scenarios():
             checks.append(f"❌ R/R too low: {rr_ratio:.2f}")
             all_passed = False
         
-        # Check 4: Realistic values for 4h timeframe
-        if stop_pct < 0.10 and tp_pct < 0.20:
-            checks.append("✅ Realistic for 4h")
+        # Check 4: Realistic values for 2-4h SHORT-TERM trades
+        if stop_pct < 0.03 and tp_pct < 0.08:
+            checks.append("✅ Realistic for 2-4h")
         else:
             checks.append("⚠️ May be aggressive")
         
@@ -126,10 +127,11 @@ def test_scenarios():
     # Summary
     print("VALIDATION SUMMARY:")
     print(f"  • Stop Loss Range: {MIN_STOP_PCT*100:.1f}% to {MAX_STOP_PCT*100:.1f}%")
-    print(f"  • Take Profit Max: {MAX_TP_PCT*100:.1f}%")
-    print(f"  • Minimum R/R: 1:{TARGET_RR_RATIO:.0f}")
-    print(f"  • Timeframe: 4 hours")
+    print(f"  • Take Profit Max: {MAX_TP_PCT*100:.1f}% (can be lower)")
+    print(f"  • MINIMUM R/R: 1:{TARGET_RR_RATIO:.0f} (can be higher for strong signals)")
+    print(f"  • Trade Duration: 2-4 hours (SHORT-TERM)")
     print(f"  • Approach: 90% News/AI, 10% Technical Filter")
+    print(f"  • Strong signals can achieve 4:1, 5:1, or even 6:1 R/R ratios")
     print()
 
 if __name__ == '__main__':

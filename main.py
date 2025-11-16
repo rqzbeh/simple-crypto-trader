@@ -9,7 +9,7 @@ Simple Crypto Trader - NEWS-DRIVEN Cryptocurrency Trading Signal Generator
 - Trade based on market psychology, news events, and AI reasoning
 - Technicals validate/filter out bad setups, not generate signals
 
-Built for 24/7 crypto markets with 4-hour timeframe optimization
+Built for 24/7 crypto markets with SHORT-TERM trades (2-4 hours max duration)
 """
 
 import os
@@ -148,18 +148,19 @@ CRYPTO_NEWS_SOURCES = [
     ('U.Today', 'https://u.today/rss'),
 ]
 
-# Risk Management Settings (Optimized for 4-hour timeframe)
+# Risk Management Settings (Optimized for 2-4 hour SHORT-TERM trades)
 # NEWS-DRIVEN TRADING: News and AI are primary signals (85-90%), technicals filter only (10-15%)
 # Technicals provide: entry price, stop loss, take profit, leverage calculation
-# 4h candles = less noise = can use tighter stops and higher leverage
-MIN_STOP_PCT = 0.015  # 1.5% minimum stop (balanced for 4h timeframe)
-MAX_STOP_PCT = 0.05   # 5% maximum stop (to maintain 3:1 R/R with 15% TP cap)
-TARGET_RR_RATIO = 3.0  # Target 1:3 risk/reward minimum (enforced)
+# 2-4h trade duration = need tighter stops and realistic targets
+MIN_STOP_PCT = 0.008  # 0.8% minimum stop (tight for 2-4h trades)
+MAX_STOP_PCT = 0.025  # 2.5% maximum stop (realistic for short-term trades)
+TARGET_RR_RATIO = 3.0  # MINIMUM 1:3 risk/reward (can be higher for strong signals)
 
 # NEWS IMPACT PARAMETERS (Primary Signal Source - 85-90%)
-EXPECTED_RETURN_PER_SENTIMENT = 0.06  # 6% base per sentiment point (NEWS DRIVEN)
-NEWS_IMPACT_MULTIPLIER = 0.020  # 2% per news article (SIGNIFICANT)
-MAX_NEWS_BONUS = 0.10  # 10% max bonus from news volume
+# Reduced for 2-4h SHORT-TERM trades
+EXPECTED_RETURN_PER_SENTIMENT = 0.04  # 4% base per sentiment point (realistic for 2-4h)
+NEWS_IMPACT_MULTIPLIER = 0.015  # 1.5% per news article
+MAX_NEWS_BONUS = 0.05  # 5% max bonus from news volume
 
 # Leverage caps - Higher for 4h timeframe (clearer trends)
 MAX_LEVERAGE_CRYPTO = 10  # 10x max - 4h trends more reliable
@@ -167,14 +168,14 @@ MAX_LEVERAGE_STOCK = 5    # 5x for stocks
 
 DAILY_RISK_LIMIT = 0.05  # 5% max daily loss (can take more risk with better R/R)
 
-# Trading Parameters (4-hour timeframe optimized)
+# Trading Parameters (2-4 hour SHORT-TERM trades)
 # NEWS TRADING FOCUS: 85-90% emphasis on news/sentiment, 10-15% technical filter
 LOW_MONEY_MODE = True  # Optimized for accounts < $500
 if LOW_MONEY_MODE:
-    EXPECTED_RETURN_PER_SENTIMENT = 0.08  # 8% for small accounts (NEWS DRIVEN)
-    NEWS_IMPACT_MULTIPLIER = 0.025  # 2.5% per article (STRONG IMPACT)
-    MAX_NEWS_BONUS = 0.12  # 12% max bonus
-    MIN_STOP_PCT = 0.012  # 1.2% - aggressive but 4h timeframe allows it
+    EXPECTED_RETURN_PER_SENTIMENT = 0.05  # 5% for small accounts (realistic for 2-4h)
+    NEWS_IMPACT_MULTIPLIER = 0.018  # 1.8% per article
+    MAX_NEWS_BONUS = 0.06  # 6% max bonus
+    MIN_STOP_PCT = 0.008  # 0.8% - tight for short-term trades
 
 # Technical Indicator Weights (OPTIMIZED - No Conflicts/Redundancies)
 # Reduced from 17 to 10 indicators by removing overlapping ones
@@ -496,33 +497,35 @@ def calculate_trade_signal(sentiment_score, news_count, market_data, symbol='', 
     else:
         expected_return *= (1 + abs(tech_score_normalized) * 0.5)
     
-    # Calculate stop loss with adaptive risk (optimized for 4h timeframe)
-    # Use ATR as primary method with reasonable bounds
-    atr_stop = market_data['atr_pct'] * 1.5  # 1.5x ATR - 4h has less noise
+    # Calculate stop loss with adaptive risk (optimized for 2-4h SHORT-TERM trades)
+    # Use ATR as primary method with reasonable bounds for short-term trading
+    atr_stop = market_data['atr_pct'] * 1.2  # 1.2x ATR - tighter for 2-4h trades
     
-    # Ensure stop loss is reasonable - not too tight, not too wide
-    # For crypto: 1.5% min (was 1.2%), 5% max (reduced from 6% to maintain R/R)
-    stop_pct = max(MIN_STOP_PCT, min(atr_stop, 0.05))  # Cap at 5% instead of MAX_STOP_PCT
+    # Ensure stop loss is tight for short-term trades
+    # For 2-4h crypto trades: 0.8% min, 2.5% max
+    stop_pct = max(MIN_STOP_PCT, min(atr_stop, MAX_STOP_PCT))
     
     # Apply adaptive risk adjustment from learning system
     stop_pct *= adaptive_params['risk_multiplier']
     
-    # Final validation: ensure stop is within acceptable range
-    stop_pct = max(0.015, min(stop_pct, 0.05))  # Hard limits: 1.5% to 5% (maintains 3:1 R/R with 15% TP cap)
+    # Final validation: ensure stop is within acceptable range for SHORT-TERM trades
+    stop_pct = max(0.008, min(stop_pct, 0.025))  # Hard limits: 0.8% to 2.5% for 2-4h
     
-    # Calculate take profit - TARGET 1:3 minimum R/R
+    # Calculate take profit - TARGET 1:3 MINIMUM R/R (can be higher for strong signals)
     # Expected profit is driven by news/sentiment (PRIMARY signal source)
     expected_profit = abs(expected_return)
     min_profit_for_target_rr = stop_pct * TARGET_RR_RATIO  # 1:3 minimum
     
-    # Ensure we meet minimum R/R ratio
+    # Ensure we meet MINIMUM R/R ratio (but allow higher if signal is strong)
     if expected_profit < min_profit_for_target_rr:
-        expected_profit = min_profit_for_target_rr  # Force 1:3 minimum
+        expected_profit = min_profit_for_target_rr  # Enforce 1:3 minimum only if below
     
-    # Cap maximum take profit to be realistic (max 15% for 4h timeframe)
-    expected_profit = min(expected_profit, 0.15)
+    # Cap maximum take profit to be realistic for 2-4h SHORT-TERM trades
+    # Max 7.5% (but can go lower based on signal strength)
+    # Strong signals can aim for higher R/R (4:1, 5:1, even 6:1)
+    expected_profit = min(expected_profit, 0.075)
     
-    # Risk/Reward ratio
+    # Risk/Reward ratio (will be >= 3:1, can be much higher)
     rr_ratio = expected_profit / stop_pct if stop_pct > 0 else 0
     
     # Skip trades that don't meet minimum R/R even after adjustment
@@ -743,18 +746,18 @@ Confidence: {signal['confidence']*100:.1f}% | News: {signal['sentiment_score']:.
 # ==================== MAIN EXECUTION ====================
 
 def main():
-    """Main trading loop - NEWS-DRIVEN 4-hour timeframe system (85-90% news/AI)"""
+    """Main trading loop - NEWS-DRIVEN SHORT-TERM trading system (85-90% news/AI)"""
     print("\n[*] Starting Crypto Trading Signal Generator...")
     print("[NEWS] NEWS-DRIVEN TRADING SYSTEM (85-90% NEWS/AI)")
     print("=" * 70)
     print(f"[TIME] {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC")
     print(f"[MODE] Mode: {'Low Money' if LOW_MONEY_MODE else 'Standard'}")
-    print(f"[TIMEFRAME]  Timeframe: 4 Hours (optimal balance)")
+    print(f"[DURATION] Trade Duration: 2-4 Hours (SHORT-TERM)")
     print(f"[TARGET] Strategy: News/AI Primary (85-90%) + Technical Filter (10-15%)")
     print(f"[TECH] Technicals: Entry Price, Stop Loss, Take Profit, Leverage")
     print(f"[LEVERAGE] Max Leverage: {MAX_LEVERAGE_CRYPTO}x")
-    print(f"[RR] Target R/R: 1:{TARGET_RR_RATIO} minimum (enforced)")
-    print(f"[RISK] Daily Risk Limit: {DAILY_RISK_LIMIT*100}%")
+    print(f"[RR] Min R/R: 1:{TARGET_RR_RATIO} (can be higher for strong signals)")
+    print(f"[RISK] Stop Loss: {MIN_STOP_PCT*100:.1f}%-{MAX_STOP_PCT*100:.1f}%, Take Profit: up to {0.075*100:.1f}%")
     print("=" * 70)
     print()
     
@@ -864,7 +867,7 @@ def main():
     
     # Create summary message for Telegram
     summary = f"""[NEWS] NEWS-DRIVEN TRADING SYSTEM (85-90% NEWS/AI)
-[TIME] {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC | Timeframe: 4H
+[TIME] {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC | Duration: 2-4H
 [TARGET] {len(signals)} Signals Found\n"""
     
     # Show top signals
