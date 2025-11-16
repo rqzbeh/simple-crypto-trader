@@ -153,7 +153,7 @@ CRYPTO_NEWS_SOURCES = [
 # Technicals provide: entry price, stop loss, take profit, leverage calculation
 # 4h candles = less noise = can use tighter stops and higher leverage
 MIN_STOP_PCT = 0.015  # 1.5% minimum stop (balanced for 4h timeframe)
-MAX_STOP_PCT = 0.06   # 6% maximum stop (prevent extremely wide stops)
+MAX_STOP_PCT = 0.05   # 5% maximum stop (to maintain 3:1 R/R with 15% TP cap)
 TARGET_RR_RATIO = 3.0  # Target 1:3 risk/reward minimum (enforced)
 
 # NEWS IMPACT PARAMETERS (Primary Signal Source - 85-90%)
@@ -501,14 +501,14 @@ def calculate_trade_signal(sentiment_score, news_count, market_data, symbol='', 
     atr_stop = market_data['atr_pct'] * 1.5  # 1.5x ATR - 4h has less noise
     
     # Ensure stop loss is reasonable - not too tight, not too wide
-    # For crypto: 1.5% min (was 1.2%), 5% max (was 6%)
-    stop_pct = max(MIN_STOP_PCT, min(atr_stop, MAX_STOP_PCT))
+    # For crypto: 1.5% min (was 1.2%), 5% max (reduced from 6% to maintain R/R)
+    stop_pct = max(MIN_STOP_PCT, min(atr_stop, 0.05))  # Cap at 5% instead of MAX_STOP_PCT
     
     # Apply adaptive risk adjustment from learning system
     stop_pct *= adaptive_params['risk_multiplier']
     
     # Final validation: ensure stop is within acceptable range
-    stop_pct = max(0.015, min(stop_pct, 0.06))  # Hard limits: 1.5% to 6%
+    stop_pct = max(0.015, min(stop_pct, 0.05))  # Hard limits: 1.5% to 5% (maintains 3:1 R/R with 15% TP cap)
     
     # Calculate take profit - TARGET 1:3 minimum R/R
     # Expected profit is driven by news/sentiment (PRIMARY signal source)

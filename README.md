@@ -240,8 +240,8 @@ Agreement Boost: +5% confidence when all methods align
 ```python
 Base Stop = 1.5% minimum (4h timeframe)
 ATR Stop = 1.5× ATR percentage
-Final Stop = max(Base, min(ATR, 6%))  # Capped at 6% max
-Validation = Ensure 1.5% to 6% range (realistic bounds)
+Final Stop = max(Base, min(ATR, 5%))  # Capped at 5% max
+Validation = Ensure 1.5% to 5% range (maintains 3:1 R/R)
 ```
 
 ### Leverage Calculation
