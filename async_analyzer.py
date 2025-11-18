@@ -316,9 +316,9 @@ class BatchLLMProcessor:
         self.queue = []
         self.results = {}
     
-    async def add_request(self, request_id: str, groq_client, prompt: str):
+    async def add_request(self, request_id: str, llm_client, prompt: str):
         """Add a request to the batch queue"""
-        self.queue.append((request_id, groq_client, prompt))
+        self.queue.append((request_id, llm_client, prompt))
         
         # Process if batch is full
         if len(self.queue) >= self.batch_size:
@@ -332,23 +332,23 @@ class BatchLLMProcessor:
             return
         
         tasks = []
-        for request_id, groq_client, prompt in self.queue:
-            tasks.append(self._process_single(request_id, groq_client, prompt))
+        for request_id, llm_client, prompt in self.queue:
+            tasks.append(self._process_single(request_id, llm_client, prompt))
         
         await asyncio.gather(*tasks)
         self.queue = []
     
-    async def _process_single(self, request_id: str, groq_client, prompt: str):
+    async def _process_single(self, request_id: str, llm_client, prompt: str):
         """Process a single LLM request"""
         try:
             loop = asyncio.get_event_loop()
             response = await loop.run_in_executor(
                 _thread_pool,
-                lambda: groq_client.chat.completions.create(
-                    model="llama-3.1-8b-instant",
-                    messages=[{"role": "user", "content": prompt}],
+                lambda: llm_client.chat(
+                    model_name="llama3.1:8b",
+                    prompt=prompt,
                     temperature=0.3,
-                    max_tokens=200
+                    num_predict=200
                 )
             )
             self.results[request_id] = response
