@@ -1,8 +1,8 @@
 # 🚀 Simple Crypto Trader
 
-**📰 NEWS-DRIVEN Cryptocurrency Trading Signal Generator**
+**News-Driven Cryptocurrency Trading Signal Generator**
 
-A sophisticated crypto trading bot that **trades primarily based on news, sentiment, and AI analysis**, with technical indicators serving as filters to validate setups. Built for 24/7 crypto markets with **SHORT-TERM trades (2-4 hours max duration)**.
+An intelligent cryptocurrency trading signal generator that combines news sentiment analysis, AI-powered market reasoning, and technical indicators to identify high-probability trading opportunities. Built for 24/7 crypto markets with short-term trades (2-4 hours maximum duration).
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -11,101 +11,71 @@ A sophisticated crypto trading bot that **trades primarily based on news, sentim
 
 ## 🌟 Key Features
 
-### 📰 NEWS-DRIVEN Trading Strategy
-- **Primary Signals (85-90%)**: News sentiment + AI/LLM analysis
-- **Technical Filters (10-15%)**: Validate and filter out bad setups
-- **Technical Usage**: Calculate entry price, stop loss, take profit, leverage
-- **News Impact**: Up to 12% expected return based on news volume
-- **Real-Time Analysis**: Multi-source news aggregation with AI reasoning
+### 📰 News-Driven Trading Strategy
+- **Primary Signals**: News sentiment analysis combined with AI/LLM market reasoning
+- **Technical Validation**: Technical indicators filter and validate trading setups
+- **Multi-Source Data**: Aggregates news from NewsAPI and RSS feeds (CoinDesk, Cointelegraph, etc.)
+- **Real-Time Analysis**: 6-8 hour news lookback window for fresh, relevant market context
+- **Smart Execution**: Technical indicators calculate precise entry, stop loss, and take profit levels
 
-### ⚡ SHORT-TERM Trading Optimization
-- **Trade Duration**: 2-4 hours maximum (quick in and out)
-- **Tight Stops**: 0.8%-2.5% stop loss (appropriate for short duration)
-- **Realistic Targets**: Max 7.5% take profit (achievable in 2-4h)
-- **Better R/R**: Consistent 1:3 minimum risk/reward ratios
-- **News Relevance**: 6-8 hour lookback for fresh context
+### ⚡ Short-Term Trading Optimization
+- **Trade Duration**: 2-4 hours maximum for quick entries and exits
+- **Tight Risk Management**: 0.8%-2.5% stop loss range
+- **Achievable Targets**: Maximum 7.5% take profit (realistic for 2-4h timeframe)
+- **Minimum 1:3 Risk/Reward**: Enforced minimum ratio, can be higher for strong signals
+- **Fresh News Context**: 6-8 hour lookback ensures news relevance
 
-### 🎯 Aggressive But Smart
-- **10x Max Leverage**: Short-term trades with tight stops allow higher leverage
-- **2x Minimum Leverage**: Take advantage of clear trends
-- **Dynamic Sizing**: Leverage = floor(R/R + confidence×5)
-- **Risk Management**: Tight stops (0.8%-2.5%), ATR-based
+### 🎯 Dynamic Position Sizing
+- **Leverage Range**: 2x minimum, 10x maximum
+- **Dynamic Calculation**: Leverage = floor(R/R + confidence×5)
+- **Tight Stops**: 0.8%-2.5% stop loss enables higher leverage safely
+- **ATR-Based Stops**: Volatility-adjusted risk management
 
-### 🤖 Hybrid Intelligence
-- **10 Optimized Indicators**: No conflicts, serve as filters only
-- **AI Reasoning**: Groq LLM analyzes market like a human trader
-- **Adaptive Learning**: Self-adjusts based on performance
-- **90/10 Balance**: 90% news/AI, 10% technical filter
-- **Technical Role**: Entry price, stop loss, take profit, leverage calculation
+### 🤖 Hybrid Intelligence System
+- **10 Optimized Indicators**: Conflict-free technical analysis
+- **AI Market Analysis**: Groq LLM (Llama 3.3) interprets market context and psychology
+- **Adaptive Learning**: Self-adjusts parameters based on historical performance
+- **Precision Tracking**: Monitors entry timing, stop loss, and take profit accuracy
+- **Performance-Based**: Automatically adjusts strategy based on trade outcomes
 
 ### 📊 Technical Excellence
-- **Conflict-Free**: Removed 7 redundant indicators
-- **Proven Methods**: Stoch RSI, EMA, MACD, Bollinger Bands, VWAP
-- **Filter Purpose**: Technicals validate news signals, don't generate them
-- **Real-Time Data**: yfinance integration for live prices
+- **Proven Indicators**: Stochastic RSI, EMA, MACD, Bollinger Bands, VWAP, Supertrend, ADX
+- **No Redundancy**: Each indicator serves a unique purpose
+- **No Conflicts**: All indicators are independent and complementary
+- **Real-Time Data**: yfinance integration for live price feeds
 
 ---
 
-## 📰 News Trading Philosophy
+## 📈 Trading Philosophy
 
-### Primary Signal Sources (85-90%)
-1. **News Sentiment Analysis**
-   - Multi-source aggregation (CoinDesk, Cointelegraph, etc.)
-   - 6-8 hour validity window for relevance
-   - Weighted by article count and quality
+### Signal Generation Approach
 
-2. **AI/LLM Analysis** 
-   - Groq's Llama 3.3 for market context
-   - Risk assessment and reasoning
-   - Detects market psychology and sentiment
+**Primary Sources (85-90%):**
+- News sentiment analysis from multiple sources
+- AI/LLM market context interpretation
+- Market psychology and sentiment detection
+- Risk assessment and opportunity identification
 
-### Technical Filters (10-15%)
-- **Not signal generators** - only validate/filter
-- **Calculate execution levels**: Entry price, stop loss, take profit, leverage
-- Strong technical contradiction → Signal filtered out
-- Weak technical support → Confidence reduced slightly
-- Strong technical agreement → Confidence boost
+**Technical Validation (10-15%):**
+- Filters out contradictory setups
+- Calculates precise entry, stop loss, and take profit levels
+- Validates trend strength and momentum
+- Adjusts confidence based on technical alignment
 
----
+### Risk/Reward Framework
 
-## 📈 Performance Strategy
-
-### Why News-Driven Approach?
-
-| Factor | Technical-Only | **News-Driven (85-90%)** | Advantage |
-|--------|---------------|--------------------------|-----------|
-| Signal Source | Lagging | ✅ Leading | Earlier entries |
-| Market Events | Misses | ✅ Captures | Better timing |
-| Volatility | Reacts after | ✅ Anticipates | Higher R/R |
-| Psychology | Ignores | ✅ Analyzes | Edge |
-| Execution | N/A | ✅ Technical precision | Optimal levels |
-
-### Why SHORT-TERM (2-4h) Trades?
-
-| Aspect | 1-Hour | **2-4 Hour** | Daily |
-|--------|--------|--------------|-------|
-| Noise Level | High | ✅ Low | Very Low |
-| Signal Quality | Medium | ✅ High | High |
-| Opportunities | Many | ✅ Optimal | Few |
-| News Relevance | 12h (stale) | ✅ 6-8h (fresh) | Days (old) |
-| Stop Loss | 1.5% | ✅ 0.8-2.5% | 3-5% |
-| Typical Move | 0.5-1% | ✅ 2-4% | 5-10% |
-| Trade Duration | Quick | ✅ Optimal | Long |
-
-### Risk/Reward Targets
-
-**Minimum 1:3 R/R Enforced (Can Be Higher):**
+**Minimum 1:3 R/R Enforced:**
 ```
 Risk: 0.8-2.5% stop loss
 Reward: 2.4-7.5% take profit
-MINIMUM R/R: 1:3 (enforced)
-ACTUAL R/R: Can be 4:1, 5:1, 6:1+ for strong signals
-Win Rate Needed: 25% to break even (at 3:1)
+MINIMUM R/R: 1:3 (strictly enforced)
+ACTUAL R/R: Often 4:1, 5:1, or 6:1+ for strong signals
+Break-even Win Rate: 25% (at 3:1 R/R)
 Target Win Rate: 40-50%
-Trade Duration: 2-4 hours max
+Trade Duration: 2-4 hours maximum
 ```
 
-**Example with Good Signal (3:1 R/R):**
+**Example Trade (3:1 R/R):**
 ```
 BTC Entry: $50,000
 Stop Loss: $49,500 (1.0% = $500 risk)
@@ -115,22 +85,22 @@ Leverage: 7x
 Confidence: 82%
 Duration: 2-4 hours
 
-Win: $1,500 × 7 = $10,500 profit
-Loss: $500 × 7 = $3,500 loss
+Potential Win: $1,500 × 7 = $10,500 profit
+Potential Loss: $500 × 7 = $3,500 loss
 ```
 
-**Example with Strong Signal (6:1 R/R):**
+**Example Strong Signal (6:1 R/R):**
 ```
 ETH Entry: $3,000
 Stop Loss: $2,988 (0.8% = $24 risk)
 Take Profit: $3,144 (4.8% = $144 gain)
-R/R Ratio: 1:6.0 🔥
+R/R Ratio: 1:6.0
 Leverage: 8x
 Confidence: 91%
 Duration: 2-4 hours
 
-Win: $144 × 8 = $1,152 profit
-Loss: $24 × 8 = $192 loss
+Potential Win: $144 × 8 = $1,152 profit
+Potential Loss: $24 × 8 = $192 loss
 ```
 
 ---
@@ -138,131 +108,157 @@ Loss: $24 × 8 = $192 loss
 ## 🎮 Quick Start
 
 ### Prerequisites
-- Python 3.8+
-- API keys (NewsAPI, Groq)
+- Python 3.8 or higher
+- API keys for NewsAPI and Groq
 
 ### Installation
 
 ```bash
-# Clone repository
+# Clone the repository
 git clone https://github.com/rqzbeh/simple-crypto-trader.git
 cd simple-crypto-trader
 
-# Install dependencies
+# Install required dependencies
 pip install -r requirements.txt
 ```
 
 ### Configuration
 
-```bash
-# Required
-export NEWS_API_KEY='your_newsapi_key'
-export GROQ_API_KEY='your_groq_key'
+Set up your API keys as environment variables:
 
-# Optional (Telegram notifications)
+```bash
+# Required API Keys
+export NEWS_API_KEY='your_newsapi_key'      # Get from https://newsapi.org
+export GROQ_API_KEY='your_groq_api_key'     # Get from https://console.groq.com
+
+# Optional: Telegram Notifications
 export TELEGRAM_BOT_TOKEN='your_bot_token'
 export TELEGRAM_CHAT_ID='your_chat_id'
 ```
 
-### Run
+### Running the Bot
 
+**Single Run:**
 ```bash
 python main.py
 ```
+
+**Scheduled Execution (Recommended):**
+
+The bot works perfectly with crontab for automated trading. It tracks trades across multiple runs and only trains on completed trades.
+
+```bash
+# Edit crontab
+crontab -e
+
+# Add this line to run every 2 hours (recommended)
+0 */2 * * * cd /path/to/simple-crypto-trader && /usr/bin/python3 main.py >> logs/trader.log 2>&1
+```
+
+**Why 2-hour intervals?**
+- Allows trades to develop naturally
+- Checks progress mid-window
+- Respects 2-4 hour trade duration
+- Efficient balance between responsiveness and API usage
 
 ---
 
 ## 🔧 Technical Indicators
 
-### The 10 Optimized Indicators (No Conflicts)
+The system uses 10 optimized, conflict-free technical indicators:
 
-#### 1. **Stochastic RSI** (Weight: 2.5)
-- **Purpose**: Primary momentum indicator
-- **Why**: Most sensitive for crypto's volatility
-- **Signal**: <20 oversold, >80 overbought
+### Core Indicators
 
-#### 2. **EMA Trend** (Weight: 2.3)
-- **Purpose**: Multi-timeframe trend direction
-- **EMAs**: 9, 21, 50, 200
-- **Signal**: All aligned = strong trend
+1. **Stochastic RSI** (Weight: 2.5)
+   - Primary momentum indicator
+   - Most sensitive for crypto volatility
+   - Signal: <20 oversold, >80 overbought
 
-#### 3. **MACD** (Weight: 2.0)
-- **Purpose**: Convergence/divergence
-- **Why**: Different from EMA (measures momentum shift)
-- **Signal**: Histogram crossing zero
+2. **EMA Trend** (Weight: 2.3)
+   - Multi-timeframe trend direction (9, 21, 50, 200 EMAs)
+   - Signal: All EMAs aligned = strong trend
 
-#### 4. **Supertrend** (Weight: 1.9)
-- **Purpose**: Volatility-adjusted trend
-- **Why**: Uses ATR, complements EMA
-- **Signal**: Price above/below band
+3. **MACD** (Weight: 2.0)
+   - Convergence/divergence momentum
+   - Signal: Histogram crossing zero
 
-#### 5. **ADX** (Weight: 1.8)
-- **Purpose**: Trend STRENGTH filter
-- **Why**: Tells if trend is strong enough to trade
-- **Signal**: >25 = tradeable trend
+4. **Supertrend** (Weight: 1.9)
+   - Volatility-adjusted trend following
+   - Uses ATR for dynamic adjustments
+   - Signal: Price above/below band
 
-#### 6. **Bollinger Bands** (Weight: 2.0)
-- **Purpose**: Volatility measurement
-- **Why**: Industry standard
-- **Signal**: Position in bands (<10% or >90%)
+5. **ADX** (Weight: 1.8)
+   - Trend strength measurement
+   - Signal: >25 = tradeable trend strength
 
-#### 7. **ATR** (Weight: N/A)
-- **Purpose**: Stop-loss calculation
-- **Why**: Not directional, used for risk
-- **Usage**: 1.5× ATR for stop distance
+6. **Bollinger Bands** (Weight: 2.0)
+   - Volatility and price range measurement
+   - Signal: Position in bands (<10% or >90%)
 
-#### 8. **OBV** (Weight: 1.7)
-- **Purpose**: Accumulation/distribution
-- **Why**: Unique volume-based signal
-- **Signal**: Above/below 20-period average
+7. **ATR** (No directional weight)
+   - Used for stop-loss calculation
+   - 1.5× ATR for stop distance
 
-#### 9. **VWAP** (Weight: 2.1)
-- **Purpose**: Institutional price levels
-- **Why**: Critical for crypto markets
-- **Signal**: Price above/below VWAP
+8. **OBV** (Weight: 1.7)
+   - Volume-based accumulation/distribution
+   - Signal: Above/below 20-period average
 
-#### 10. **Pivot Points** (Weight: 1.5)
-- **Purpose**: Support/resistance levels
-- **Why**: Classical technical analysis
-- **Signal**: Price near key levels
+9. **VWAP** (Weight: 2.1)
+   - Institutional price levels
+   - Critical for crypto markets
+   - Signal: Price above/below VWAP
+
+10. **Pivot Points** (Weight: 1.5)
+    - Classical support/resistance levels
+    - Signal: Price near key levels
 
 ---
 
 ## 🤖 AI Integration
 
-### LLM-Powered Analysis
-The system uses Groq's Llama 3.1 for:
-- Market context interpretation
+### LLM-Powered Market Analysis
+
+The system leverages Groq's Llama 3.3 for advanced market interpretation:
+- Market context and psychology analysis
 - Risk assessment (LOW/MEDIUM/HIGH)
 - Timeframe recommendations
-- Trading reasoning
+- Trading rationale generation
 
 ### Hybrid Decision Making
-```
-Signal Generation = 90% News/AI + 10% Technical Filter
 
-Primary: News Sentiment (40%) + LLM Analysis (50%)
-Filter: Technical Indicators (10% - filter contradictions)
+```
+Signal Generation = News Sentiment + AI Analysis + Technical Validation
+
+Primary Layer: News Sentiment (40%) + LLM Reasoning (50%)
+Validation Layer: Technical Indicators (10% - filters contradictions)
 
 Agreement Boost: +5% confidence when all methods align
 ```
 
-### Adaptive Learning
-- Monitors win rate from past 20 trades
-- Adjusts confidence thresholds dynamically
-- **NEW: Tracks TP precision separately from direction accuracy**
-- **NEW: Learns actual price movements in 2-4h timeframe**
-- **NEW: Auto-adjusts TP targets based on historical precision (0.6x-1.2x)**
-- Modifies risk multipliers based on volatility
-- Optimizes indicator weights based on performance
-- Self-optimizes without manual intervention
+### Adaptive Learning System
+
+The bot continuously learns from its trading history:
+
+**Performance Tracking:**
+- Monitors win rate from last 20 trades
+- Tracks take profit precision separately from direction accuracy
+- Learns actual price movements within 2-4 hour timeframe
+
+**Auto-Adjustment:**
+- **Entry Timing**: Adjusts entry calculation based on how often entry prices are reached
+- **Stop Loss**: Widens or tightens stops based on premature stop-out frequency
+- **Take Profit**: Scales targets based on historical achievement rate (0.6x-1.2x multiplier)
+- **Confidence Thresholds**: Dynamically adjusted based on overall performance
+- **Indicator Weights**: Optimizes weights based on historical accuracy
 
 **Precision Learning:**
-The system now distinguishes between wrong direction vs imprecise TP levels:
-- If direction is correct but TPs too far → Reduces TP targets (e.g., by 30%)
-- If TPs too conservative → Increases TP targets gradually
-- Learns from actual market behavior, not just wins/losses
-- Example: If BTC predicted to move 3% but only moves 2% consistently → Future TPs adjusted to 2.1%
+The system distinguishes between different failure types:
+- Wrong direction → Adjusts signal generation confidence
+- Correct direction but TP too far → Reduces TP targets
+- TP too conservative → Gradually increases targets
+- SL hit too early → Widens stop loss range
+
+Example: If BTC consistently moves 2% but predictions are 3%, future targets adjust to 2.1%.
 
 ---
 
@@ -270,47 +266,47 @@ The system now distinguishes between wrong direction vs imprecise TP levels:
 
 ### Stop Loss Strategy
 ```python
-Base Stop = 0.8% minimum (SHORT-TERM trades)
-ATR Stop = 1.2× ATR percentage (tighter multiplier)
-Final Stop = max(Base, min(ATR, 2.5%))  # Capped at 2.5% max
-Validation = Ensure 0.8% to 2.5% range (maintains 3:1 R/R)
+Base Stop = 0.8% minimum (suitable for short-term trades)
+ATR Stop = 1.2× ATR percentage (volatility-adjusted)
+Final Stop = max(Base, min(ATR, 2.5%))  # Capped at 2.5% maximum
+Range = 0.8% to 2.5% (maintains minimum 1:3 R/R)
 ```
 
 ### Leverage Calculation
 ```python
 R/R = Take Profit % / Stop Loss %
-Confidence = 0 to 1
-Leverage = floor(R/R + Confidence×5)
-Max = 10x, Min = 2x
-Adjusted for high-risk LLM signals
+Confidence = 0 to 1 (signal strength)
+Leverage = floor(R/R + Confidence × 5)
+Maximum = 10x
+Minimum = 2x
 ```
 
 ### Take Profit Strategy
 ```python
 Expected Return = Sentiment Score × 4-5% (realistic for 2-4h)
 News Bonus = News Count × 1.5-1.8% (max 5-6%)
-Minimum TP = Stop Loss × 3 (enforce 1:3 minimum R/R)
+Minimum TP = Stop Loss × 3 (enforces 1:3 minimum R/R)
 Maximum TP = 7.5% (realistic cap for 2-4h trades)
 
-Strong signals naturally achieve higher R/R:
+Strong signals achieve higher R/R naturally:
 - Weak signal: 3:1 R/R (minimum enforced)
 - Good signal: 4:1 to 5:1 R/R
 - Excellent signal: 6:1+ R/R
 ```
 
 ### Position Sizing
-- Daily risk limit: 5%
-- Per-trade risk: Adjusted by confidence
-- Minimum R/R: 1:3 (enforced)
+- Daily risk limit: 5% of capital
+- Per-trade risk: Adjusted by signal confidence
+- Minimum R/R: 1:3 (strictly enforced)
 
 ---
 
 ## 📊 Supported Cryptocurrencies
 
-### Always Analyzed (Default 8)
+### Default Analysis (8 cryptocurrencies)
 BTC, ETH, BNB, ADA, SOL, DOGE, XRP, MATIC
 
-### Full Support (50+)
+### Full Support (50+ cryptocurrencies)
 Bitcoin, Ethereum, Binance Coin, Cardano, Solana, Dogecoin, XRP, Polkadot, Litecoin, Avalanche, Chainlink, Uniswap, Cosmos, Stellar, Algorand, VeChain, Filecoin, Tron, Ethereum Classic, AAVE, Maker, Compound, Sushi, YFI, Synthetix, Shiba Inu, NEAR, Flow, Decentraland, Sandbox, Axie Infinity, Chiliz, Enjin, BAT, 0x, Loopring, ImmutableX, ApeCoin, Optimism, Arbitrum, PEPE, Floki, and more...
 
 ---
@@ -319,38 +315,54 @@ Bitcoin, Ethereum, Binance Coin, Cardano, Solana, Dogecoin, XRP, Polkadot, Litec
 
 ```
 simple-crypto-trader/
-├── main.py                    # Core trading bot (600+ lines)
-├── technical_indicators.py    # Optimized indicators (280 lines)
-├── llm_analyzer.py           # AI reasoning layer (250 lines)
-├── requirements.txt          # Dependencies
+├── main.py                    # Core trading bot engine
+├── technical_indicators.py    # Technical analysis module
+├── llm_analyzer.py           # AI reasoning and market analysis
+├── requirements.txt          # Python dependencies
 ├── trade_log.json           # Trade history (auto-created)
-├── daily_risk.json          # Risk tracking (auto-created)
-└── README.md                # This file
+├── learning_state.json      # Adaptive learning data (auto-created)
+├── daily_risk.json          # Daily risk tracking (auto-created)
+└── README.md                # Documentation
 ```
 
 ---
 
 ## 🎯 Configuration Options
 
-### In `main.py`:
+### Main Configuration (in `main.py`)
 
 ```python
-# Timeframe
-interval = '1h'  # 1-hour candles for analysis
-period = '7d'    # 7 days history for indicators
+# Data Collection
+interval = '1h'               # 1-hour candles for analysis
+period = '7d'                 # 7 days of historical data
+NEWS_LOOKBACK = 6             # Hours of news to analyze (fresh context)
 
-# Risk (SHORT-TERM 2-4h trades)
-MIN_STOP_PCT = 0.008      # 0.8% minimum stop (tight for short-term)
-MAX_STOP_PCT = 0.025      # 2.5% maximum stop (realistic)
-TARGET_RR_RATIO = 3.0     # 1:3 MINIMUM R/R (can be 4:1, 5:1, 6:1+ for strong signals)
-MAX_LEVERAGE_CRYPTO = 10  # 10x maximum
-
-# News (Primary Signal Source)
-NEWS_LOOKBACK = 6  # Hours (fresh news for short-term trades)
+# Risk Parameters (Short-term 2-4h trades)
+MIN_STOP_PCT = 0.008          # 0.8% minimum stop loss
+MAX_STOP_PCT = 0.025          # 2.5% maximum stop loss
+TARGET_RR_RATIO = 3.0         # 1:3 minimum R/R (can be higher)
+MAX_LEVERAGE_CRYPTO = 10      # 10x maximum leverage
+MIN_LEVERAGE_CRYPTO = 2       # 2x minimum leverage
 
 # Signal Generation
-NEWS_AI_WEIGHT = 0.90     # 90% news/AI driven
-TECHNICAL_WEIGHT = 0.10   # 10% technical filter
+NEWS_AI_WEIGHT = 0.90         # 90% news/AI driven signals
+TECHNICAL_WEIGHT = 0.10       # 10% technical validation
+```
+
+### Customization Examples
+
+**More Aggressive:**
+```python
+MIN_STOP_PCT = 0.010          # 1.0% stops
+MAX_LEVERAGE_CRYPTO = 15      # 15x max leverage
+TARGET_RR_RATIO = 4.0         # 1:4 minimum target
+```
+
+**More Conservative:**
+```python
+MIN_STOP_PCT = 0.015          # 1.5% stops
+MAX_LEVERAGE_CRYPTO = 5       # 5x max leverage
+TARGET_RR_RATIO = 2.0         # 1:2 minimum target
 ```
 
 ---
@@ -363,76 +375,67 @@ TECHNICAL_WEIGHT = 0.10   # 10% technical filter
 ============================================================
 Symbol: BTC
 Direction: LONG 🟢
-Entry: $67234.50
-Stop Loss: $66560.97 (1.00%)
-Take Profit: $69247.97 (3.00%)
+Entry: $67,234.50
+Stop Loss: $66,560.97 (1.00%)
+Take Profit: $69,247.97 (3.00%)
 Leverage: 7x 💪
 Risk/Reward: 1:3.0 🎯
 Confidence: 82.5%
 Duration: 2-4 hours
 
 📊 Analysis:
-News Sentiment: 0.68 (PRIMARY) | Technical Filter: PASSED
+News Sentiment: 0.68 (PRIMARY)
+Technical Validation: PASSED
 Strong bullish news momentum with multiple positive articles.
 LLM confirms bullish outlook based on market psychology.
 Technical indicators support trend (no major contradiction).
-Stop loss at 1.0% (ATR-based, tight for 2-4h).
+Stop loss at 1.0% (ATR-based, tight for 2-4h duration).
 Take profit at 3.0% (news-driven, achievable in 2-4h).
 
-⏰ 2025-11-16 17:09:00 UTC | Duration: 2-4H | NEWS-DRIVEN (90/10)
+⏰ 2025-11-16 17:09:00 UTC | Duration: 2-4H | NEWS-DRIVEN
 ============================================================
 ```
 
 ---
 
-## ⚙️ Advanced Customization
+## 📚 API Setup Guide
 
-### Adjust Indicator Weights
+### NewsAPI (Required)
+1. Visit https://newsapi.org/register
+2. Free tier: 100 requests/day
+3. Create account and get API key
+4. Set environment variable: `export NEWS_API_KEY='your_key'`
 
-```python
-INDICATOR_WEIGHTS = {
-    'stoch_rsi': 2.5,     # Increase for more momentum focus
-    'ema_trend': 2.3,     # Increase for more trend focus
-    'bb': 2.0,            # Volatility weight
-    # ... customize as needed
-}
-```
+### Groq AI (Required)
+1. Visit https://console.groq.com/
+2. Free tier: 1000 requests/day  
+3. Create account and generate API key
+4. Set environment variable: `export GROQ_API_KEY='your_key'`
 
-### Modify Risk Parameters
-
-```python
-# More aggressive
-MIN_STOP_PCT = 0.010      # 1.0% stops
-MAX_LEVERAGE_CRYPTO = 15  # 15x max
-TARGET_RR_RATIO = 4.0     # 1:4 target
-
-# More conservative
-MIN_STOP_PCT = 0.015      # 1.5% stops
-MAX_LEVERAGE_CRYPTO = 5   # 5x max
-TARGET_RR_RATIO = 2.0     # 1:2 target
-```
+### Telegram Notifications (Optional)
+1. Create bot via https://t.me/BotFather
+2. Get your chat ID from https://t.me/userinfobot
+3. Set environment variables:
+   - `export TELEGRAM_BOT_TOKEN='your_bot_token'`
+   - `export TELEGRAM_CHAT_ID='your_chat_id'`
 
 ---
 
-## 🔬 System Architecture
+## 📊 Expected Performance
 
-### Design Principles
-1. **No Redundancies**: Each indicator unique
-2. **No Conflicts**: Indicators don't contradict
-3. **Modular**: Easy to extend and maintain
-4. **Adaptive**: Learns from performance
-5. **Transparent**: Clear reasoning for every trade
+### Performance Metrics
+- **Target Win Rate**: 40-50%
+- **Average R/R**: 1:3 to 1:5
+- **Signals Per Day**: 2-5 high-quality setups
+- **Max Drawdown**: 10-20% with proper position sizing
 
-### Data Flow
-```
-News → Sentiment Analysis → LLM Enhancement
-  ↓
-Market Data → Technical Indicators → Signals
-  ↓
-Combined Analysis → Risk Calculation → Trade Signal
-  ↓
-Logging → Adaptive Learning → Parameter Adjustment
-```
+### Best Practices
+1. **Start Small**: Test with minimum capital first
+2. **Paper Trade**: Verify strategies work in your environment
+3. **Monitor Performance**: Track win rate and adjust parameters
+4. **Risk Management**: Never risk more than 5% daily
+5. **Diversify**: Don't trade only one cryptocurrency
+6. **Be Patient**: Wait for quality 1:3+ setups
 
 ---
 
@@ -440,108 +443,51 @@ Logging → Adaptive Learning → Parameter Adjustment
 
 **CRITICAL WARNING:**
 
-- ❌ NOT financial advice
-- ❌ NOT guaranteed profits
-- ❌ High risk of loss
-- ✅ Educational/research tool only
-- ✅ Test with small amounts first
-- ✅ Never risk more than you can lose
-- ✅ Consult licensed financial advisor
+❌ This is NOT financial advice
+❌ NO guarantee of profits
+❌ High risk of loss possible
+❌ Can lose entire investment
 
-**Cryptocurrency trading is extremely risky. You can lose your entire investment. The authors are NOT responsible for any losses.**
+✅ Educational and research tool only
+✅ Test with small amounts first
+✅ Never risk more than you can afford to lose
+✅ Consult a licensed financial advisor before trading
 
----
-
-## 📚 API Keys Setup
-
-### NewsAPI (Required)
-1. Visit: https://newsapi.org/register
-2. Free tier: 100 requests/day
-3. Get API key
-4. `export NEWS_API_KEY='your_key'`
-
-### Groq (Recommended)
-1. Visit: https://console.groq.com/
-2. Free tier: 1000 requests/day
-3. Create API key
-4. `export GROQ_API_KEY='your_key'`
-
-### Telegram (Optional)
-1. Create bot: https://t.me/BotFather
-2. Get chat ID: https://t.me/userinfobot
-3. Set environment variables
+**Cryptocurrency trading is extremely risky. Past performance does not guarantee future results. The authors are NOT responsible for any financial losses.**
 
 ---
 
 ## 🤝 Contributing
 
-Contributions welcome! Areas to improve:
-- Additional indicators (must be non-conflicting)
-- Better LLM prompts
+Contributions are welcome! Areas for improvement:
+- Additional non-conflicting indicators
+- Enhanced LLM prompts and reasoning
 - Backtesting framework
 - Paper trading mode
-- Web interface
+- Web dashboard interface
 - Mobile notifications
+- Multi-exchange integration
 
 ---
 
 ## 📜 License
 
-MIT License - see [LICENSE](LICENSE) file
+MIT License - see [LICENSE](LICENSE) file for details
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **AI-Trader (HKUDS)**: Inspiration for LLM-based trading
 - **yfinance**: Market data provider
-- **Groq**: Fast LLM inference
-- **NewsAPI**: News aggregation
-- Crypto trading community
-
----
-
-## 📊 Performance Notes
-
-### What to Expect
-- **Win Rate**: Target 40-50%
-- **Average R/R**: 1:3 to 1:5
-- **Signals Per Day**: 2-5 high-quality setups
-- **Drawdown**: Expect 10-20% max with proper sizing
-
-### Best Practices
-1. **Start Small**: Test with minimum capital
-2. **Paper Trade First**: Verify strategies work
-3. **Monitor Performance**: Track win rate
-4. **Adjust Parameters**: Based on your risk tolerance
-5. **Diversify**: Don't trade one coin only
-6. **Be Patient**: Wait for 1:3+ setups
-
----
-
-## 🔄 Updates & Roadmap
-
-### v2.0 (Current)
-- ✅ 3-hour timeframe optimization
-- ✅ 1:3 minimum R/R enforcement
-- ✅ 10x leverage capability
-- ✅ LLM integration
-- ✅ Adaptive learning
-- ✅ Conflict-free indicators
-
-### Future Plans
-- [ ] Backtesting engine
-- [ ] Paper trading mode
-- [ ] Web dashboard
-- [ ] Mobile app
-- [ ] Multi-exchange support
-- [ ] Advanced ML models
+- **Groq**: Fast LLM inference platform
+- **NewsAPI**: News aggregation service
+- Cryptocurrency trading community
 
 ---
 
 <div align="center">
 
-**Built for Serious Crypto Traders** 🚀
+**Built for Cryptocurrency Traders** 🚀
 
 [⭐ Star](https://github.com/rqzbeh/simple-crypto-trader) • [🐛 Issues](https://github.com/rqzbeh/simple-crypto-trader/issues) • [💡 Discussions](https://github.com/rqzbeh/simple-crypto-trader/discussions)
 
