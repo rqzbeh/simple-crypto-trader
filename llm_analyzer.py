@@ -4,6 +4,7 @@ Inspired by AI-Trader's agent-based approach with our proven technical indicator
 """
 
 import json
+import os
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
@@ -15,6 +16,8 @@ class CryptoMarketAnalyzer:
     3. Adaptive learning from past trades
     """
     
+    LEARNING_DATA_FILE = 'learning_state.json'
+    
     def __init__(self, groq_client=None):
         self.groq_client = groq_client
         self.performance_history = []
@@ -24,16 +27,67 @@ class CryptoMarketAnalyzer:
             'tp_precision': [],
             'entry_timing': [],
             'avg_tp_overshoot': 0.0,  # How much TP is typically too far
-            'avg_price_movement': 0.0  # Actual average price movement
+            'avg_price_movement': 0.0,  # Actual average price movement
+            # NEW: Track failure reasons
+            'entry_not_reached_count': 0,  # How often entry price isn't reached
+            'sl_hit_early_count': 0,  # How often SL hit before TP could be reached
+            'tp_too_far_count': 0,  # How often direction correct but TP not reached
+            'wrong_direction_count': 0,  # How often direction prediction was wrong
+            'total_trades': 0
         }
         self.strategy_adjustments = {
             'indicator_weights': {},
             'risk_multiplier': 1.0,
             'confidence_threshold': 0.3,
-            'tp_adjustment_factor': 1.0  # NEW: Adjust TP based on historical precision
+            'tp_adjustment_factor': 1.0,  # Adjust TP based on historical precision
+            'entry_adjustment_factor': 1.0,  # NEW: Adjust entry proximity
+            'sl_adjustment_factor': 1.0  # NEW: Adjust SL width
         }
         self.last_optimization = datetime.now()
         self.optimization_interval = 20  # Optimize every 20 trades
+        
+        # Load previous learning state if exists
+        self._load_learning_state()
+    
+    def _load_learning_state(self):
+        """Load learning state from file to persist across script runs"""
+        try:
+            if os.path.exists(self.LEARNING_DATA_FILE):
+                with open(self.LEARNING_DATA_FILE, 'r') as f:
+                    data = json.load(f)
+                
+                # Restore learning data
+                self.performance_history = data.get('performance_history', [])
+                self.indicator_performance = data.get('indicator_performance', {})
+                self.precision_metrics = data.get('precision_metrics', self.precision_metrics)
+                self.strategy_adjustments = data.get('strategy_adjustments', self.strategy_adjustments)
+                
+                # Parse last_optimization datetime
+                last_opt = data.get('last_optimization')
+                if last_opt:
+                    self.last_optimization = datetime.fromisoformat(last_opt)
+                
+                print(f"📚 Loaded learning state: {len(self.performance_history)} trades, "
+                      f"{self.precision_metrics['total_trades']} total verified")
+        except Exception as e:
+            print(f"⚠️  Could not load learning state: {e}")
+    
+    def _save_learning_state(self):
+        """Save learning state to file to persist across script runs"""
+        try:
+            data = {
+                'performance_history': self.performance_history,
+                'indicator_performance': self.indicator_performance,
+                'precision_metrics': self.precision_metrics,
+                'strategy_adjustments': self.strategy_adjustments,
+                'last_optimization': self.last_optimization.isoformat(),
+                'saved_at': datetime.now().isoformat()
+            }
+            
+            with open(self.LEARNING_DATA_FILE, 'w') as f:
+                json.dump(data, f, indent=2)
+        except Exception as e:
+            print(f"⚠️  Could not save learning state: {e}")
     
     def analyze_with_llm(self, symbol: str, market_data: Dict, sentiment_data: Dict, 
                         news_articles: List[Dict]) -> Dict[str, Any]:
@@ -280,30 +334,61 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
         """
         Adaptive learning from trade outcomes
         Tracks overall performance AND individual indicator accuracy
-        NOW ALSO TRACKS: TP/SL precision, entry timing, and failure reasons
+        NOW ENHANCED TO TRACK:
+        - Entry not reached (entry price too far)
+        - SL hit early (SL too tight)
+        - TP too far (direction correct but target unreachable)
+        - Wrong direction (prediction error)
         """
         self.performance_history.append({
             'timestamp': datetime.now().isoformat(),
             'result': trade_result
         })
         
-        # Track precision metrics (NEW: separate direction from TP precision)
+        # Track total trades
+        self.precision_metrics['total_trades'] += 1
+        
+        # NEW: Track failure reasons to learn different adjustment strategies
+        failure_reason = trade_result.get('failure_reason')
+        entry_reached = trade_result.get('entry_reached', True)
+        
+        if not entry_reached:
+            # Entry price was never reached
+            self.precision_metrics['entry_not_reached_count'] += 1
+        elif failure_reason == 'sl_hit':
+            # Stop loss hit before trend could work
+            self.precision_metrics['sl_hit_early_count'] += 1
+        elif failure_reason == 'tp_not_reached':
+            # Direction correct but TP too far
+            self.precision_metrics['tp_too_far_count'] += 1
+        elif failure_reason == 'wrong_direction':
+            # Direction prediction was wrong
+            self.precision_metrics['wrong_direction_count'] += 1
+        
+        # Track precision metrics (separate direction from TP precision)
         if 'profit' in trade_result:
             profit = trade_result['profit']
             direction = trade_result.get('direction', 'LONG')
             
-            # Track direction accuracy
-            direction_correct = profit > 0
-            self.precision_metrics['direction_accuracy'].append(1 if direction_correct else 0)
+            # Track direction accuracy (only if entry was reached)
+            if entry_reached:
+                direction_correct = profit > 0
+                self.precision_metrics['direction_accuracy'].append(1 if direction_correct else 0)
             
             # Track TP precision: did we reach TP or fall short?
-            if 'tp_distance' in trade_result and 'actual_movement' in trade_result:
+            # Use max_favorable_move to see how close we got
+            if entry_reached and 'tp_distance' in trade_result:
                 tp_distance = abs(trade_result['tp_distance'])  # How far TP was set
-                actual_movement = abs(trade_result['actual_movement'])  # How far price actually moved
+                
+                # Use max favorable move if available, otherwise actual movement
+                if 'max_favorable_move' in trade_result:
+                    best_movement = abs(trade_result['max_favorable_move'])
+                else:
+                    best_movement = abs(trade_result.get('actual_movement', 0))
                 
                 # Calculate TP precision (1.0 = perfect, <1.0 = TP too far, >1.0 = TP too conservative)
                 if tp_distance > 0:
-                    tp_precision = actual_movement / tp_distance
+                    tp_precision = best_movement / tp_distance
                     self.precision_metrics['tp_precision'].append(tp_precision)
                     
                     # Track overshoot (how much TP is typically too ambitious)
@@ -319,10 +404,10 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
                 
                 # Track actual average price movement for this timeframe
                 if self.precision_metrics['avg_price_movement'] == 0:
-                    self.precision_metrics['avg_price_movement'] = actual_movement
+                    self.precision_metrics['avg_price_movement'] = best_movement
                 else:
                     self.precision_metrics['avg_price_movement'] = (
-                        0.8 * self.precision_metrics['avg_price_movement'] + 0.2 * actual_movement
+                        0.8 * self.precision_metrics['avg_price_movement'] + 0.2 * best_movement
                     )
         
         # Track indicator performance if available
@@ -373,6 +458,9 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
         if trades_since_optimization >= self.optimization_interval:
             self._optimize_indicator_weights()
             self.last_optimization = datetime.now()
+        
+        # Save learning state after each trade (persists across script runs)
+        self._save_learning_state()
     
     def _adjust_strategy(self):
         """Adjust strategy based on recent performance - DYNAMIC OPTIMIZATION"""
@@ -457,6 +545,69 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
             tp_reason = "Insufficient data"
             direction_accuracy = 0.5
         
+        # NEW: Adjust entry based on entry_not_reached failures
+        total = self.precision_metrics['total_trades']
+        if total >= 10:
+            entry_fail_rate = self.precision_metrics['entry_not_reached_count'] / total
+            
+            if entry_fail_rate > 0.3:
+                # Too many trades not opening - entry prices too far
+                # Gradual adjustment: reduce by 10% each time (not fixed to 0.5x)
+                current = self.strategy_adjustments['entry_adjustment_factor']
+                self.strategy_adjustments['entry_adjustment_factor'] = max(0.7, current - 0.1)
+                entry_reason = f"Entry too far ({entry_fail_rate*100:.0f}%), reducing gradually"
+            elif entry_fail_rate > 0.15:
+                # Moderate failures - small adjustment
+                current = self.strategy_adjustments['entry_adjustment_factor']
+                self.strategy_adjustments['entry_adjustment_factor'] = max(0.85, current - 0.05)
+                entry_reason = f"Entry slightly far ({entry_fail_rate*100:.0f}%), minor adjustment"
+            elif entry_fail_rate <= 0.05:
+                # Excellent rate - DON'T CHANGE IT! It's working well
+                # Only slowly recover toward 1.0 if we had reduced it before
+                current = self.strategy_adjustments['entry_adjustment_factor']
+                if current < 1.0:
+                    # Gradually return to baseline (1.0) if we're below it
+                    self.strategy_adjustments['entry_adjustment_factor'] = min(1.0, current + 0.02)
+                    entry_reason = f"Entry working well ({entry_fail_rate*100:.0f}%), slowly returning to baseline"
+                else:
+                    # Already at baseline (1.0), don't touch it!
+                    entry_reason = f"Entry excellent ({entry_fail_rate*100:.0f}%), maintaining"
+            else:
+                entry_reason = f"Entry timing acceptable ({entry_fail_rate*100:.0f}%)"
+        else:
+            entry_reason = "Insufficient data"
+        
+        # NEW: Adjust SL based on sl_hit_early failures
+        if total >= 10:
+            sl_early_rate = self.precision_metrics['sl_hit_early_count'] / total
+            
+            if sl_early_rate > 0.3:
+                # Too many SL hits - stops too tight
+                # Gradual widening: add 10% each time
+                current = self.strategy_adjustments['sl_adjustment_factor']
+                self.strategy_adjustments['sl_adjustment_factor'] = min(1.5, current + 0.1)
+                sl_reason = f"SL hit often ({sl_early_rate*100:.0f}%), widening gradually"
+            elif sl_early_rate > 0.15:
+                # Moderate SL hits - small adjustment
+                current = self.strategy_adjustments['sl_adjustment_factor']
+                self.strategy_adjustments['sl_adjustment_factor'] = min(1.3, current + 0.05)
+                sl_reason = f"SL hit moderately ({sl_early_rate*100:.0f}%), minor widening"
+            elif sl_early_rate < 0.08 and direction_accuracy > 0.65:
+                # Very few SL hits AND good direction - can CAUTIOUSLY tighten
+                # But only if we widened stops before (returning to baseline)
+                current = self.strategy_adjustments['sl_adjustment_factor']
+                if current > 1.0:
+                    # Gradually return to baseline if we had widened before
+                    self.strategy_adjustments['sl_adjustment_factor'] = max(1.0, current - 0.03)
+                    sl_reason = f"SL working well ({sl_early_rate*100:.0f}%), slowly returning to baseline"
+                else:
+                    # Already at or below baseline - don't tighten further!
+                    sl_reason = f"SL excellent ({sl_early_rate*100:.0f}%), maintaining"
+            else:
+                sl_reason = "SL width acceptable"
+        else:
+            sl_reason = "Insufficient data"
+        
         print(f"\n📊 Strategy Auto-Adjusted:")
         print(f"   Win Rate: {win_rate*100:.1f}% | Avg Profit: {avg_profit*100:.2f}%")
         print(f"   Direction Accuracy: {direction_accuracy*100:.1f}%")
@@ -465,7 +616,18 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
             print(f"   Avg Price Movement: {self.precision_metrics['avg_price_movement']*100:.2f}%")
         print(f"   Confidence Threshold: {self.strategy_adjustments['confidence_threshold']:.2f}")
         print(f"   Risk Multiplier: {self.strategy_adjustments['risk_multiplier']:.2f}")
-        print(f"   TP Adjustment: {self.strategy_adjustments['tp_adjustment_factor']:.2f}x\n")
+        print(f"   TP Adjustment: {self.strategy_adjustments['tp_adjustment_factor']:.2f}x")
+        if total >= 10:
+            print(f"   Entry Adjustment: {self.strategy_adjustments['entry_adjustment_factor']:.2f}x ({entry_reason})")
+            print(f"   SL Adjustment: {self.strategy_adjustments['sl_adjustment_factor']:.2f}x ({sl_reason})")
+            print(f"   Failure Breakdown:")
+            print(f"     • Entry not reached: {entry_fail_rate*100:.1f}%")
+            print(f"     • SL hit early: {sl_early_rate*100:.1f}%")
+            tp_fail_rate = self.precision_metrics['tp_too_far_count'] / total
+            wrong_dir_rate = self.precision_metrics['wrong_direction_count'] / total
+            print(f"     • TP too far: {tp_fail_rate*100:.1f}%")
+            print(f"     • Wrong direction: {wrong_dir_rate*100:.1f}%")
+        print()
     
     def _optimize_indicator_weights(self):
         """

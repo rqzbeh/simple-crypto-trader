@@ -1,0 +1,1439 @@
+{
+  "performance_history": [
+    {
+      "timestamp": "2025-11-18T17:59:33.036245",
+      "result": {
+        "profit": 0.015,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": "tp_not_reached",
+        "tp_distance": 0.045,
+        "actual_movement": 0.02,
+        "max_favorable_move": 0.025,
+        "hit_tp": false,
+        "hit_sl": false,
+        "high_price": 51250,
+        "low_price": 49900
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.037726",
+      "result": {
+        "profit": 0.015,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": "tp_not_reached",
+        "tp_distance": 0.045,
+        "actual_movement": 0.02,
+        "max_favorable_move": 0.025,
+        "hit_tp": false,
+        "hit_sl": false,
+        "high_price": 51250,
+        "low_price": 49900
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.039182",
+      "result": {
+        "profit": -0.02,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": "wrong_direction",
+        "tp_distance": 0.04,
+        "actual_movement": -0.025,
+        "max_favorable_move": 0.005,
+        "hit_tp": false,
+        "hit_sl": false,
+        "high_price": 50250,
+        "low_price": 48750
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.040615",
+      "result": {
+        "profit": -0.02,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": "wrong_direction",
+        "tp_distance": 0.04,
+        "actual_movement": -0.025,
+        "max_favorable_move": 0.005,
+        "hit_tp": false,
+        "hit_sl": false,
+        "high_price": 50250,
+        "low_price": 48750
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.042034",
+      "result": {
+        "profit": -0.02,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": "wrong_direction",
+        "tp_distance": 0.04,
+        "actual_movement": -0.025,
+        "max_favorable_move": 0.005,
+        "hit_tp": false,
+        "hit_sl": false,
+        "high_price": 50250,
+        "low_price": 48750
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.043658",
+      "result": {
+        "profit": -0.02,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": "wrong_direction",
+        "tp_distance": 0.04,
+        "actual_movement": -0.025,
+        "max_favorable_move": 0.005,
+        "hit_tp": false,
+        "hit_sl": false,
+        "high_price": 50250,
+        "low_price": 48750
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.045061",
+      "result": {
+        "profit": -0.015,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": "sl_hit",
+        "tp_distance": 0.04,
+        "actual_movement": -0.015,
+        "max_favorable_move": 0.002,
+        "hit_tp": false,
+        "hit_sl": true,
+        "high_price": 50200,
+        "low_price": 49250
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.046461",
+      "result": {
+        "profit": -0.015,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": "sl_hit",
+        "tp_distance": 0.04,
+        "actual_movement": -0.015,
+        "max_favorable_move": 0.002,
+        "hit_tp": false,
+        "hit_sl": true,
+        "high_price": 50200,
+        "low_price": 49250
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.047820",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.049249",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.050666",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.052094",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.053575",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.054988",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.056336",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.057767",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.059124",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.063081",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.064469",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.065921",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.067628",
+      "result": {
+        "profit": 0,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": false,
+        "failure_reason": "entry_not_reached",
+        "tp_distance": 0.03,
+        "actual_movement": 0,
+        "max_favorable_move": 0.005,
+        "hit_tp": false,
+        "hit_sl": false,
+        "high_price": 50500,
+        "low_price": 50100
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.069012",
+      "result": {
+        "profit": 0,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": false,
+        "failure_reason": "entry_not_reached",
+        "tp_distance": 0.03,
+        "actual_movement": 0,
+        "max_favorable_move": 0.005,
+        "hit_tp": false,
+        "hit_sl": false,
+        "high_price": 50500,
+        "low_price": 50100
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.070381",
+      "result": {
+        "profit": -0.015,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": "sl_hit",
+        "tp_distance": 0.04,
+        "actual_movement": -0.015,
+        "max_favorable_move": 0.002,
+        "hit_tp": false,
+        "hit_sl": true,
+        "high_price": 50200,
+        "low_price": 49250
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.071839",
+      "result": {
+        "profit": -0.015,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": "sl_hit",
+        "tp_distance": 0.04,
+        "actual_movement": -0.015,
+        "max_favorable_move": 0.002,
+        "hit_tp": false,
+        "hit_sl": true,
+        "high_price": 50200,
+        "low_price": 49250
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.073241",
+      "result": {
+        "profit": 0.015,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": "tp_not_reached",
+        "tp_distance": 0.045,
+        "actual_movement": 0.02,
+        "max_favorable_move": 0.025,
+        "hit_tp": false,
+        "hit_sl": false,
+        "high_price": 51250,
+        "low_price": 49900
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.074683",
+      "result": {
+        "profit": 0.015,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": "tp_not_reached",
+        "tp_distance": 0.045,
+        "actual_movement": 0.02,
+        "max_favorable_move": 0.025,
+        "hit_tp": false,
+        "hit_sl": false,
+        "high_price": 51250,
+        "low_price": 49900
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.076110",
+      "result": {
+        "profit": 0.015,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": "tp_not_reached",
+        "tp_distance": 0.045,
+        "actual_movement": 0.02,
+        "max_favorable_move": 0.025,
+        "hit_tp": false,
+        "hit_sl": false,
+        "high_price": 51250,
+        "low_price": 49900
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.077565",
+      "result": {
+        "profit": 0.015,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": "tp_not_reached",
+        "tp_distance": 0.045,
+        "actual_movement": 0.02,
+        "max_favorable_move": 0.025,
+        "hit_tp": false,
+        "hit_sl": false,
+        "high_price": 51250,
+        "low_price": 49900
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.079069",
+      "result": {
+        "profit": -0.02,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": "wrong_direction",
+        "tp_distance": 0.04,
+        "actual_movement": -0.025,
+        "max_favorable_move": 0.005,
+        "hit_tp": false,
+        "hit_sl": false,
+        "high_price": 50250,
+        "low_price": 48750
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.080543",
+      "result": {
+        "profit": -0.02,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": "wrong_direction",
+        "tp_distance": 0.04,
+        "actual_movement": -0.025,
+        "max_favorable_move": 0.005,
+        "hit_tp": false,
+        "hit_sl": false,
+        "high_price": 50250,
+        "low_price": 48750
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.081941",
+      "result": {
+        "profit": -0.02,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": "wrong_direction",
+        "tp_distance": 0.04,
+        "actual_movement": -0.025,
+        "max_favorable_move": 0.005,
+        "hit_tp": false,
+        "hit_sl": false,
+        "high_price": 50250,
+        "low_price": 48750
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.083552",
+      "result": {
+        "profit": -0.02,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": "wrong_direction",
+        "tp_distance": 0.04,
+        "actual_movement": -0.025,
+        "max_favorable_move": 0.005,
+        "hit_tp": false,
+        "hit_sl": false,
+        "high_price": 50250,
+        "low_price": 48750
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.085011",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.086578",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.088190",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.089739",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.091219",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.096429",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.097990",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.099463",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.101055",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.102457",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.103934",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.105338",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.106941",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.108516",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.109981",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.111728",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.113187",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    },
+    {
+      "timestamp": "2025-11-18T17:59:33.114684",
+      "result": {
+        "profit": 0.04,
+        "direction": "LONG",
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "vwap": 1
+        },
+        "entry_reached": true,
+        "failure_reason": null,
+        "tp_distance": 0.04,
+        "actual_movement": 0.04,
+        "max_favorable_move": 0.045,
+        "hit_tp": true,
+        "hit_sl": false,
+        "high_price": 52250,
+        "low_price": 50000
+      }
+    }
+  ],
+  "indicator_performance": {
+    "stoch_rsi": {
+      "correct": 76,
+      "wrong": 44,
+      "total": 120,
+      "total_profit": 1.8000000000000007,
+      "accuracy": 0.6333333333333333
+    },
+    "ema_trend": {
+      "correct": 76,
+      "wrong": 44,
+      "total": 120,
+      "total_profit": 1.8000000000000007,
+      "accuracy": 0.6333333333333333
+    },
+    "macd": {
+      "correct": 76,
+      "wrong": 44,
+      "total": 120,
+      "total_profit": 1.8000000000000007,
+      "accuracy": 0.6333333333333333
+    },
+    "supertrend": {
+      "correct": 76,
+      "wrong": 44,
+      "total": 120,
+      "total_profit": 1.8000000000000007,
+      "accuracy": 0.6333333333333333
+    },
+    "vwap": {
+      "correct": 76,
+      "wrong": 44,
+      "total": 120,
+      "total_profit": 1.8000000000000007,
+      "accuracy": 0.6333333333333333
+    }
+  },
+  "precision_metrics": {
+    "direction_accuracy": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "tp_precision": [
+      0.125,
+      0.125,
+      0.125,
+      0.125,
+      0.125,
+      0.125,
+      0.5555555555555556,
+      0.5555555555555556,
+      0.5555555555555556,
+      0.5555555555555556,
+      0.5555555555555556,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      0.05,
+      0.05,
+      0.05,
+      0.05,
+      0.05,
+      0.05,
+      0.05,
+      0.05,
+      0.05,
+      0.05,
+      0.125,
+      0.125,
+      0.125,
+      0.125,
+      0.125,
+      0.5555555555555556,
+      0.5555555555555556,
+      0.5555555555555556,
+      0.5555555555555556,
+      0.5555555555555556,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      0.5555555555555556,
+      0.5555555555555556,
+      0.5555555555555556,
+      0.5555555555555556,
+      0.5555555555555556,
+      0.5555555555555556,
+      0.5555555555555556,
+      0.5555555555555556,
+      0.5555555555555556,
+      0.5555555555555556,
+      0.5555555555555556,
+      0.5555555555555556,
+      0.125,
+      0.125,
+      0.125,
+      0.125,
+      0.05,
+      0.05,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      0.05,
+      0.05,
+      0.5555555555555556,
+      0.5555555555555556,
+      0.5555555555555556,
+      0.5555555555555556,
+      0.125,
+      0.125,
+      0.125,
+      0.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125,
+      1.125
+    ],
+    "entry_timing": [],
+    "avg_tp_overshoot": 0.7983023341786408,
+    "avg_price_movement": 0.04443593640313138,
+    "entry_not_reached_count": 11,
+    "sl_hit_early_count": 14,
+    "tp_too_far_count": 26,
+    "wrong_direction_count": 19,
+    "total_trades": 120
+  },
+  "strategy_adjustments": {
+    "indicator_weights": {
+      "stoch_rsi": 1.2,
+      "ema_trend": 1.2,
+      "macd": 1.2,
+      "supertrend": 1.2,
+      "vwap": 1.2
+    },
+    "risk_multiplier": 1.1,
+    "confidence_threshold": 0.2,
+    "tp_adjustment_factor": 0.75,
+    "entry_adjustment_factor": -1.4000000000000001,
+    "sl_adjustment_factor": 0.8
+  },
+  "last_optimization": "2025-11-18T17:59:33.114794",
+  "saved_at": "2025-11-18T17:59:33.114796"
+}
