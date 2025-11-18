@@ -33,11 +33,11 @@ from news_cache import get_news_cache, sort_articles_by_time
 
 # Try to import optional components
 try:
-    from groq import Groq
-    GROQ_AVAILABLE = True
+    from ollamafreeapi import OllamaFreeAPI
+    OLLAMA_AVAILABLE = True
 except ImportError:
-    GROQ_AVAILABLE = False
-    print("Warning: Groq not available. Install with: pip install groq")
+    OLLAMA_AVAILABLE = False
+    print("Warning: OllamaFreeAPI not available. Install with: pip install ollamafreeapi")
 
 try:
     from sklearn.ensemble import RandomForestClassifier
@@ -58,7 +58,6 @@ logging.getLogger('urllib3').setLevel(logging.WARNING)
 
 # API Keys
 NEWS_API_KEY = os.getenv('NEWS_API_KEY')
-GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
@@ -67,19 +66,19 @@ if not NEWS_API_KEY:
 
 newsapi = NewsApiClient(api_key=NEWS_API_KEY)
 
-# Initialize Groq if available
-if GROQ_AVAILABLE and GROQ_API_KEY:
-    groq_client = Groq(api_key=GROQ_API_KEY)
-    market_analyzer = CryptoMarketAnalyzer(groq_client)
+# Initialize OllamaFreeAPI if available
+if OLLAMA_AVAILABLE:
+    llm_client = OllamaFreeAPI()
+    market_analyzer = CryptoMarketAnalyzer(llm_client)
 else:
-    groq_client = None
+    llm_client = None
     market_analyzer = CryptoMarketAnalyzer(None)
 
 print("=" * 70)
 print("SIMPLE CRYPTO TRADER - AI-Powered Signal Generator")
 print("=" * 70)
 print(f"NEWS_API: {'OK' if NEWS_API_KEY else 'MISSING'}")
-print(f"GROQ_API: {'OK' if GROQ_API_KEY and GROQ_AVAILABLE else 'MISSING'}")
+print(f"OLLAMA_API: {'OK' if OLLAMA_AVAILABLE else 'MISSING'}")
 print(f"TELEGRAM: {'OK' if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID else 'MISSING'}")
 print(f"ML Support: {'OK' if ML_AVAILABLE else 'MISSING'}")
 print("=" * 70)
@@ -299,10 +298,10 @@ def extract_crypto_symbols(text):
 
 def analyze_sentiment_with_llm(articles, symbol=''):
     """
-    Analyze sentiment using Groq LLM ONLY (no fallback to rule-based sentiment)
+    Analyze sentiment using OllamaFreeAPI LLM ONLY (no fallback to rule-based sentiment)
     If LLM is unavailable, returns None to indicate no trade should be made
     """
-    if not groq_client or not articles:
+    if not llm_client or not articles:
         print("[AI] No LLM available or no articles - cannot generate signals")
         return None, "AI unavailable - no trade signals"
     
@@ -314,7 +313,7 @@ def analyze_sentiment_with_llm(articles, symbol=''):
     
     # If we have cached articles, use them
     if cached_articles:
-        print(f"[CACHE] Using {len(cached_articles)} cached AI analyses (saving Groq API calls)")
+        print(f"[CACHE] Using {len(cached_articles)} cached AI analyses (saving API calls)")
     
     # Only analyze NEW articles (not in cache)
     if not new_articles and not cached_articles:
@@ -331,7 +330,7 @@ def analyze_sentiment_with_llm(articles, symbol=''):
     
     # Analyze new articles if any
     if new_articles:
-        print(f"[AI] Analyzing {len(new_articles)} new articles with Groq AI")
+        print(f"[AI] Analyzing {len(new_articles)} new articles with OllamaFreeAPI")
         
         # Prepare article summaries for NEW articles only
         article_texts = []
@@ -353,14 +352,14 @@ Provide:
 Format: SCORE: [number] | REASON: [text]"""
         
         try:
-            response = groq_client.chat.completions.create(
-                model="llama-3.1-8b-instant",
-                messages=[{"role": "user", "content": prompt}],
+            # Use OllamaFreeAPI chat method
+            # Qwen2.5 7B is optimized for analytical tasks and sentiment analysis
+            result = llm_client.chat(
+                model_name="qwen2.5:7b",
+                prompt=prompt,
                 temperature=0.3,
-                max_tokens=200
+                num_predict=200
             )
-            
-            result = response.choices[0].message.content
             
             # Check if result is None
             if result is None:
@@ -392,7 +391,7 @@ Format: SCORE: [number] | REASON: [text]"""
         except Exception as e:
             error_msg = str(e)
             if '403' in error_msg or 'Forbidden' in error_msg:
-                print(f"[AI] Groq API access denied - check API key or rate limits")
+                print(f"[AI] API access denied - check rate limits")
             else:
                 print(f"[AI] Error: {e}")
             print("[AI] AI unavailable - cannot generate trade signals")
@@ -1098,7 +1097,7 @@ def main():
         print(f"Analyzing {symbol_name}...")
         
         # Analyze sentiment
-        if groq_client:
+        if llm_client:
             sentiment_score, sentiment_reason = analyze_sentiment_with_llm(
                 symbol_articles_list, symbol_name
             )

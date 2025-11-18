@@ -18,8 +18,8 @@ class CryptoMarketAnalyzer:
     
     LEARNING_DATA_FILE = 'learning_state.json'
     
-    def __init__(self, groq_client=None):
-        self.groq_client = groq_client
+    def __init__(self, llm_client=None):
+        self.llm_client = llm_client
         self.performance_history = []
         self.indicator_performance = {}  # Track each indicator's accuracy
         self.precision_metrics = {
@@ -28,20 +28,27 @@ class CryptoMarketAnalyzer:
             'entry_timing': [],
             'avg_tp_overshoot': 0.0,  # How much TP is typically too far
             'avg_price_movement': 0.0,  # Actual average price movement
-            # NEW: Track failure reasons
+            # Track failure reasons
             'entry_not_reached_count': 0,  # How often entry price isn't reached
             'sl_hit_early_count': 0,  # How often SL hit before TP could be reached
             'tp_too_far_count': 0,  # How often direction correct but TP not reached
             'wrong_direction_count': 0,  # How often direction prediction was wrong
-            'total_trades': 0
+            'total_trades': 0,
+            # Candlestick-specific metrics
+            'candlestick_accuracy': [],  # Track candlestick pattern accuracy
+            'pattern_success_rate': {},  # Track success rate per pattern type
         }
         self.strategy_adjustments = {
             'indicator_weights': {},
             'risk_multiplier': 1.0,
             'confidence_threshold': 0.3,
             'tp_adjustment_factor': 1.0,  # Adjust TP based on historical precision
-            'entry_adjustment_factor': 1.0,  # NEW: Adjust entry proximity
-            'sl_adjustment_factor': 1.0  # NEW: Adjust SL width
+            'entry_adjustment_factor': 1.0,  # Adjust entry proximity
+            'sl_adjustment_factor': 1.0,  # Adjust SL width
+            # Candlestick-specific adjustments for 2h trading
+            'candlestick_confidence_boost': 1.0,  # Boost confidence based on pattern reliability
+            'pattern_tp_multiplier': 1.0,  # Adjust TP specifically for candlestick patterns
+            'pattern_sl_multiplier': 1.0,  # Adjust SL specifically for candlestick patterns
         }
         self.last_optimization = datetime.now()
         self.optimization_interval = 20  # Optimize every 20 trades
@@ -59,8 +66,18 @@ class CryptoMarketAnalyzer:
                 # Restore learning data
                 self.performance_history = data.get('performance_history', [])
                 self.indicator_performance = data.get('indicator_performance', {})
-                self.precision_metrics = data.get('precision_metrics', self.precision_metrics)
-                self.strategy_adjustments = data.get('strategy_adjustments', self.strategy_adjustments)
+                
+                # Load precision metrics with backward compatibility
+                loaded_metrics = data.get('precision_metrics', {})
+                for key in self.precision_metrics:
+                    if key in loaded_metrics:
+                        self.precision_metrics[key] = loaded_metrics[key]
+                
+                # Load strategy adjustments with backward compatibility
+                loaded_adjustments = data.get('strategy_adjustments', {})
+                for key in self.strategy_adjustments:
+                    if key in loaded_adjustments:
+                        self.strategy_adjustments[key] = loaded_adjustments[key]
                 
                 # Parse last_optimization datetime
                 last_opt = data.get('last_optimization')
@@ -95,7 +112,7 @@ class CryptoMarketAnalyzer:
         Use LLM to analyze market data and make trading decision
         Similar to AI-Trader's agent-based reasoning
         """
-        if not self.groq_client:
+        if not self.llm_client:
             return {'llm_available': False}
         
         # Prepare comprehensive market summary for LLM
@@ -155,24 +172,18 @@ RISK: [LOW/MEDIUM/HIGH]
 TIMEFRAME: [HOURS/DAYS/WEEK]"""
 
         try:
-            response = self.groq_client.chat.completions.create(
-                model="llama-3.3-70b-versatile",  # Updated model (3.1 deprecated)
-                messages=[{
-                    "role": "system",
-                    "content": "You are an expert cryptocurrency trader with deep knowledge of technical analysis, market psychology, and risk management."
-                }, {
-                    "role": "user",
-                    "content": prompt
-                }],
+            # Use OllamaFreeAPI chat method
+            # DeepSeek-R1 70B is superior for reasoning and market analysis
+            response = self.llm_client.chat(
+                model_name="deepseek-r1:70b",
+                prompt=prompt,
                 temperature=0.1,  # Low temperature for consistent analysis
-                max_tokens=500
+                num_predict=500
             )
             
-            result = response.choices[0].message.content
-            
             # Parse LLM response
-            analysis = self._parse_llm_response(result)
-            analysis['raw_response'] = result
+            analysis = self._parse_llm_response(response)
+            analysis['raw_response'] = response
             analysis['llm_available'] = True
             
             return analysis

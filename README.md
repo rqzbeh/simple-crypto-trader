@@ -33,7 +33,7 @@ An intelligent cryptocurrency trading signal generator that combines news sentim
 
 ### 🤖 Hybrid Intelligence System
 - **10 Optimized Indicators**: Conflict-free technical analysis
-- **AI Market Analysis**: Groq LLM (Llama 3.3) interprets market context and psychology
+- **AI Market Analysis**: OllamaFreeAPI (DeepSeek-R1 70B + Qwen2.5 7B) for superior reasoning and analysis
 - **Adaptive Learning**: Self-adjusts parameters based on historical performance
 - **Precision Tracking**: Monitors entry timing, stop loss, and take profit accuracy
 - **Performance-Based**: Automatically adjusts strategy based on trade outcomes
@@ -109,7 +109,7 @@ Potential Loss: $24 × 8 = $192 loss
 
 ### Prerequisites
 - Python 3.8 or higher
-- API keys for NewsAPI and Groq
+- API key for NewsAPI (no API key needed for OllamaFreeAPI - it's free!)
 
 ### Installation
 
@@ -127,14 +127,15 @@ pip install -r requirements.txt
 Set up your API keys as environment variables:
 
 ```bash
-# Required API Keys
+# Required API Key
 export NEWS_API_KEY='your_newsapi_key'      # Get from https://newsapi.org
-export GROQ_API_KEY='your_groq_api_key'     # Get from https://console.groq.com
 
 # Optional: Telegram Notifications
 export TELEGRAM_BOT_TOKEN='your_bot_token'
 export TELEGRAM_CHAT_ID='your_chat_id'
 ```
+
+**Note**: OllamaFreeAPI requires no API key or authentication - it's completely free!
 
 ### Running the Bot
 
@@ -218,11 +219,24 @@ The system uses 10 optimized, conflict-free technical indicators:
 
 ### LLM-Powered Market Analysis
 
-The system leverages Groq's Llama 3.3 for advanced market interpretation:
-- Market context and psychology analysis
+The system leverages OllamaFreeAPI's best models for trading analysis:
+- **DeepSeek-R1 70B**: Superior reasoning for complex market analysis and psychology
+- **Qwen2.5 7B**: Fast, accurate sentiment analysis and pattern recognition
 - Risk assessment (LOW/MEDIUM/HIGH)
 - Timeframe recommendations
 - Trading rationale generation
+
+**Why DeepSeek-R1 and Qwen2.5?**
+- DeepSeek-R1 excels at reasoning and multi-step analysis (perfect for market psychology)
+- Qwen2.5 is optimized for analytical tasks (ideal for quick sentiment scoring)
+- Both outperform LLaMA models in financial analysis benchmarks
+
+**Free Tier Features:**
+- 100 requests per hour (sufficient for trading bot)
+- 16,000 token limit per request
+- Access to both 7B and 70B models
+- 50 tokens/second processing speed
+- No API key required!
 
 ### Hybrid Decision Making
 
@@ -406,11 +420,17 @@ Take profit at 3.0% (news-driven, achievable in 2-4h).
 3. Create account and get API key
 4. Set environment variable: `export NEWS_API_KEY='your_key'`
 
-### Groq AI (Required)
-1. Visit https://console.groq.com/
-2. Free tier: 1000 requests/day  
-3. Create account and generate API key
-4. Set environment variable: `export GROQ_API_KEY='your_key'`
+### OllamaFreeAPI (Pre-configured - No Setup Required!)
+- **Completely Free**: No API key needed
+- **Free Tier**: 
+  - 100 requests/hour (perfect for trading)
+  - 16k tokens per request
+  - 50 tokens/second speed
+  - Access to both 7B and 70B models
+- **Models Used**:
+  - `qwen2.5:7b` - Fast, accurate sentiment analysis
+  - `deepseek-r1:70b` - Superior reasoning for market analysis
+- **No Registration**: Just install and use!
 
 ### Telegram Notifications (Optional)
 1. Create bot via https://t.me/BotFather
@@ -479,7 +499,7 @@ MIT License - see [LICENSE](LICENSE) file for details
 ## 🙏 Acknowledgments
 
 - **yfinance**: Market data provider
-- **Groq**: Fast LLM inference platform
+- **OllamaFreeAPI**: Free LLM inference platform with no API keys required
 - **NewsAPI**: News aggregation service
 - Cryptocurrency trading community
 
