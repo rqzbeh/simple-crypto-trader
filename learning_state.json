@@ -1,696 +1,6 @@
 {
   "performance_history": [
     {
-      "timestamp": "2025-11-18T17:59:33.036245",
-      "result": {
-        "profit": 0.015,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": "tp_not_reached",
-        "tp_distance": 0.045,
-        "actual_movement": 0.02,
-        "max_favorable_move": 0.025,
-        "hit_tp": false,
-        "hit_sl": false,
-        "high_price": 51250,
-        "low_price": 49900
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.037726",
-      "result": {
-        "profit": 0.015,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": "tp_not_reached",
-        "tp_distance": 0.045,
-        "actual_movement": 0.02,
-        "max_favorable_move": 0.025,
-        "hit_tp": false,
-        "hit_sl": false,
-        "high_price": 51250,
-        "low_price": 49900
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.039182",
-      "result": {
-        "profit": -0.02,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": "wrong_direction",
-        "tp_distance": 0.04,
-        "actual_movement": -0.025,
-        "max_favorable_move": 0.005,
-        "hit_tp": false,
-        "hit_sl": false,
-        "high_price": 50250,
-        "low_price": 48750
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.040615",
-      "result": {
-        "profit": -0.02,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": "wrong_direction",
-        "tp_distance": 0.04,
-        "actual_movement": -0.025,
-        "max_favorable_move": 0.005,
-        "hit_tp": false,
-        "hit_sl": false,
-        "high_price": 50250,
-        "low_price": 48750
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.042034",
-      "result": {
-        "profit": -0.02,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": "wrong_direction",
-        "tp_distance": 0.04,
-        "actual_movement": -0.025,
-        "max_favorable_move": 0.005,
-        "hit_tp": false,
-        "hit_sl": false,
-        "high_price": 50250,
-        "low_price": 48750
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.043658",
-      "result": {
-        "profit": -0.02,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": "wrong_direction",
-        "tp_distance": 0.04,
-        "actual_movement": -0.025,
-        "max_favorable_move": 0.005,
-        "hit_tp": false,
-        "hit_sl": false,
-        "high_price": 50250,
-        "low_price": 48750
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.045061",
-      "result": {
-        "profit": -0.015,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": "sl_hit",
-        "tp_distance": 0.04,
-        "actual_movement": -0.015,
-        "max_favorable_move": 0.002,
-        "hit_tp": false,
-        "hit_sl": true,
-        "high_price": 50200,
-        "low_price": 49250
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.046461",
-      "result": {
-        "profit": -0.015,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": "sl_hit",
-        "tp_distance": 0.04,
-        "actual_movement": -0.015,
-        "max_favorable_move": 0.002,
-        "hit_tp": false,
-        "hit_sl": true,
-        "high_price": 50200,
-        "low_price": 49250
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.047820",
-      "result": {
-        "profit": 0.04,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": null,
-        "tp_distance": 0.04,
-        "actual_movement": 0.04,
-        "max_favorable_move": 0.045,
-        "hit_tp": true,
-        "hit_sl": false,
-        "high_price": 52250,
-        "low_price": 50000
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.049249",
-      "result": {
-        "profit": 0.04,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": null,
-        "tp_distance": 0.04,
-        "actual_movement": 0.04,
-        "max_favorable_move": 0.045,
-        "hit_tp": true,
-        "hit_sl": false,
-        "high_price": 52250,
-        "low_price": 50000
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.050666",
-      "result": {
-        "profit": 0.04,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": null,
-        "tp_distance": 0.04,
-        "actual_movement": 0.04,
-        "max_favorable_move": 0.045,
-        "hit_tp": true,
-        "hit_sl": false,
-        "high_price": 52250,
-        "low_price": 50000
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.052094",
-      "result": {
-        "profit": 0.04,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": null,
-        "tp_distance": 0.04,
-        "actual_movement": 0.04,
-        "max_favorable_move": 0.045,
-        "hit_tp": true,
-        "hit_sl": false,
-        "high_price": 52250,
-        "low_price": 50000
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.053575",
-      "result": {
-        "profit": 0.04,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": null,
-        "tp_distance": 0.04,
-        "actual_movement": 0.04,
-        "max_favorable_move": 0.045,
-        "hit_tp": true,
-        "hit_sl": false,
-        "high_price": 52250,
-        "low_price": 50000
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.054988",
-      "result": {
-        "profit": 0.04,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": null,
-        "tp_distance": 0.04,
-        "actual_movement": 0.04,
-        "max_favorable_move": 0.045,
-        "hit_tp": true,
-        "hit_sl": false,
-        "high_price": 52250,
-        "low_price": 50000
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.056336",
-      "result": {
-        "profit": 0.04,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": null,
-        "tp_distance": 0.04,
-        "actual_movement": 0.04,
-        "max_favorable_move": 0.045,
-        "hit_tp": true,
-        "hit_sl": false,
-        "high_price": 52250,
-        "low_price": 50000
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.057767",
-      "result": {
-        "profit": 0.04,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": null,
-        "tp_distance": 0.04,
-        "actual_movement": 0.04,
-        "max_favorable_move": 0.045,
-        "hit_tp": true,
-        "hit_sl": false,
-        "high_price": 52250,
-        "low_price": 50000
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.059124",
-      "result": {
-        "profit": 0.04,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": null,
-        "tp_distance": 0.04,
-        "actual_movement": 0.04,
-        "max_favorable_move": 0.045,
-        "hit_tp": true,
-        "hit_sl": false,
-        "high_price": 52250,
-        "low_price": 50000
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.063081",
-      "result": {
-        "profit": 0.04,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": null,
-        "tp_distance": 0.04,
-        "actual_movement": 0.04,
-        "max_favorable_move": 0.045,
-        "hit_tp": true,
-        "hit_sl": false,
-        "high_price": 52250,
-        "low_price": 50000
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.064469",
-      "result": {
-        "profit": 0.04,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": null,
-        "tp_distance": 0.04,
-        "actual_movement": 0.04,
-        "max_favorable_move": 0.045,
-        "hit_tp": true,
-        "hit_sl": false,
-        "high_price": 52250,
-        "low_price": 50000
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.065921",
-      "result": {
-        "profit": 0.04,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": null,
-        "tp_distance": 0.04,
-        "actual_movement": 0.04,
-        "max_favorable_move": 0.045,
-        "hit_tp": true,
-        "hit_sl": false,
-        "high_price": 52250,
-        "low_price": 50000
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.067628",
-      "result": {
-        "profit": 0,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": false,
-        "failure_reason": "entry_not_reached",
-        "tp_distance": 0.03,
-        "actual_movement": 0,
-        "max_favorable_move": 0.005,
-        "hit_tp": false,
-        "hit_sl": false,
-        "high_price": 50500,
-        "low_price": 50100
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.069012",
-      "result": {
-        "profit": 0,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": false,
-        "failure_reason": "entry_not_reached",
-        "tp_distance": 0.03,
-        "actual_movement": 0,
-        "max_favorable_move": 0.005,
-        "hit_tp": false,
-        "hit_sl": false,
-        "high_price": 50500,
-        "low_price": 50100
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.070381",
-      "result": {
-        "profit": -0.015,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": "sl_hit",
-        "tp_distance": 0.04,
-        "actual_movement": -0.015,
-        "max_favorable_move": 0.002,
-        "hit_tp": false,
-        "hit_sl": true,
-        "high_price": 50200,
-        "low_price": 49250
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.071839",
-      "result": {
-        "profit": -0.015,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": "sl_hit",
-        "tp_distance": 0.04,
-        "actual_movement": -0.015,
-        "max_favorable_move": 0.002,
-        "hit_tp": false,
-        "hit_sl": true,
-        "high_price": 50200,
-        "low_price": 49250
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.073241",
-      "result": {
-        "profit": 0.015,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": "tp_not_reached",
-        "tp_distance": 0.045,
-        "actual_movement": 0.02,
-        "max_favorable_move": 0.025,
-        "hit_tp": false,
-        "hit_sl": false,
-        "high_price": 51250,
-        "low_price": 49900
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.074683",
-      "result": {
-        "profit": 0.015,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": "tp_not_reached",
-        "tp_distance": 0.045,
-        "actual_movement": 0.02,
-        "max_favorable_move": 0.025,
-        "hit_tp": false,
-        "hit_sl": false,
-        "high_price": 51250,
-        "low_price": 49900
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.076110",
-      "result": {
-        "profit": 0.015,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": "tp_not_reached",
-        "tp_distance": 0.045,
-        "actual_movement": 0.02,
-        "max_favorable_move": 0.025,
-        "hit_tp": false,
-        "hit_sl": false,
-        "high_price": 51250,
-        "low_price": 49900
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.077565",
-      "result": {
-        "profit": 0.015,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": "tp_not_reached",
-        "tp_distance": 0.045,
-        "actual_movement": 0.02,
-        "max_favorable_move": 0.025,
-        "hit_tp": false,
-        "hit_sl": false,
-        "high_price": 51250,
-        "low_price": 49900
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.079069",
-      "result": {
-        "profit": -0.02,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": "wrong_direction",
-        "tp_distance": 0.04,
-        "actual_movement": -0.025,
-        "max_favorable_move": 0.005,
-        "hit_tp": false,
-        "hit_sl": false,
-        "high_price": 50250,
-        "low_price": 48750
-      }
-    },
-    {
-      "timestamp": "2025-11-18T17:59:33.080543",
-      "result": {
-        "profit": -0.02,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "entry_reached": true,
-        "failure_reason": "wrong_direction",
-        "tp_distance": 0.04,
-        "actual_movement": -0.025,
-        "max_favorable_move": 0.005,
-        "hit_tp": false,
-        "hit_sl": false,
-        "high_price": 50250,
-        "low_price": 48750
-      }
-    },
-    {
       "timestamp": "2025-11-18T17:59:33.081941",
       "result": {
         "profit": -0.02,
@@ -1149,43 +459,641 @@
         "high_price": 52250,
         "low_price": 50000
       }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.446337",
+      "result": {
+        "profit": 0.053881010132838386,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": -1,
+          "supertrend": 1,
+          "adx": 1,
+          "bb": 1,
+          "obv": -1,
+          "vwap": 1,
+          "pivot_points": 1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.451594",
+      "result": {
+        "profit": -0.035131997068022586,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": -1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": 1,
+          "obv": -1,
+          "vwap": -1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.453416",
+      "result": {
+        "profit": -0.005392047471343364,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": 1,
+          "obv": -1,
+          "vwap": -1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.455247",
+      "result": {
+        "profit": -0.01216374293609222,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": -1,
+          "macd": 1,
+          "supertrend": -1,
+          "adx": -1,
+          "bb": -1,
+          "obv": 1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.457028",
+      "result": {
+        "profit": 0.041915634924577255,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": 1,
+          "macd": -1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": -1,
+          "obv": -1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.458975",
+      "result": {
+        "profit": -0.03583267147193637,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": -1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": -1,
+          "obv": 1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.460735",
+      "result": {
+        "profit": 0.04356973669364419,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": 1,
+          "bb": -1,
+          "obv": 1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.462556",
+      "result": {
+        "profit": 0.031074137297469766,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": -1,
+          "adx": 1,
+          "bb": -1,
+          "obv": 1,
+          "vwap": -1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.464357",
+      "result": {
+        "profit": -0.005060024153652962,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": -1,
+          "obv": -1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.466045",
+      "result": {
+        "profit": 0.0003788910539385959,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": -1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": 1,
+          "obv": -1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.467778",
+      "result": {
+        "profit": -0.029033923756478595,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": -1,
+          "macd": -1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": -1,
+          "obv": -1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.469646",
+      "result": {
+        "profit": 0.0021056919965216844,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": 1,
+          "macd": -1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": 1,
+          "obv": -1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.471338",
+      "result": {
+        "profit": 0.01760405259147043,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": 1,
+          "obv": -1,
+          "vwap": -1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.472999",
+      "result": {
+        "profit": -0.014740966656921862,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": -1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": 1,
+          "bb": -1,
+          "obv": 1,
+          "vwap": 1,
+          "pivot_points": 1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.474704",
+      "result": {
+        "profit": 0.033980709349345335,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": 1,
+          "macd": -1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": 1,
+          "obv": 1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.476406",
+      "result": {
+        "profit": -0.023767784320926924,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": 1,
+          "bb": -1,
+          "obv": 1,
+          "vwap": -1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.478061",
+      "result": {
+        "profit": 0.00328523645249075,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": -1,
+          "obv": 1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.479671",
+      "result": {
+        "profit": 0.07854981473241242,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": -1,
+          "macd": 1,
+          "supertrend": -1,
+          "adx": -1,
+          "bb": -1,
+          "obv": -1,
+          "vwap": -1,
+          "pivot_points": 1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.481327",
+      "result": {
+        "profit": 0.03866972821308844,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": -1,
+          "macd": 1,
+          "supertrend": -1,
+          "adx": 1,
+          "bb": -1,
+          "obv": -1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.482984",
+      "result": {
+        "profit": -0.011155891421945324,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": 1,
+          "obv": -1,
+          "vwap": 1,
+          "pivot_points": 1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.484837",
+      "result": {
+        "profit": 0.01675295187351033,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": -1,
+          "supertrend": -1,
+          "adx": 1,
+          "bb": 1,
+          "obv": -1,
+          "vwap": -1,
+          "pivot_points": 1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.486408",
+      "result": {
+        "profit": 0.01950514686841929,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": -1,
+          "adx": -1,
+          "bb": -1,
+          "obv": 1,
+          "vwap": 1,
+          "pivot_points": 1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.488096",
+      "result": {
+        "profit": 0.012236882356111083,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": -1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": 1,
+          "bb": -1,
+          "obv": -1,
+          "vwap": -1,
+          "pivot_points": 1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.489718",
+      "result": {
+        "profit": -0.028176447915430964,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": -1,
+          "supertrend": 1,
+          "adx": 1,
+          "bb": 1,
+          "obv": 1,
+          "vwap": -1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.491331",
+      "result": {
+        "profit": -0.022138191576128285,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": -1,
+          "supertrend": -1,
+          "adx": 1,
+          "bb": -1,
+          "obv": 1,
+          "vwap": 1,
+          "pivot_points": 1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.492958",
+      "result": {
+        "profit": -0.02753882833646406,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": -1,
+          "macd": 1,
+          "supertrend": -1,
+          "adx": -1,
+          "bb": 1,
+          "obv": -1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.494603",
+      "result": {
+        "profit": 0.008893054907352795,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": -1,
+          "macd": 1,
+          "supertrend": -1,
+          "adx": -1,
+          "bb": -1,
+          "obv": 1,
+          "vwap": 1,
+          "pivot_points": 1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.496233",
+      "result": {
+        "profit": -0.02146592105668698,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": 1,
+          "macd": -1,
+          "supertrend": -1,
+          "adx": -1,
+          "bb": -1,
+          "obv": 1,
+          "vwap": -1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.497725",
+      "result": {
+        "profit": -0.010726819629950955,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": -1,
+          "supertrend": 1,
+          "adx": 1,
+          "bb": -1,
+          "obv": 1,
+          "vwap": 1,
+          "pivot_points": 1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:45:19.499416",
+      "result": {
+        "profit": -0.009211285540740147,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": -1,
+          "obv": -1,
+          "vwap": -1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
     }
   ],
   "indicator_performance": {
     "stoch_rsi": {
-      "correct": 76,
-      "wrong": 44,
-      "total": 120,
-      "total_profit": 1.8000000000000007,
-      "accuracy": 0.6333333333333333
+      "correct": 91,
+      "wrong": 59,
+      "total": 150,
+      "total_profit": 1.9108661361304693,
+      "accuracy": 0.6066666666666667
     },
     "ema_trend": {
-      "correct": 76,
-      "wrong": 44,
-      "total": 120,
-      "total_profit": 1.8000000000000007,
-      "accuracy": 0.6333333333333333
+      "correct": 91,
+      "wrong": 59,
+      "total": 150,
+      "total_profit": 1.9108661361304693,
+      "accuracy": 0.6066666666666667
     },
     "macd": {
-      "correct": 76,
-      "wrong": 44,
-      "total": 120,
-      "total_profit": 1.8000000000000007,
-      "accuracy": 0.6333333333333333
+      "correct": 91,
+      "wrong": 59,
+      "total": 150,
+      "total_profit": 1.9108661361304693,
+      "accuracy": 0.6066666666666667
     },
     "supertrend": {
-      "correct": 76,
-      "wrong": 44,
-      "total": 120,
-      "total_profit": 1.8000000000000007,
-      "accuracy": 0.6333333333333333
+      "correct": 91,
+      "wrong": 59,
+      "total": 150,
+      "total_profit": 1.9108661361304693,
+      "accuracy": 0.6066666666666667
     },
     "vwap": {
-      "correct": 76,
-      "wrong": 44,
-      "total": 120,
-      "total_profit": 1.8000000000000007,
-      "accuracy": 0.6333333333333333
+      "correct": 91,
+      "wrong": 59,
+      "total": 150,
+      "total_profit": 1.9108661361304693,
+      "accuracy": 0.6066666666666667
+    },
+    "adx": {
+      "correct": 15,
+      "wrong": 15,
+      "total": 30,
+      "total_profit": 0.11086613613046918,
+      "accuracy": 0.5
+    },
+    "bb": {
+      "correct": 15,
+      "wrong": 15,
+      "total": 30,
+      "total_profit": 0.11086613613046918,
+      "accuracy": 0.5
+    },
+    "obv": {
+      "correct": 15,
+      "wrong": 15,
+      "total": 30,
+      "total_profit": 0.11086613613046918,
+      "accuracy": 0.5
+    },
+    "pivot_points": {
+      "correct": 15,
+      "wrong": 15,
+      "total": 30,
+      "total_profit": 0.11086613613046918,
+      "accuracy": 0.5
     }
   },
   "precision_metrics": {
@@ -1298,7 +1206,37 @@
       1,
       1,
       1,
-      1
+      1,
+      1,
+      0,
+      0,
+      0,
+      1,
+      0,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0
     ],
     "tp_precision": [
       0.125,
@@ -1418,7 +1356,9 @@
     "sl_hit_early_count": 14,
     "tp_too_far_count": 26,
     "wrong_direction_count": 19,
-    "total_trades": 120
+    "total_trades": 150,
+    "candlestick_accuracy": [],
+    "pattern_success_rate": {}
   },
   "strategy_adjustments": {
     "indicator_weights": {
@@ -1426,14 +1366,21 @@
       "ema_trend": 1.2,
       "macd": 1.2,
       "supertrend": 1.2,
-      "vwap": 1.2
+      "vwap": 1.2,
+      "adx": 1.0,
+      "bb": 1.0,
+      "obv": 1.0,
+      "pivot_points": 1.0
     },
     "risk_multiplier": 1.1,
-    "confidence_threshold": 0.2,
+    "confidence_threshold": 0.25,
     "tp_adjustment_factor": 0.75,
     "entry_adjustment_factor": -1.4000000000000001,
-    "sl_adjustment_factor": 0.8
+    "sl_adjustment_factor": 0.8,
+    "candlestick_confidence_boost": 1.0,
+    "pattern_tp_multiplier": 1.0,
+    "pattern_sl_multiplier": 1.0
   },
-  "last_optimization": "2025-11-18T17:59:33.114794",
-  "saved_at": "2025-11-18T17:59:33.114796"
+  "last_optimization": "2025-11-18T23:45:19.499673",
+  "saved_at": "2025-11-18T23:45:19.499676"
 }
