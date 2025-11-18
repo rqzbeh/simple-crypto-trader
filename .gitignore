@@ -84,3 +84,4 @@ test_*.pkl
 test_*.json
 test_trade_log.json
 
+news_cache.json
