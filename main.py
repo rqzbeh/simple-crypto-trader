@@ -508,6 +508,11 @@ def calculate_trade_signal(sentiment_score, news_count, market_data, symbol='', 
     # Apply adaptive risk adjustment from learning system
     stop_pct *= adaptive_params['risk_multiplier']
     
+    # NEW: Apply SL adjustment from learning system
+    # If SL is hit too often, widen it. If rarely hit, can tighten it.
+    sl_adjustment = adaptive_params.get('sl_adjustment_factor', 1.0)
+    stop_pct *= sl_adjustment
+    
     # Final validation: ensure stop is within acceptable range for SHORT-TERM trades
     stop_pct = max(0.008, min(stop_pct, 0.025))  # Hard limits: 0.8% to 2.5% for 2-4h
     
@@ -563,17 +568,27 @@ def calculate_trade_signal(sentiment_score, news_count, market_data, symbol='', 
     
     leverage = max(2, base_leverage)  # Minimum 2x leverage (4h timeframe justifies it)
     
-    # Calculate prices
+    # NEW: Apply entry adjustment from learning system
+    # If entries not being reached, move entry closer to current price
+    entry_adjustment = adaptive_params.get('entry_adjustment_factor', 1.0)
+    
+    # Calculate prices with entry adjustment
+    # Entry adjustment < 1.0 means move entry closer to current price
+    # Entry adjustment = 1.0 means use current price as entry (no adjustment needed for limit orders)
+    # For market orders, we use current price. For limit orders, we'd adjust based on support/resistance
+    # Since we're using current price as entry, we document this for future enhancement
+    entry_price = price  # Using current market price as entry
+    
     if direction == 'LONG':
-        stop_loss = price * (1 - stop_pct)
-        take_profit = price * (1 + expected_profit)
+        stop_loss = entry_price * (1 - stop_pct)
+        take_profit = entry_price * (1 + expected_profit)
     else:
-        stop_loss = price * (1 + stop_pct)
-        take_profit = price * (1 - expected_profit)
+        stop_loss = entry_price * (1 + stop_pct)
+        take_profit = entry_price * (1 - expected_profit)
     
     return {
         'direction': direction,
-        'entry_price': price,
+        'entry_price': entry_price,
         'stop_loss': stop_loss,
         'take_profit': take_profit,
         'stop_pct': stop_pct,
@@ -643,6 +658,12 @@ def check_trade_outcomes():
     """
     Check open trades and verify if predictions were correct
     Updates learning system with actual outcomes
+    
+    NOW ENHANCED TO TRACK:
+    - Whether entry price was reached (trade opened)
+    - Whether SL was hit before trend could work
+    - Whether TP was reachable or too far
+    - Highest/lowest prices during the 2-4h window
     """
     try:
         with open(TRADE_LOG_FILE, 'r') as f:
@@ -666,67 +687,155 @@ def check_trade_outcomes():
         if now < check_time:
             continue
         
-        # Fetch current price to verify outcome
+        # Fetch INTRADAY price history to track actual movements
         symbol = trade['symbol']
         yf_symbol = CRYPTO_SYMBOL_MAP.get(symbol, f"{symbol}-USD")
         
         try:
             ticker = yf.Ticker(yf_symbol)
-            current_data = ticker.history(period='1d', interval='1h')
+            # Fetch 5 days of 1h data to ensure we have the entry time + 4h window
+            intraday_data = ticker.history(period='5d', interval='1h')
             
-            if current_data.empty:
+            if intraday_data.empty:
                 continue
             
-            current_price = float(current_data['Close'].iloc[-1])
+            # Get the time window for the trade (entry time to check time)
+            entry_time = datetime.fromisoformat(trade['timestamp'])
+            
+            # Filter data to just the trade window (from entry to 4h later)
+            trade_window = intraday_data[
+                (intraday_data.index >= entry_time) & 
+                (intraday_data.index <= check_time)
+            ]
+            
+            if trade_window.empty:
+                # Fallback to single point check if no intraday data
+                current_data = ticker.history(period='1d', interval='1h')
+                if current_data.empty:
+                    continue
+                current_price = float(current_data['Close'].iloc[-1])
+                entry_reached = True  # Assume entry reached if no data
+                high_price = current_price
+                low_price = current_price
+            else:
+                current_price = float(trade_window['Close'].iloc[-1])
+                high_price = float(trade_window['High'].max())
+                low_price = float(trade_window['Low'].min())
+                
+                # Check if entry price was actually reached
+                entry_price = trade['entry_price']
+                direction = trade['direction']
+                
+                if direction == 'LONG':
+                    # For LONG, entry needs to be reached from above (price needs to dip to/below entry)
+                    entry_reached = low_price <= entry_price
+                else:  # SHORT
+                    # For SHORT, entry needs to be reached from below (price needs to rise to/above entry)
+                    entry_reached = high_price >= entry_price
+            
             entry_price = trade['entry_price']
             direction = trade['direction']
+            stop_loss = trade['stop_loss']
+            take_profit = trade['take_profit']
             
-            # Calculate actual profit/loss
+            # NEW: Track if entry was reached
+            if not entry_reached:
+                # Trade never opened - entry price was not reached
+                trade['status'] = 'entry_not_reached'
+                trade['exit_price'] = current_price
+                trade['actual_profit'] = 0
+                trade['verified_at'] = now.isoformat()
+                trade['failure_reason'] = 'entry_not_reached'
+                trade['high_price'] = high_price
+                trade['low_price'] = low_price
+                
+                # Feed to learning system
+                if market_analyzer and trade.get('indicators'):
+                    trade_result = {
+                        'profit': 0,
+                        'indicators': trade['indicators'],
+                        'symbol': symbol,
+                        'direction': direction,
+                        'confidence': trade.get('confidence', 0),
+                        'entry_price': entry_price,
+                        'exit_price': current_price,
+                        'entry_reached': False,
+                        'failure_reason': 'entry_not_reached',
+                        'high_price': high_price,
+                        'low_price': low_price,
+                        'tp_distance': 0,
+                        'actual_movement': 0,
+                        'hit_tp': False,
+                        'hit_sl': False
+                    }
+                    market_analyzer.learn_from_trade(trade_result)
+                
+                verified_count += 1
+                updated = True
+                continue
+            
+            # Entry was reached - check if SL or TP were hit during the window
             if direction == 'LONG':
-                price_change = (current_price - entry_price) / entry_price
+                sl_hit_during_window = low_price <= stop_loss
+                tp_hit_during_window = high_price >= take_profit
             else:  # SHORT
-                price_change = (entry_price - current_price) / entry_price
+                sl_hit_during_window = high_price >= stop_loss
+                tp_hit_during_window = low_price <= take_profit
             
-            actual_profit = price_change * trade.get('leverage', 1)
-            
-            # Check if hit stop loss or take profit
-            if direction == 'LONG':
-                hit_sl = current_price <= trade['stop_loss']
-                hit_tp = current_price >= trade['take_profit']
-            else:
-                hit_sl = current_price >= trade['stop_loss']
-                hit_tp = current_price <= trade['take_profit']
-            
-            if hit_sl:
-                actual_profit = -(trade['stop_loss'] - entry_price) / entry_price * trade.get('leverage', 1)
+            # Calculate actual profit/loss based on what happened
+            if sl_hit_during_window:
+                # Stop loss was hit
+                actual_profit = -(abs(stop_loss - entry_price) / entry_price) * trade.get('leverage', 1)
                 if direction == 'SHORT':
                     actual_profit = -actual_profit
                 trade['status'] = 'stopped'
-                trade['exit_price'] = trade['stop_loss']
-            elif hit_tp:
-                actual_profit = (trade['take_profit'] - entry_price) / entry_price * trade.get('leverage', 1)
+                trade['exit_price'] = stop_loss
+                failure_reason = 'sl_hit'
+            elif tp_hit_during_window:
+                # Take profit was hit
+                actual_profit = (abs(take_profit - entry_price) / entry_price) * trade.get('leverage', 1)
                 if direction == 'SHORT':
                     actual_profit = -actual_profit
                 trade['status'] = 'completed'
-                trade['exit_price'] = trade['take_profit']
+                trade['exit_price'] = take_profit
+                failure_reason = None  # Success!
             else:
+                # Neither hit - use current price
+                if direction == 'LONG':
+                    price_change = (current_price - entry_price) / entry_price
+                else:  # SHORT
+                    price_change = (entry_price - current_price) / entry_price
+                
+                actual_profit = price_change * trade.get('leverage', 1)
                 trade['status'] = 'checked'
                 trade['exit_price'] = current_price
+                
+                # Determine failure reason if losing
+                if actual_profit < 0:
+                    failure_reason = 'wrong_direction'
+                else:
+                    failure_reason = 'tp_not_reached'
             
             trade['actual_profit'] = actual_profit
             trade['verified_at'] = now.isoformat()
+            trade['failure_reason'] = failure_reason
+            trade['high_price'] = high_price
+            trade['low_price'] = low_price
+            trade['entry_reached'] = entry_reached
             
             # Calculate precision metrics for learning
-            # NEW: Track TP distance vs actual movement
-            tp_price = trade['take_profit']
+            # Enhanced: Track TP distance vs actual movement, including high/low reached
+            tp_price = take_profit
             if direction == 'LONG':
                 tp_distance = (tp_price - entry_price) / entry_price
                 actual_movement = (current_price - entry_price) / entry_price
+                max_favorable_move = (high_price - entry_price) / entry_price
             else:  # SHORT
                 tp_distance = (entry_price - tp_price) / entry_price
                 actual_movement = (entry_price - current_price) / entry_price
+                max_favorable_move = (entry_price - low_price) / entry_price
             
-            # Feed to learning system with precision data
+            # Feed to learning system with enhanced precision data
             if market_analyzer and trade.get('indicators'):
                 trade_result = {
                     'profit': actual_profit,
@@ -736,11 +845,16 @@ def check_trade_outcomes():
                     'confidence': trade.get('confidence', 0),
                     'entry_price': entry_price,
                     'exit_price': trade['exit_price'],
-                    # NEW: Precision tracking
+                    # Enhanced precision tracking
+                    'entry_reached': entry_reached,
                     'tp_distance': tp_distance,  # How far TP was set
-                    'actual_movement': actual_movement,  # How far price actually moved
-                    'hit_tp': hit_tp,  # Did it reach TP?
-                    'hit_sl': hit_sl   # Did it hit SL?
+                    'actual_movement': actual_movement,  # How far price moved at check time
+                    'max_favorable_move': max_favorable_move,  # Best price reached in our direction
+                    'hit_tp': tp_hit_during_window,  # Did it reach TP during window?
+                    'hit_sl': sl_hit_during_window,  # Did it hit SL during window?
+                    'failure_reason': failure_reason,  # Why did it fail (if it did)?
+                    'high_price': high_price,
+                    'low_price': low_price
                 }
                 market_analyzer.learn_from_trade(trade_result)
             

@@ -24,13 +24,21 @@ class CryptoMarketAnalyzer:
             'tp_precision': [],
             'entry_timing': [],
             'avg_tp_overshoot': 0.0,  # How much TP is typically too far
-            'avg_price_movement': 0.0  # Actual average price movement
+            'avg_price_movement': 0.0,  # Actual average price movement
+            # NEW: Track failure reasons
+            'entry_not_reached_count': 0,  # How often entry price isn't reached
+            'sl_hit_early_count': 0,  # How often SL hit before TP could be reached
+            'tp_too_far_count': 0,  # How often direction correct but TP not reached
+            'wrong_direction_count': 0,  # How often direction prediction was wrong
+            'total_trades': 0
         }
         self.strategy_adjustments = {
             'indicator_weights': {},
             'risk_multiplier': 1.0,
             'confidence_threshold': 0.3,
-            'tp_adjustment_factor': 1.0  # NEW: Adjust TP based on historical precision
+            'tp_adjustment_factor': 1.0,  # Adjust TP based on historical precision
+            'entry_adjustment_factor': 1.0,  # NEW: Adjust entry proximity
+            'sl_adjustment_factor': 1.0  # NEW: Adjust SL width
         }
         self.last_optimization = datetime.now()
         self.optimization_interval = 20  # Optimize every 20 trades
@@ -280,30 +288,61 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
         """
         Adaptive learning from trade outcomes
         Tracks overall performance AND individual indicator accuracy
-        NOW ALSO TRACKS: TP/SL precision, entry timing, and failure reasons
+        NOW ENHANCED TO TRACK:
+        - Entry not reached (entry price too far)
+        - SL hit early (SL too tight)
+        - TP too far (direction correct but target unreachable)
+        - Wrong direction (prediction error)
         """
         self.performance_history.append({
             'timestamp': datetime.now().isoformat(),
             'result': trade_result
         })
         
-        # Track precision metrics (NEW: separate direction from TP precision)
+        # Track total trades
+        self.precision_metrics['total_trades'] += 1
+        
+        # NEW: Track failure reasons to learn different adjustment strategies
+        failure_reason = trade_result.get('failure_reason')
+        entry_reached = trade_result.get('entry_reached', True)
+        
+        if not entry_reached:
+            # Entry price was never reached
+            self.precision_metrics['entry_not_reached_count'] += 1
+        elif failure_reason == 'sl_hit':
+            # Stop loss hit before trend could work
+            self.precision_metrics['sl_hit_early_count'] += 1
+        elif failure_reason == 'tp_not_reached':
+            # Direction correct but TP too far
+            self.precision_metrics['tp_too_far_count'] += 1
+        elif failure_reason == 'wrong_direction':
+            # Direction prediction was wrong
+            self.precision_metrics['wrong_direction_count'] += 1
+        
+        # Track precision metrics (separate direction from TP precision)
         if 'profit' in trade_result:
             profit = trade_result['profit']
             direction = trade_result.get('direction', 'LONG')
             
-            # Track direction accuracy
-            direction_correct = profit > 0
-            self.precision_metrics['direction_accuracy'].append(1 if direction_correct else 0)
+            # Track direction accuracy (only if entry was reached)
+            if entry_reached:
+                direction_correct = profit > 0
+                self.precision_metrics['direction_accuracy'].append(1 if direction_correct else 0)
             
             # Track TP precision: did we reach TP or fall short?
-            if 'tp_distance' in trade_result and 'actual_movement' in trade_result:
+            # Use max_favorable_move to see how close we got
+            if entry_reached and 'tp_distance' in trade_result:
                 tp_distance = abs(trade_result['tp_distance'])  # How far TP was set
-                actual_movement = abs(trade_result['actual_movement'])  # How far price actually moved
+                
+                # Use max favorable move if available, otherwise actual movement
+                if 'max_favorable_move' in trade_result:
+                    best_movement = abs(trade_result['max_favorable_move'])
+                else:
+                    best_movement = abs(trade_result.get('actual_movement', 0))
                 
                 # Calculate TP precision (1.0 = perfect, <1.0 = TP too far, >1.0 = TP too conservative)
                 if tp_distance > 0:
-                    tp_precision = actual_movement / tp_distance
+                    tp_precision = best_movement / tp_distance
                     self.precision_metrics['tp_precision'].append(tp_precision)
                     
                     # Track overshoot (how much TP is typically too ambitious)
@@ -319,7 +358,7 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
                 
                 # Track actual average price movement for this timeframe
                 if self.precision_metrics['avg_price_movement'] == 0:
-                    self.precision_metrics['avg_price_movement'] = actual_movement
+                    self.precision_metrics['avg_price_movement'] = best_movement
                 else:
                     self.precision_metrics['avg_price_movement'] = (
                         0.8 * self.precision_metrics['avg_price_movement'] + 0.2 * actual_movement
@@ -457,6 +496,46 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
             tp_reason = "Insufficient data"
             direction_accuracy = 0.5
         
+        # NEW: Adjust entry based on entry_not_reached failures
+        total = self.precision_metrics['total_trades']
+        if total >= 10:
+            entry_fail_rate = self.precision_metrics['entry_not_reached_count'] / total
+            
+            if entry_fail_rate > 0.3:
+                # Too many trades not opening - entry prices too far
+                # Make entries more conservative (closer to current price)
+                self.strategy_adjustments['entry_adjustment_factor'] = min(0.5, 
+                    self.strategy_adjustments['entry_adjustment_factor'] - 0.1)
+                entry_reason = "Entry too far, moving closer to market"
+            elif entry_fail_rate < 0.05:
+                # Very few failed entries - can be more aggressive
+                self.strategy_adjustments['entry_adjustment_factor'] = max(1.0,
+                    self.strategy_adjustments['entry_adjustment_factor'] + 0.05)
+                entry_reason = "Entry timing good, can be more aggressive"
+            else:
+                entry_reason = "Entry timing acceptable"
+        else:
+            entry_reason = "Insufficient data"
+        
+        # NEW: Adjust SL based on sl_hit_early failures
+        if total >= 10:
+            sl_early_rate = self.precision_metrics['sl_hit_early_count'] / total
+            
+            if sl_early_rate > 0.3:
+                # Too many SL hits - stops too tight
+                self.strategy_adjustments['sl_adjustment_factor'] = min(1.3,
+                    self.strategy_adjustments['sl_adjustment_factor'] + 0.1)
+                sl_reason = "SL hit too often, widening stops"
+            elif sl_early_rate < 0.1 and direction_accuracy > 0.6:
+                # Few SL hits and good direction accuracy - can tighten stops
+                self.strategy_adjustments['sl_adjustment_factor'] = max(0.8,
+                    self.strategy_adjustments['sl_adjustment_factor'] - 0.05)
+                sl_reason = "Direction good, can tighten stops"
+            else:
+                sl_reason = "SL width acceptable"
+        else:
+            sl_reason = "Insufficient data"
+        
         print(f"\n📊 Strategy Auto-Adjusted:")
         print(f"   Win Rate: {win_rate*100:.1f}% | Avg Profit: {avg_profit*100:.2f}%")
         print(f"   Direction Accuracy: {direction_accuracy*100:.1f}%")
@@ -465,7 +544,18 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
             print(f"   Avg Price Movement: {self.precision_metrics['avg_price_movement']*100:.2f}%")
         print(f"   Confidence Threshold: {self.strategy_adjustments['confidence_threshold']:.2f}")
         print(f"   Risk Multiplier: {self.strategy_adjustments['risk_multiplier']:.2f}")
-        print(f"   TP Adjustment: {self.strategy_adjustments['tp_adjustment_factor']:.2f}x\n")
+        print(f"   TP Adjustment: {self.strategy_adjustments['tp_adjustment_factor']:.2f}x")
+        if total >= 10:
+            print(f"   Entry Adjustment: {self.strategy_adjustments['entry_adjustment_factor']:.2f}x ({entry_reason})")
+            print(f"   SL Adjustment: {self.strategy_adjustments['sl_adjustment_factor']:.2f}x ({sl_reason})")
+            print(f"   Failure Breakdown:")
+            print(f"     • Entry not reached: {entry_fail_rate*100:.1f}%")
+            print(f"     • SL hit early: {sl_early_rate*100:.1f}%")
+            tp_fail_rate = self.precision_metrics['tp_too_far_count'] / total
+            wrong_dir_rate = self.precision_metrics['wrong_direction_count'] / total
+            print(f"     • TP too far: {tp_fail_rate*100:.1f}%")
+            print(f"     • Wrong direction: {wrong_dir_rate*100:.1f}%")
+        print()
     
     def _optimize_indicator_weights(self):
         """
