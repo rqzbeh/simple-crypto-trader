@@ -66,8 +66,18 @@ class CryptoMarketAnalyzer:
                 # Restore learning data
                 self.performance_history = data.get('performance_history', [])
                 self.indicator_performance = data.get('indicator_performance', {})
-                self.precision_metrics = data.get('precision_metrics', self.precision_metrics)
-                self.strategy_adjustments = data.get('strategy_adjustments', self.strategy_adjustments)
+                
+                # Load precision metrics with backward compatibility
+                loaded_metrics = data.get('precision_metrics', {})
+                for key in self.precision_metrics:
+                    if key in loaded_metrics:
+                        self.precision_metrics[key] = loaded_metrics[key]
+                
+                # Load strategy adjustments with backward compatibility
+                loaded_adjustments = data.get('strategy_adjustments', {})
+                for key in self.strategy_adjustments:
+                    if key in loaded_adjustments:
+                        self.strategy_adjustments[key] = loaded_adjustments[key]
                 
                 # Parse last_optimization datetime
                 last_opt = data.get('last_optimization')
