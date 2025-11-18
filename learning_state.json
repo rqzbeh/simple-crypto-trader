@@ -1,561 +1,6 @@
 {
   "performance_history": [
     {
-      "timestamp": "2025-11-18T23:49:16.147260",
-      "result": {
-        "profit": 0.03234118687185621,
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": -1,
-          "macd": 1,
-          "supertrend": -1,
-          "adx": 1,
-          "bb": 1,
-          "obv": -1,
-          "vwap": 1,
-          "pivot_points": 1
-        },
-        "symbol": "BTC",
-        "direction": "LONG"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.148882",
-      "result": {
-        "profit": -0.011640191122070345,
-        "indicators": {
-          "stoch_rsi": -1,
-          "ema_trend": -1,
-          "macd": -1,
-          "supertrend": -1,
-          "adx": 1,
-          "bb": 1,
-          "obv": -1,
-          "vwap": 1,
-          "pivot_points": 1
-        },
-        "symbol": "BTC",
-        "direction": "SHORT"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.150447",
-      "result": {
-        "profit": 0.03145101623958454,
-        "indicators": {
-          "stoch_rsi": -1,
-          "ema_trend": 1,
-          "macd": -1,
-          "supertrend": -1,
-          "adx": -1,
-          "bb": -1,
-          "obv": 1,
-          "vwap": 1,
-          "pivot_points": 1
-        },
-        "symbol": "BTC",
-        "direction": "SHORT"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.152025",
-      "result": {
-        "profit": 0.030088639452559893,
-        "indicators": {
-          "stoch_rsi": -1,
-          "ema_trend": 1,
-          "macd": -1,
-          "supertrend": -1,
-          "adx": 1,
-          "bb": -1,
-          "obv": -1,
-          "vwap": -1,
-          "pivot_points": -1
-        },
-        "symbol": "BTC",
-        "direction": "SHORT"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.153609",
-      "result": {
-        "profit": -0.0364302715657868,
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": -1,
-          "macd": 1,
-          "supertrend": 1,
-          "adx": -1,
-          "bb": -1,
-          "obv": -1,
-          "vwap": 1,
-          "pivot_points": 1
-        },
-        "symbol": "BTC",
-        "direction": "LONG"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.155278",
-      "result": {
-        "profit": 0.035790711524524656,
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": -1,
-          "macd": 1,
-          "supertrend": -1,
-          "adx": -1,
-          "bb": 1,
-          "obv": 1,
-          "vwap": -1,
-          "pivot_points": -1
-        },
-        "symbol": "BTC",
-        "direction": "SHORT"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.156855",
-      "result": {
-        "profit": -0.02953328657634914,
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "adx": -1,
-          "bb": 1,
-          "obv": -1,
-          "vwap": 1,
-          "pivot_points": -1
-        },
-        "symbol": "BTC",
-        "direction": "LONG"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.158431",
-      "result": {
-        "profit": -0.03466909038587784,
-        "indicators": {
-          "stoch_rsi": -1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "adx": -1,
-          "bb": -1,
-          "obv": 1,
-          "vwap": -1,
-          "pivot_points": 1
-        },
-        "symbol": "BTC",
-        "direction": "LONG"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.160037",
-      "result": {
-        "profit": -0.027113513471776596,
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": -1,
-          "macd": 1,
-          "supertrend": 1,
-          "adx": -1,
-          "bb": -1,
-          "obv": -1,
-          "vwap": 1,
-          "pivot_points": -1
-        },
-        "symbol": "BTC",
-        "direction": "SHORT"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.161585",
-      "result": {
-        "profit": -0.035233080068284676,
-        "indicators": {
-          "stoch_rsi": -1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": -1,
-          "adx": 1,
-          "bb": 1,
-          "obv": 1,
-          "vwap": -1,
-          "pivot_points": -1
-        },
-        "symbol": "BTC",
-        "direction": "LONG"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.163192",
-      "result": {
-        "profit": 0.008350493945566556,
-        "indicators": {
-          "stoch_rsi": -1,
-          "ema_trend": -1,
-          "macd": 1,
-          "supertrend": 1,
-          "adx": -1,
-          "bb": 1,
-          "obv": 1,
-          "vwap": -1,
-          "pivot_points": -1
-        },
-        "symbol": "BTC",
-        "direction": "SHORT"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.164736",
-      "result": {
-        "profit": 0.04018936863008754,
-        "indicators": {
-          "stoch_rsi": -1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "adx": 1,
-          "bb": -1,
-          "obv": 1,
-          "vwap": 1,
-          "pivot_points": 1
-        },
-        "symbol": "BTC",
-        "direction": "LONG"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.166307",
-      "result": {
-        "profit": 0.009963293598982757,
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": -1,
-          "supertrend": 1,
-          "adx": -1,
-          "bb": -1,
-          "obv": 1,
-          "vwap": 1,
-          "pivot_points": -1
-        },
-        "symbol": "BTC",
-        "direction": "LONG"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.167906",
-      "result": {
-        "profit": 0.05879243899165833,
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": -1,
-          "adx": -1,
-          "bb": -1,
-          "obv": -1,
-          "vwap": -1,
-          "pivot_points": -1
-        },
-        "symbol": "BTC",
-        "direction": "SHORT"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.169477",
-      "result": {
-        "profit": 0.011259773989806439,
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": -1,
-          "adx": -1,
-          "bb": -1,
-          "obv": -1,
-          "vwap": 1,
-          "pivot_points": 1
-        },
-        "symbol": "BTC",
-        "direction": "LONG"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.171051",
-      "result": {
-        "profit": 0.04324109520609147,
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "adx": -1,
-          "bb": 1,
-          "obv": 1,
-          "vwap": 1,
-          "pivot_points": -1
-        },
-        "symbol": "BTC",
-        "direction": "LONG"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.172614",
-      "result": {
-        "profit": 0.018959649746652242,
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": -1,
-          "macd": -1,
-          "supertrend": -1,
-          "adx": 1,
-          "bb": -1,
-          "obv": -1,
-          "vwap": 1,
-          "pivot_points": 1
-        },
-        "symbol": "BTC",
-        "direction": "SHORT"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.174439",
-      "result": {
-        "profit": 0.05120275100087683,
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": -1,
-          "macd": 1,
-          "supertrend": 1,
-          "adx": 1,
-          "bb": 1,
-          "obv": 1,
-          "vwap": 1,
-          "pivot_points": 1
-        },
-        "symbol": "BTC",
-        "direction": "LONG"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.176021",
-      "result": {
-        "profit": 0.021131293409949733,
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": -1,
-          "macd": 1,
-          "supertrend": 1,
-          "adx": 1,
-          "bb": -1,
-          "obv": -1,
-          "vwap": 1,
-          "pivot_points": 1
-        },
-        "symbol": "BTC",
-        "direction": "LONG"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.177579",
-      "result": {
-        "profit": -0.016780536164847096,
-        "indicators": {
-          "stoch_rsi": -1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "adx": -1,
-          "bb": -1,
-          "obv": -1,
-          "vwap": 1,
-          "pivot_points": 1
-        },
-        "symbol": "BTC",
-        "direction": "LONG"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.179128",
-      "result": {
-        "profit": 0.01793956230265223,
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": -1,
-          "supertrend": 1,
-          "adx": 1,
-          "bb": -1,
-          "obv": -1,
-          "vwap": -1,
-          "pivot_points": -1
-        },
-        "symbol": "BTC",
-        "direction": "SHORT"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.180707",
-      "result": {
-        "profit": 0.06861779696799411,
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": -1,
-          "macd": -1,
-          "supertrend": -1,
-          "adx": 1,
-          "bb": -1,
-          "obv": -1,
-          "vwap": -1,
-          "pivot_points": -1
-        },
-        "symbol": "BTC",
-        "direction": "SHORT"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.182268",
-      "result": {
-        "profit": -0.0092992575867516,
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": -1,
-          "macd": 1,
-          "supertrend": -1,
-          "adx": -1,
-          "bb": -1,
-          "obv": -1,
-          "vwap": 1,
-          "pivot_points": 1
-        },
-        "symbol": "BTC",
-        "direction": "SHORT"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.183802",
-      "result": {
-        "profit": -0.01218404790147001,
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": -1,
-          "macd": -1,
-          "supertrend": -1,
-          "adx": -1,
-          "bb": -1,
-          "obv": -1,
-          "vwap": 1,
-          "pivot_points": -1
-        },
-        "symbol": "BTC",
-        "direction": "SHORT"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.185349",
-      "result": {
-        "profit": 0.06348628665595385,
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "adx": 1,
-          "bb": -1,
-          "obv": -1,
-          "vwap": 1,
-          "pivot_points": -1
-        },
-        "symbol": "BTC",
-        "direction": "LONG"
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.217145",
-      "result": {
-        "profit": 0.010108976566657553,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "tp_distance": 0.043843782802134405,
-        "actual_movement": 0.025479039743991325
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.221614",
-      "result": {
-        "profit": -0.018953917942687054,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": -1,
-          "ema_trend": -1,
-          "macd": -1,
-          "supertrend": -1,
-          "vwap": -1
-        },
-        "tp_distance": 0.039991789965658144,
-        "actual_movement": 0.01793033648568651
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.223181",
-      "result": {
-        "profit": 0.02586396860507826,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "tp_distance": 0.04930380435013934,
-        "actual_movement": 0.029860382638916123
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.224673",
-      "result": {
-        "profit": -0.010924621489540008,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": -1,
-          "ema_trend": -1,
-          "macd": -1,
-          "supertrend": -1,
-          "vwap": -1
-        },
-        "tp_distance": 0.03162318628405966,
-        "actual_movement": 0.010290009129700864
-      }
-    },
-    {
-      "timestamp": "2025-11-18T23:49:16.226173",
-      "result": {
-        "profit": 0.017088867285070475,
-        "direction": "LONG",
-        "indicators": {
-          "stoch_rsi": 1,
-          "ema_trend": 1,
-          "macd": 1,
-          "supertrend": 1,
-          "vwap": 1
-        },
-        "tp_distance": 0.03247406872457695,
-        "actual_movement": 0.019372292297763417
-      }
-    },
-    {
       "timestamp": "2025-11-18T23:49:16.227644",
       "result": {
         "profit": -0.039564244256192795,
@@ -874,71 +319,641 @@
         "tp_distance": 0.045028676210063324,
         "actual_movement": 0.026995513014352948
       }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.372918",
+      "result": {
+        "profit": 0.07498828471031731,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": 1,
+          "macd": -1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": -1,
+          "obv": -1,
+          "vwap": -1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.377447",
+      "result": {
+        "profit": 0.02940541501762752,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": -1,
+          "obv": -1,
+          "vwap": -1,
+          "pivot_points": 1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.378999",
+      "result": {
+        "profit": 0.03666826188696981,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": 1,
+          "macd": -1,
+          "supertrend": -1,
+          "adx": -1,
+          "bb": -1,
+          "obv": -1,
+          "vwap": -1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.380525",
+      "result": {
+        "profit": 0.06999829964171314,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": 1,
+          "obv": 1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.382001",
+      "result": {
+        "profit": 0.07301898715548776,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": 1,
+          "bb": 1,
+          "obv": -1,
+          "vwap": 1,
+          "pivot_points": 1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.383539",
+      "result": {
+        "profit": 0.07650384950585212,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": 1,
+          "macd": -1,
+          "supertrend": -1,
+          "adx": 1,
+          "bb": -1,
+          "obv": -1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.385075",
+      "result": {
+        "profit": 0.045534016642301674,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": 1,
+          "bb": -1,
+          "obv": -1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.386565",
+      "result": {
+        "profit": -0.02074137397351584,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": -1,
+          "obv": -1,
+          "vwap": -1,
+          "pivot_points": 1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.388042",
+      "result": {
+        "profit": 0.05130604551557724,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": -1,
+          "macd": -1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": 1,
+          "obv": 1,
+          "vwap": 1,
+          "pivot_points": 1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.389531",
+      "result": {
+        "profit": 0.008930803050938012,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": -1,
+          "obv": 1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.391124",
+      "result": {
+        "profit": 0.03363569551209789,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": -1,
+          "adx": 1,
+          "bb": 1,
+          "obv": -1,
+          "vwap": -1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.392610",
+      "result": {
+        "profit": 0.024336378544596197,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": -1,
+          "obv": 1,
+          "vwap": -1,
+          "pivot_points": 1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.394112",
+      "result": {
+        "profit": 0.046872451495023754,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": -1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": 1,
+          "bb": -1,
+          "obv": 1,
+          "vwap": 1,
+          "pivot_points": 1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.395616",
+      "result": {
+        "profit": 0.055518711167405504,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": -1,
+          "obv": 1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.397083",
+      "result": {
+        "profit": 0.03418580506323694,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": -1,
+          "obv": 1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.398577",
+      "result": {
+        "profit": 0.029329215850516826,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": 1,
+          "macd": -1,
+          "supertrend": 1,
+          "adx": 1,
+          "bb": -1,
+          "obv": -1,
+          "vwap": -1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.400064",
+      "result": {
+        "profit": 0.022142092872979295,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": 1,
+          "obv": 1,
+          "vwap": -1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.401567",
+      "result": {
+        "profit": -0.03190479795006183,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": -1,
+          "macd": 1,
+          "supertrend": -1,
+          "adx": 1,
+          "bb": 1,
+          "obv": -1,
+          "vwap": 1,
+          "pivot_points": 1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.403059",
+      "result": {
+        "profit": 0.003962025255344573,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": -1,
+          "macd": 1,
+          "supertrend": -1,
+          "adx": 1,
+          "bb": -1,
+          "obv": 1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.404534",
+      "result": {
+        "profit": -0.01257746660173071,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": -1,
+          "obv": -1,
+          "vwap": 1,
+          "pivot_points": 1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.406003",
+      "result": {
+        "profit": 0.06742185562229906,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": -1,
+          "obv": 1,
+          "vwap": 1,
+          "pivot_points": 1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.407490",
+      "result": {
+        "profit": -0.0037034831788459177,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": -1,
+          "supertrend": 1,
+          "adx": 1,
+          "bb": -1,
+          "obv": -1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.408959",
+      "result": {
+        "profit": 0.043460909231363656,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": 1,
+          "macd": -1,
+          "supertrend": -1,
+          "adx": -1,
+          "bb": 1,
+          "obv": -1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.410940",
+      "result": {
+        "profit": -0.038750191615891376,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": -1,
+          "obv": 1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.412381",
+      "result": {
+        "profit": 0.03463188467389302,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": -1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": -1,
+          "obv": -1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.413912",
+      "result": {
+        "profit": -0.026196837282702473,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": 1,
+          "macd": -1,
+          "supertrend": -1,
+          "adx": 1,
+          "bb": -1,
+          "obv": -1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.415408",
+      "result": {
+        "profit": 0.04664074509892782,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": -1,
+          "obv": 1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.416868",
+      "result": {
+        "profit": -0.012182931152397103,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": 1,
+          "macd": -1,
+          "supertrend": 1,
+          "adx": 1,
+          "bb": -1,
+          "obv": -1,
+          "vwap": 1,
+          "pivot_points": 1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.418413",
+      "result": {
+        "profit": -0.009563319192998555,
+        "indicators": {
+          "stoch_rsi": -1,
+          "ema_trend": 1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": -1,
+          "bb": -1,
+          "obv": 1,
+          "vwap": 1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "LONG"
+      }
+    },
+    {
+      "timestamp": "2025-11-18T23:50:57.419954",
+      "result": {
+        "profit": 0.026518587859478186,
+        "indicators": {
+          "stoch_rsi": 1,
+          "ema_trend": -1,
+          "macd": 1,
+          "supertrend": 1,
+          "adx": 1,
+          "bb": -1,
+          "obv": -1,
+          "vwap": -1,
+          "pivot_points": -1
+        },
+        "symbol": "BTC",
+        "direction": "SHORT"
+      }
     }
   ],
   "indicator_performance": {
     "stoch_rsi": {
-      "correct": 220,
-      "wrong": 135,
-      "total": 355,
-      "total_profit": 4.726304477203505,
-      "accuracy": 0.6197183098591549
+      "correct": 242,
+      "wrong": 143,
+      "total": 385,
+      "total_profit": 5.505694397629308,
+      "accuracy": 0.6285714285714286
     },
     "ema_trend": {
-      "correct": 220,
-      "wrong": 135,
-      "total": 355,
-      "total_profit": 4.726304477203505,
-      "accuracy": 0.6197183098591549
+      "correct": 242,
+      "wrong": 143,
+      "total": 385,
+      "total_profit": 5.505694397629308,
+      "accuracy": 0.6285714285714286
     },
     "macd": {
-      "correct": 220,
-      "wrong": 135,
-      "total": 355,
-      "total_profit": 4.726304477203505,
-      "accuracy": 0.6197183098591549
+      "correct": 242,
+      "wrong": 143,
+      "total": 385,
+      "total_profit": 5.505694397629308,
+      "accuracy": 0.6285714285714286
     },
     "supertrend": {
-      "correct": 220,
-      "wrong": 135,
-      "total": 355,
-      "total_profit": 4.726304477203505,
-      "accuracy": 0.6197183098591549
+      "correct": 242,
+      "wrong": 143,
+      "total": 385,
+      "total_profit": 5.505694397629308,
+      "accuracy": 0.6285714285714286
     },
     "vwap": {
-      "correct": 220,
-      "wrong": 135,
-      "total": 355,
-      "total_profit": 4.726304477203505,
-      "accuracy": 0.6197183098591549
+      "correct": 242,
+      "wrong": 143,
+      "total": 385,
+      "total_profit": 5.505694397629308,
+      "accuracy": 0.6285714285714286
     },
     "adx": {
-      "correct": 54,
-      "wrong": 36,
-      "total": 90,
-      "total_profit": 1.1174578868864438,
-      "accuracy": 0.6
+      "correct": 76,
+      "wrong": 44,
+      "total": 120,
+      "total_profit": 1.896847807312248,
+      "accuracy": 0.6333333333333333
     },
     "bb": {
-      "correct": 54,
-      "wrong": 36,
-      "total": 90,
-      "total_profit": 1.1174578868864438,
-      "accuracy": 0.6
+      "correct": 76,
+      "wrong": 44,
+      "total": 120,
+      "total_profit": 1.896847807312248,
+      "accuracy": 0.6333333333333333
     },
     "obv": {
-      "correct": 54,
-      "wrong": 36,
-      "total": 90,
-      "total_profit": 1.1174578868864438,
-      "accuracy": 0.6
+      "correct": 76,
+      "wrong": 44,
+      "total": 120,
+      "total_profit": 1.896847807312248,
+      "accuracy": 0.6333333333333333
     },
     "pivot_points": {
-      "correct": 54,
-      "wrong": 36,
-      "total": 90,
-      "total_profit": 1.1174578868864438,
-      "accuracy": 0.6
+      "correct": 76,
+      "wrong": 44,
+      "total": 120,
+      "total_profit": 1.896847807312248,
+      "accuracy": 0.6333333333333333
     }
   },
   "precision_metrics": {
@@ -1275,6 +1290,36 @@
       1,
       0,
       0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      0,
       1
     ],
     "tp_precision": [
@@ -1529,23 +1574,23 @@
     "sl_hit_early_count": 28,
     "tp_too_far_count": 52,
     "wrong_direction_count": 38,
-    "total_trades": 355,
+    "total_trades": 385,
     "candlestick_accuracy": [],
     "pattern_success_rate": {}
   },
   "strategy_adjustments": {
     "indicator_weights": {
+      "adx": 1.2,
+      "bb": 1.2,
+      "obv": 1.2,
+      "pivot_points": 1.2,
       "stoch_rsi": 1.2,
       "ema_trend": 1.2,
       "macd": 1.2,
       "supertrend": 1.2,
-      "vwap": 1.2,
-      "adx": 1.2,
-      "bb": 1.2,
-      "obv": 1.2,
-      "pivot_points": 1.2
+      "vwap": 1.2
     },
-    "risk_multiplier": 1.0,
+    "risk_multiplier": 1.1,
     "confidence_threshold": 0.25,
     "tp_adjustment_factor": 0.6164852168400736,
     "entry_adjustment_factor": -1.4000000000000001,
@@ -1554,6 +1599,6 @@
     "pattern_tp_multiplier": 1.0,
     "pattern_sl_multiplier": 1.0
   },
-  "last_optimization": "2025-11-18T23:49:16.256341",
-  "saved_at": "2025-11-18T23:49:16.256343"
+  "last_optimization": "2025-11-18T23:50:57.420095",
+  "saved_at": "2025-11-18T23:50:57.420097"
 }

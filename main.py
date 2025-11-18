@@ -645,7 +645,7 @@ def log_trade(symbol, signal, sentiment_reason='', indicators_data=None):
         return
     
     trade_entry = {
-        'timestamp': datetime.now().isoformat(),
+        'timestamp': datetime.now(pytz.UTC).isoformat(),
         'symbol': symbol,
         'direction': signal['direction'],
         'entry_price': signal['entry_price'],
@@ -658,7 +658,7 @@ def log_trade(symbol, signal, sentiment_reason='', indicators_data=None):
         'technical_score': signal['technical_score'],
         'sentiment_reason': sentiment_reason,
         'status': 'open',
-        'check_time': (datetime.now() + timedelta(hours=2)).isoformat(),  # 2h trade duration
+        'check_time': (datetime.now(pytz.UTC) + timedelta(hours=2)).isoformat(),  # 2h trade duration
         'indicators': indicators_data  # Store for learning
     }
     
