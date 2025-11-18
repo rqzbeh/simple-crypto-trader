@@ -534,13 +534,25 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
         return self.strategy_adjustments['indicator_weights'].get(indicator, 1.0)
     
     def get_performance_summary(self) -> Dict[str, Any]:
-        """Get comprehensive performance summary"""
+        """Get comprehensive performance summary including precision metrics"""
         if not self.performance_history:
             return {'status': 'No trades yet'}
         
         recent = self.performance_history[-20:]
         profits = [t['result'].get('profit', 0) for t in recent]
         wins = sum(1 for p in profits if p > 0)
+        
+        # Calculate precision metrics
+        precision_summary = {}
+        if self.precision_metrics['direction_accuracy']:
+            recent_dir = self.precision_metrics['direction_accuracy'][-20:]
+            precision_summary['direction_accuracy'] = sum(recent_dir) / len(recent_dir)
+        
+        if self.precision_metrics['tp_precision']:
+            recent_tp = self.precision_metrics['tp_precision'][-20:]
+            precision_summary['tp_precision'] = sum(recent_tp) / len(recent_tp)
+            precision_summary['avg_tp_overshoot'] = self.precision_metrics['avg_tp_overshoot']
+            precision_summary['avg_price_movement'] = self.precision_metrics['avg_price_movement']
         
         return {
             'total_trades': len(self.performance_history),
@@ -553,5 +565,7 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
                 reverse=True
             )[:5],
             'confidence_threshold': self.strategy_adjustments['confidence_threshold'],
-            'risk_multiplier': self.strategy_adjustments['risk_multiplier']
+            'risk_multiplier': self.strategy_adjustments['risk_multiplier'],
+            'tp_adjustment_factor': self.strategy_adjustments.get('tp_adjustment_factor', 1.0),
+            'precision_metrics': precision_summary
         }
