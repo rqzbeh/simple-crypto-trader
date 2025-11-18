@@ -181,16 +181,20 @@ check_trade_outcomes()
 # - Find trades > 4 hours old
 # - Fetch current price
 # - Calculate actual profit/loss
+# - Calculate TP distance vs actual price movement
 # - Check if TP or SL hit
-# - Feed to learning system
+# - Feed to learning system with precision metrics
 ```
 
 #### 3. Learning Update (llm_analyzer.py):
 ```python
 market_analyzer.learn_from_trade(trade_result)
 # - Track indicator accuracy
+# - Track TP/SL precision (NEW)
 # - Calculate win rate
+# - Calculate direction accuracy separately from TP precision (NEW)
 # - Adjust confidence threshold
+# - Adjust TP targets based on precision (NEW)
 # - Optimize indicator weights
 # - Modify risk parameters
 ```
@@ -198,8 +202,24 @@ market_analyzer.learn_from_trade(trade_result)
 ### **What Gets Tracked:**
 - **Overall Performance:** Win rate, avg profit, trade count
 - **Indicator Performance:** Accuracy, profit contribution per indicator
+- **Direction Accuracy:** Was the predicted trend correct? (NEW)
+- **TP Precision:** How close did price get to TP target? (NEW)
+- **TP Overshoot:** How much TP is typically too ambitious? (NEW)
+- **Avg Price Movement:** Actual price moves in 2-4h timeframe (NEW)
 - **Confidence Threshold:** Dynamically adjusted based on win rate
 - **Risk Multiplier:** Adjusted based on return volatility
+- **TP Adjustment Factor:** Reduces/increases TP based on precision (NEW)
+
+### **Precision Learning (NEW):**
+The system now distinguishes between:
+1. **Wrong Direction** - Predicted LONG but price went down
+2. **Correct Direction, Too Ambitious TP** - Predicted LONG correctly, price went up but didn't reach TP
+3. **Perfect Trade** - Predicted direction and TP were both correct
+
+This allows the system to:
+- Keep trading when direction is right but TP needs adjustment
+- Reduce TP targets when they're consistently too far
+- Increase TP targets when they're too conservative
 
 ### **Example Optimization:**
 ```
@@ -210,7 +230,21 @@ After 20 trades:
 
 Win rate = 40% → Confidence threshold increased to 0.45 (more selective)
 High volatility → Risk multiplier reduced to 0.8 (smaller positions)
+
+Direction accuracy = 65% (good trend prediction)
+TP precision = 64% (TPs too ambitious - price moves only 64% of predicted distance)
+→ TP adjustment factor = 0.70x (reduce future TPs by 30%)
+
+Next trade:
+- Raw TP calculation: 4.5%
+- After adjustment: 4.5% × 0.70 = 3.15% (more realistic for 2-4h)
 ```
+
+### **Benefits:**
+- **More Realistic TPs:** Learns from actual market movements, not just theory
+- **Better Win Rate:** TPs are achievable within 2-4h timeframe
+- **Separate Metrics:** Knows if problem is direction or TP precision
+- **Continuous Improvement:** Automatically adjusts to changing market conditions
 
 ---
 
