@@ -15,11 +15,11 @@ This document describes the migration from Groq to OllamaFreeAPI for LLM-powered
   - 100 requests/hour
   - 16k tokens per request
   - 50 tokens/second processing speed
-  - Access to 7B models
+  - Access to both 7B and 70B models
 
 ### 3. Model Selection
-- **Sentiment Analysis**: `llama3.1:8b` (fast, 8 billion parameters)
-- **Deep Market Analysis**: `llama3.3:70b` (powerful, 70 billion parameters)
+- **Sentiment Analysis**: `qwen2.5:7b` (fast, optimized for analytical tasks)
+- **Deep Market Analysis**: `deepseek-r1:70b` (superior reasoning capabilities)
 
 ### 4. No Breaking Changes
 All existing functionality is preserved. The bot will work exactly as before, but:
@@ -58,7 +58,7 @@ result = response.choices[0].message.content
 **After (OllamaFreeAPI)**:
 ```python
 result = llm_client.chat(
-    model_name="llama3.1:8b",
+    model_name="qwen2.5:7b",  # or "deepseek-r1:70b" for deep analysis
     prompt=prompt,
     temperature=0.3,
     num_predict=200

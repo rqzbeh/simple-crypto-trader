@@ -33,8 +33,13 @@
 - API Key: Not required!
 
 **Model Selection:**
-- **Fast Sentiment**: `llama3.1:8b` - Quick sentiment analysis of news articles
-- **Deep Analysis**: `llama3.3:70b` - Comprehensive market analysis and reasoning
+- **Fast Sentiment**: `qwen2.5:7b` - Optimized for quick sentiment analysis and analytical tasks
+- **Deep Analysis**: `deepseek-r1:70b` - Superior reasoning for comprehensive market analysis
+
+**Why These Models?**
+- DeepSeek-R1 excels at multi-step reasoning and market psychology analysis
+- Qwen2.5 is highly optimized for analytical and financial tasks
+- Both models outperform LLaMA in financial analysis benchmarks
 
 ### 2. Enhanced Training Settings for Candlestick Analysis
 
@@ -89,9 +94,9 @@ strategy_adjustments = {
    ```
    ✓ OllamaFreeAPI client initialized
    ✓ Available model families: 6 families
-   ✓ Found 24 llama models
-   ✓ llama3.3:70b model available
-   ✓ llama3.1:8b model available
+   ✓ Found 24+ models across families
+   ✓ deepseek-r1:70b model available
+   ✓ qwen2.5:7b model available
    ```
 
 3. **Learning State Tests**:
@@ -164,7 +169,7 @@ result = response.choices[0].message.content
 **After (OllamaFreeAPI):**
 ```python
 result = llm_client.chat(
-    model_name="llama3.1:8b",
+    model_name="qwen2.5:7b",  # or "deepseek-r1:70b" for deep analysis
     prompt=prompt,
     temperature=0.3,
     num_predict=200

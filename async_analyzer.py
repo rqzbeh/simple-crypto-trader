@@ -345,7 +345,7 @@ class BatchLLMProcessor:
             response = await loop.run_in_executor(
                 _thread_pool,
                 lambda: llm_client.chat(
-                    model_name="llama3.1:8b",
+                    model_name="qwen2.5:7b",  # Fast analytical model for batch processing
                     prompt=prompt,
                     temperature=0.3,
                     num_predict=200

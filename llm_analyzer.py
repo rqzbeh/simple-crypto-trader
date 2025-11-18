@@ -173,8 +173,9 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
 
         try:
             # Use OllamaFreeAPI chat method
+            # DeepSeek-R1 70B is superior for reasoning and market analysis
             response = self.llm_client.chat(
-                model_name="llama3.3:70b",
+                model_name="deepseek-r1:70b",
                 prompt=prompt,
                 temperature=0.1,  # Low temperature for consistent analysis
                 num_predict=500

@@ -353,8 +353,9 @@ Format: SCORE: [number] | REASON: [text]"""
         
         try:
             # Use OllamaFreeAPI chat method
+            # Qwen2.5 7B is optimized for analytical tasks and sentiment analysis
             result = llm_client.chat(
-                model_name="llama3.1:8b",  # Use 8B model for faster sentiment analysis
+                model_name="qwen2.5:7b",
                 prompt=prompt,
                 temperature=0.3,
                 num_predict=200

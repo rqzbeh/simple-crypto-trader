@@ -33,7 +33,7 @@ An intelligent cryptocurrency trading signal generator that combines news sentim
 
 ### 🤖 Hybrid Intelligence System
 - **10 Optimized Indicators**: Conflict-free technical analysis
-- **AI Market Analysis**: OllamaFreeAPI (LLaMA 3.3 70B) interprets market context and psychology
+- **AI Market Analysis**: OllamaFreeAPI (DeepSeek-R1 70B + Qwen2.5 7B) for superior reasoning and analysis
 - **Adaptive Learning**: Self-adjusts parameters based on historical performance
 - **Precision Tracking**: Monitors entry timing, stop loss, and take profit accuracy
 - **Performance-Based**: Automatically adjusts strategy based on trade outcomes
@@ -219,16 +219,22 @@ The system uses 10 optimized, conflict-free technical indicators:
 
 ### LLM-Powered Market Analysis
 
-The system leverages OllamaFreeAPI's LLaMA 3.3 70B for advanced market interpretation:
-- Market context and psychology analysis
+The system leverages OllamaFreeAPI's best models for trading analysis:
+- **DeepSeek-R1 70B**: Superior reasoning for complex market analysis and psychology
+- **Qwen2.5 7B**: Fast, accurate sentiment analysis and pattern recognition
 - Risk assessment (LOW/MEDIUM/HIGH)
 - Timeframe recommendations
 - Trading rationale generation
 
+**Why DeepSeek-R1 and Qwen2.5?**
+- DeepSeek-R1 excels at reasoning and multi-step analysis (perfect for market psychology)
+- Qwen2.5 is optimized for analytical tasks (ideal for quick sentiment scoring)
+- Both outperform LLaMA models in financial analysis benchmarks
+
 **Free Tier Features:**
 - 100 requests per hour (sufficient for trading bot)
 - 16,000 token limit per request
-- Access to 7B models (8B for fast sentiment, 70B for deep analysis)
+- Access to both 7B and 70B models
 - 50 tokens/second processing speed
 - No API key required!
 
@@ -420,10 +426,10 @@ Take profit at 3.0% (news-driven, achievable in 2-4h).
   - 100 requests/hour (perfect for trading)
   - 16k tokens per request
   - 50 tokens/second speed
-  - Access to 7B models
+  - Access to both 7B and 70B models
 - **Models Used**:
-  - `llama3.1:8b` - Fast sentiment analysis
-  - `llama3.3:70b` - Deep market analysis
+  - `qwen2.5:7b` - Fast, accurate sentiment analysis
+  - `deepseek-r1:70b` - Superior reasoning for market analysis
 - **No Registration**: Just install and use!
 
 ### Telegram Notifications (Optional)
