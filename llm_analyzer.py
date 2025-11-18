@@ -4,6 +4,7 @@ Inspired by AI-Trader's agent-based approach with our proven technical indicator
 """
 
 import json
+import os
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
@@ -14,6 +15,8 @@ class CryptoMarketAnalyzer:
     2. LLM reasoning (AI-Trader approach)
     3. Adaptive learning from past trades
     """
+    
+    LEARNING_DATA_FILE = 'learning_state.json'
     
     def __init__(self, groq_client=None):
         self.groq_client = groq_client
@@ -42,6 +45,49 @@ class CryptoMarketAnalyzer:
         }
         self.last_optimization = datetime.now()
         self.optimization_interval = 20  # Optimize every 20 trades
+        
+        # Load previous learning state if exists
+        self._load_learning_state()
+    
+    def _load_learning_state(self):
+        """Load learning state from file to persist across script runs"""
+        try:
+            if os.path.exists(self.LEARNING_DATA_FILE):
+                with open(self.LEARNING_DATA_FILE, 'r') as f:
+                    data = json.load(f)
+                
+                # Restore learning data
+                self.performance_history = data.get('performance_history', [])
+                self.indicator_performance = data.get('indicator_performance', {})
+                self.precision_metrics = data.get('precision_metrics', self.precision_metrics)
+                self.strategy_adjustments = data.get('strategy_adjustments', self.strategy_adjustments)
+                
+                # Parse last_optimization datetime
+                last_opt = data.get('last_optimization')
+                if last_opt:
+                    self.last_optimization = datetime.fromisoformat(last_opt)
+                
+                print(f"📚 Loaded learning state: {len(self.performance_history)} trades, "
+                      f"{self.precision_metrics['total_trades']} total verified")
+        except Exception as e:
+            print(f"⚠️  Could not load learning state: {e}")
+    
+    def _save_learning_state(self):
+        """Save learning state to file to persist across script runs"""
+        try:
+            data = {
+                'performance_history': self.performance_history,
+                'indicator_performance': self.indicator_performance,
+                'precision_metrics': self.precision_metrics,
+                'strategy_adjustments': self.strategy_adjustments,
+                'last_optimization': self.last_optimization.isoformat(),
+                'saved_at': datetime.now().isoformat()
+            }
+            
+            with open(self.LEARNING_DATA_FILE, 'w') as f:
+                json.dump(data, f, indent=2)
+        except Exception as e:
+            print(f"⚠️  Could not save learning state: {e}")
     
     def analyze_with_llm(self, symbol: str, market_data: Dict, sentiment_data: Dict, 
                         news_articles: List[Dict]) -> Dict[str, Any]:
@@ -361,7 +407,7 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
                     self.precision_metrics['avg_price_movement'] = best_movement
                 else:
                     self.precision_metrics['avg_price_movement'] = (
-                        0.8 * self.precision_metrics['avg_price_movement'] + 0.2 * actual_movement
+                        0.8 * self.precision_metrics['avg_price_movement'] + 0.2 * best_movement
                     )
         
         # Track indicator performance if available
@@ -412,6 +458,9 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
         if trades_since_optimization >= self.optimization_interval:
             self._optimize_indicator_weights()
             self.last_optimization = datetime.now()
+        
+        # Save learning state after each trade (persists across script runs)
+        self._save_learning_state()
     
     def _adjust_strategy(self):
         """Adjust strategy based on recent performance - DYNAMIC OPTIMIZATION"""

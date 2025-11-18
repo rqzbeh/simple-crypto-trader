@@ -659,11 +659,12 @@ def check_trade_outcomes():
     Check open trades and verify if predictions were correct
     Updates learning system with actual outcomes
     
-    NOW ENHANCED TO TRACK:
-    - Whether entry price was reached (trade opened)
-    - Whether SL was hit before trend could work
-    - Whether TP was reachable or too far
-    - Highest/lowest prices during the 2-4h window
+    NOW ENHANCED WITH SMART QUEUING:
+    - Checks trades at 2h intervals (when script runs)
+    - If entry NOT reached yet → keep in queue
+    - If entry reached but no TP/SL hit yet → keep in queue
+    - ONLY trains on completed trades (TP or SL hit)
+    - Maximum 4h wait time before final check
     """
     try:
         with open(TRADE_LOG_FILE, 'r') as f:
@@ -674,17 +675,24 @@ def check_trade_outcomes():
     now = datetime.now()
     updated = False
     verified_count = 0
+    queued_count = 0
     
     for trade in logs:
-        if trade.get('status') != 'open':
+        if trade.get('status') not in ['open', 'queued']:
             continue
         
-        # Check if 4 hours have passed (skip if no check_time)
-        if 'check_time' not in trade:
+        # Get entry time and check time
+        if 'check_time' not in trade or 'timestamp' not in trade:
             continue
         
-        check_time = datetime.fromisoformat(trade['check_time'])
-        if now < check_time:
+        entry_time = datetime.fromisoformat(trade['timestamp'])
+        max_check_time = datetime.fromisoformat(trade['check_time'])
+        
+        # Calculate how long the trade has been running
+        time_elapsed = (now - entry_time).total_seconds() / 3600  # hours
+        
+        # Don't check too early (wait at least 2 hours)
+        if time_elapsed < 2.0:
             continue
         
         # Fetch INTRADAY price history to track actual movements
@@ -693,19 +701,18 @@ def check_trade_outcomes():
         
         try:
             ticker = yf.Ticker(yf_symbol)
-            # Fetch 5 days of 1h data to ensure we have the entry time + 4h window
+            # Fetch 5 days of 1h data to ensure we have the entry time window
             intraday_data = ticker.history(period='5d', interval='1h')
             
             if intraday_data.empty:
                 continue
             
-            # Get the time window for the trade (entry time to check time)
-            entry_time = datetime.fromisoformat(trade['timestamp'])
+            # Get the time window for the trade (from entry time to now)
             
-            # Filter data to just the trade window (from entry to 4h later)
+            # Filter data to just the trade window (from entry to now)
             trade_window = intraday_data[
                 (intraday_data.index >= entry_time) & 
-                (intraday_data.index <= check_time)
+                (intraday_data.index <= now)
             ]
             
             if trade_window.empty:
@@ -738,43 +745,53 @@ def check_trade_outcomes():
             stop_loss = trade['stop_loss']
             take_profit = trade['take_profit']
             
-            # NEW: Track if entry was reached
+            # SMART QUEUING SYSTEM:
+            # 1. If entry NOT reached yet
             if not entry_reached:
-                # Trade never opened - entry price was not reached
-                trade['status'] = 'entry_not_reached'
-                trade['exit_price'] = current_price
-                trade['actual_profit'] = 0
-                trade['verified_at'] = now.isoformat()
-                trade['failure_reason'] = 'entry_not_reached'
-                trade['high_price'] = high_price
-                trade['low_price'] = low_price
+                # Check if max time (4h) has elapsed
+                if time_elapsed >= 4.0:
+                    # Max time reached, entry never filled
+                    trade['status'] = 'entry_not_reached'
+                    trade['exit_price'] = current_price
+                    trade['actual_profit'] = 0
+                    trade['verified_at'] = now.isoformat()
+                    trade['failure_reason'] = 'entry_not_reached'
+                    trade['high_price'] = high_price
+                    trade['low_price'] = low_price
+                    
+                    # Feed to learning system
+                    if market_analyzer and trade.get('indicators'):
+                        trade_result = {
+                            'profit': 0,
+                            'indicators': trade['indicators'],
+                            'symbol': symbol,
+                            'direction': direction,
+                            'confidence': trade.get('confidence', 0),
+                            'entry_price': entry_price,
+                            'exit_price': current_price,
+                            'entry_reached': False,
+                            'failure_reason': 'entry_not_reached',
+                            'high_price': high_price,
+                            'low_price': low_price,
+                            'tp_distance': 0,
+                            'actual_movement': 0,
+                            'hit_tp': False,
+                            'hit_sl': False
+                        }
+                        market_analyzer.learn_from_trade(trade_result)
+                    
+                    verified_count += 1
+                    updated = True
+                else:
+                    # Still waiting for entry, keep in queue
+                    trade['status'] = 'queued'
+                    trade['last_check'] = now.isoformat()
+                    queued_count += 1
+                    updated = True
                 
-                # Feed to learning system
-                if market_analyzer and trade.get('indicators'):
-                    trade_result = {
-                        'profit': 0,
-                        'indicators': trade['indicators'],
-                        'symbol': symbol,
-                        'direction': direction,
-                        'confidence': trade.get('confidence', 0),
-                        'entry_price': entry_price,
-                        'exit_price': current_price,
-                        'entry_reached': False,
-                        'failure_reason': 'entry_not_reached',
-                        'high_price': high_price,
-                        'low_price': low_price,
-                        'tp_distance': 0,
-                        'actual_movement': 0,
-                        'hit_tp': False,
-                        'hit_sl': False
-                    }
-                    market_analyzer.learn_from_trade(trade_result)
-                
-                verified_count += 1
-                updated = True
                 continue
             
-            # Entry was reached - check if SL or TP were hit during the window
+            # 2. Entry WAS reached - check if SL or TP were hit during the window
             if direction == 'LONG':
                 sl_hit_during_window = low_price <= stop_loss
                 tp_hit_during_window = high_price >= take_profit
@@ -782,74 +799,102 @@ def check_trade_outcomes():
                 sl_hit_during_window = high_price >= stop_loss
                 tp_hit_during_window = low_price <= take_profit
             
-            # Calculate actual profit/loss based on what happened
-            if sl_hit_during_window:
-                # Stop loss was hit
-                actual_profit = -(abs(stop_loss - entry_price) / entry_price) * trade.get('leverage', 1)
-                if direction == 'SHORT':
-                    actual_profit = -actual_profit
-                trade['status'] = 'stopped'
-                trade['exit_price'] = stop_loss
-                failure_reason = 'sl_hit'
-            elif tp_hit_during_window:
-                # Take profit was hit
-                actual_profit = (abs(take_profit - entry_price) / entry_price) * trade.get('leverage', 1)
-                if direction == 'SHORT':
-                    actual_profit = -actual_profit
-                trade['status'] = 'completed'
-                trade['exit_price'] = take_profit
-                failure_reason = None  # Success!
-            else:
-                # Neither hit - use current price
-                if direction == 'LONG':
-                    price_change = (current_price - entry_price) / entry_price
-                else:  # SHORT
-                    price_change = (entry_price - current_price) / entry_price
-                
-                actual_profit = price_change * trade.get('leverage', 1)
-                trade['status'] = 'checked'
-                trade['exit_price'] = current_price
-                
-                # Determine failure reason if losing
-                if actual_profit < 0:
-                    failure_reason = 'wrong_direction'
+            # 3. Check if trade is COMPLETED (TP or SL hit)
+            trade_completed = sl_hit_during_window or tp_hit_during_window
+            
+            if not trade_completed:
+                # Entry reached but trade still in progress
+                if time_elapsed >= 4.0:
+                    # Max time reached, close at current price
+                    if direction == 'LONG':
+                        price_change = (current_price - entry_price) / entry_price
+                    else:  # SHORT
+                        price_change = (entry_price - current_price) / entry_price
+                    
+                    actual_profit = price_change * trade.get('leverage', 1)
+                    trade['status'] = 'checked'
+                    trade['exit_price'] = current_price
+                    
+                    # Determine failure reason if losing
+                    if actual_profit < 0:
+                        failure_reason = 'wrong_direction'
+                    else:
+                        failure_reason = 'tp_not_reached'
+                    
+                    trade['actual_profit'] = actual_profit
+                    trade['verified_at'] = now.isoformat()
+                    trade['failure_reason'] = failure_reason
+                    trade['high_price'] = high_price
+                    trade['low_price'] = low_price
+                    trade['entry_reached'] = True
+                    
+                    # Train on this partial result
+                    should_train = True
                 else:
-                    failure_reason = 'tp_not_reached'
+                    # Still in progress, keep in queue
+                    trade['status'] = 'queued'
+                    trade['last_check'] = now.isoformat()
+                    queued_count += 1
+                    updated = True
+                    continue
+            else:
+                # Trade COMPLETED - calculate final result
+                should_train = True
+                
+                if sl_hit_during_window:
+                    # Stop loss was hit
+                    actual_profit = -(abs(stop_loss - entry_price) / entry_price) * trade.get('leverage', 1)
+                    if direction == 'SHORT':
+                        actual_profit = -actual_profit
+                    trade['status'] = 'stopped'
+                    trade['exit_price'] = stop_loss
+                    failure_reason = 'sl_hit'
+                elif tp_hit_during_window:
+                    # Take profit was hit
+                    actual_profit = (abs(take_profit - entry_price) / entry_price) * trade.get('leverage', 1)
+                    if direction == 'SHORT':
+                        actual_profit = -actual_profit
+                    trade['status'] = 'completed'
+                    trade['exit_price'] = take_profit
+                failure_reason = None  # Success!
+                    failure_reason = None  # Success!
             
-            trade['actual_profit'] = actual_profit
-            trade['verified_at'] = now.isoformat()
-            trade['failure_reason'] = failure_reason
-            trade['high_price'] = high_price
-            trade['low_price'] = low_price
-            trade['entry_reached'] = entry_reached
-            
-            # Calculate precision metrics for learning
-            # Enhanced: Track TP distance vs actual movement, including high/low reached
-            tp_price = take_profit
-            if direction == 'LONG':
-                tp_distance = (tp_price - entry_price) / entry_price
-                actual_movement = (current_price - entry_price) / entry_price
-                max_favorable_move = (high_price - entry_price) / entry_price
-            else:  # SHORT
-                tp_distance = (entry_price - tp_price) / entry_price
-                actual_movement = (entry_price - current_price) / entry_price
-                max_favorable_move = (entry_price - low_price) / entry_price
-            
-            # Feed to learning system with enhanced precision data
-            if market_analyzer and trade.get('indicators'):
-                trade_result = {
-                    'profit': actual_profit,
-                    'indicators': trade['indicators'],
-                    'symbol': symbol,
-                    'direction': direction,
-                    'confidence': trade.get('confidence', 0),
-                    'entry_price': entry_price,
-                    'exit_price': trade['exit_price'],
-                    # Enhanced precision tracking
-                    'entry_reached': entry_reached,
-                    'tp_distance': tp_distance,  # How far TP was set
-                    'actual_movement': actual_movement,  # How far price moved at check time
-                    'max_favorable_move': max_favorable_move,  # Best price reached in our direction
+            # Only proceed with training if trade is completed or max time reached
+            if should_train:
+                trade['actual_profit'] = actual_profit
+                trade['verified_at'] = now.isoformat()
+                trade['failure_reason'] = failure_reason
+                trade['high_price'] = high_price
+                trade['low_price'] = low_price
+                trade['entry_reached'] = True
+                
+                # Calculate precision metrics for learning
+                # Enhanced: Track TP distance vs actual movement, including high/low reached
+                tp_price = take_profit
+                if direction == 'LONG':
+                    tp_distance = (tp_price - entry_price) / entry_price
+                    actual_movement = (current_price - entry_price) / entry_price
+                    max_favorable_move = (high_price - entry_price) / entry_price
+                else:  # SHORT
+                    tp_distance = (entry_price - tp_price) / entry_price
+                    actual_movement = (entry_price - current_price) / entry_price
+                    max_favorable_move = (entry_price - low_price) / entry_price
+                
+                # Feed to learning system with enhanced precision data
+                if market_analyzer and trade.get('indicators'):
+                    trade_result = {
+                        'profit': actual_profit,
+                        'indicators': trade['indicators'],
+                        'symbol': symbol,
+                        'direction': direction,
+                        'confidence': trade.get('confidence', 0),
+                        'entry_price': entry_price,
+                        'exit_price': trade['exit_price'],
+                        # Enhanced precision tracking
+                        'entry_reached': True,
+                        'tp_distance': tp_distance,  # How far TP was set
+                        'actual_movement': actual_movement,  # How far price moved at check time
+                        'max_favorable_move': max_favorable_move,  # Best price reached in our direction
                     'hit_tp': tp_hit_during_window,  # Did it reach TP during window?
                     'hit_sl': sl_hit_during_window,  # Did it hit SL during window?
                     'failure_reason': failure_reason,  # Why did it fail (if it did)?
@@ -871,7 +916,11 @@ def check_trade_outcomes():
             json.dump(logs, f, indent=2)
         
         if verified_count > 0:
-            print(f"\n[OK] Verified {verified_count} trade outcomes and updated learning system\n")
+            print(f"\n[OK] Verified {verified_count} trade outcomes and updated learning system")
+        if queued_count > 0:
+            print(f"[⏳] {queued_count} trades still in queue (waiting for entry or completion)")
+        if verified_count > 0 or queued_count > 0:
+            print()
 
 def format_trade_message(symbol, signal, sentiment_reason='', signal_number=None):
     """Format trade signal for output - NEWS-DRIVEN system (compact and beautiful)"""
