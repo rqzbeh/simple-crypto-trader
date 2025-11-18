@@ -20,6 +20,7 @@ import time
 import logging
 import requests
 from datetime import datetime, timedelta
+import pytz
 from functools import lru_cache
 from newsapi import NewsApiClient
 import yfinance as yf
@@ -407,12 +408,12 @@ Format: SCORE: [number] | REASON: [text]"""
     return None, "No AI analysis available"
 
 @lru_cache(maxsize=200)
-def get_market_data(symbol, period='30d', interval='2h'):
+def get_market_data(symbol, period='30d', interval='1h'):
     """
     Fetch market data and calculate candlestick pattern analysis
     Optimized for 2-hour trading timeframe:
-    - 2h candles: perfect for short-term pattern detection
-    - 30 days history: ~360 candles for reliable pattern analysis
+    - 1h candles: Yahoo Finance doesn't support 2h, using 1h for short-term pattern detection
+    - 30 days history: ~720 candles for reliable pattern analysis
     """
     try:
         ticker = yf.Ticker(symbol)
@@ -424,10 +425,10 @@ def get_market_data(symbol, period='30d', interval='2h'):
         close = df['Close']
         current_price = float(close.iloc[-1])
         
-        # Calculate volatility (annualized for 2h candles)
+        # Calculate volatility (annualized for 1h candles)
         returns = close.pct_change()
-        # 2h candles = 12 periods per day, 365 days
-        volatility = float(returns.std() * np.sqrt(12 * 365))
+        # 1h candles = 24 periods per day, 365 days
+        volatility = float(returns.std() * np.sqrt(24 * 365))
         
         # Get candlestick pattern analysis (FREE, no API calls)
         indicators = get_all_candlestick_indicators(df)
@@ -704,7 +705,7 @@ def check_trade_outcomes():
     except:
         return
     
-    now = datetime.now()
+    now = datetime.now(pytz.UTC)
     updated = False
     verified_count = 0
     queued_count = 0
@@ -718,7 +719,14 @@ def check_trade_outcomes():
             continue
         
         entry_time = datetime.fromisoformat(trade['timestamp'])
+        # Make timezone-aware if not already
+        if entry_time.tzinfo is None:
+            entry_time = pytz.UTC.localize(entry_time)
+        
         max_check_time = datetime.fromisoformat(trade['check_time'])
+        # Make timezone-aware if not already
+        if max_check_time.tzinfo is None:
+            max_check_time = pytz.UTC.localize(max_check_time)
         
         # Calculate how long the trade has been running
         time_elapsed = (now - entry_time).total_seconds() / 3600  # hours
