@@ -135,8 +135,9 @@ CRYPTO_SYMBOL_MAP = {
 # Default symbols to always analyze
 DEFAULT_SYMBOLS = ['BTC', 'ETH', 'BNB', 'ADA', 'SOL', 'DOGE', 'XRP', 'MATIC']
 
-# Crypto News Sources
+# Crypto News Sources (Traditional + Social Media)
 CRYPTO_NEWS_SOURCES = [
+    # Traditional News
     ('CoinDesk', 'https://www.coindesk.com/arc/outboundfeeds/rss/'),
     ('Cointelegraph', 'https://cointelegraph.com/rss'),
     ('CryptoSlate', 'https://cryptoslate.com/feed/'),
@@ -147,6 +148,12 @@ CRYPTO_NEWS_SOURCES = [
     ('BeInCrypto', 'https://beincrypto.com/feed/'),
     ('CryptoPotato', 'https://cryptopotato.com/feed/'),
     ('U.Today', 'https://u.today/rss'),
+    # Additional Sources
+    ('CryptoNews', 'https://cryptonews.com/news/feed/'),
+    ('Bitcoinist', 'https://bitcoinist.com/feed/'),
+    ('CoinJournal', 'https://coinjournal.net/feed/'),
+    ('AMBCrypto', 'https://ambcrypto.com/feed/'),
+    ('CryptoDaily', 'https://cryptodaily.co.uk/feed'),
 ]
 
 # Risk Management Settings (Optimized for 2 hour SHORT-TERM trades)
@@ -232,7 +239,7 @@ def fetch_rss_feed(url, timeout=10):
 def get_crypto_news():
     """Fetch cryptocurrency news from multiple sources (optimized for 2-hour timeframe)"""
     articles = []
-    cutoff = datetime.now() - timedelta(hours=4)  # Last 4 hours (2x our trading timeframe)
+    cutoff = datetime.now() - timedelta(hours=24)  # Last 24 hours for comprehensive coverage
     
     # NewsAPI
     try:
@@ -259,7 +266,7 @@ def get_crypto_news():
     # RSS Feeds (recent only)
     for name, url in CRYPTO_NEWS_SOURCES:
         items = fetch_rss_feed(url)
-        for item in items[:10]:  # Limit to 10 most recent per source
+        for item in items[:15]:  # Limit to 15 most recent per source (more for 24h window)
             articles.append({
                 'title': item['title'],
                 'description': item['description'],
@@ -270,7 +277,7 @@ def get_crypto_news():
     # Sort articles by time (newest first)
     articles = sort_articles_by_time(articles)
     
-    print(f"Fetched {len(articles)} news articles (last 4 hours, sorted by time)")
+    print(f"Fetched {len(articles)} news articles (last 24 hours, sorted by time)")
     return articles
 
 def extract_crypto_symbols(text):
@@ -292,11 +299,12 @@ def extract_crypto_symbols(text):
 
 def analyze_sentiment_with_llm(articles, symbol=''):
     """
-    Analyze sentiment using Groq LLM with caching
-    STOPS analyzing when we hit already-analyzed news
+    Analyze sentiment using Groq LLM ONLY (no fallback to rule-based sentiment)
+    If LLM is unavailable, returns None to indicate no trade should be made
     """
     if not groq_client or not articles:
-        return 0.0, "No analysis available"
+        print("[AI] No LLM available or no articles - cannot generate signals")
+        return None, "AI unavailable - no trade signals"
     
     # Get news cache
     news_cache = get_news_cache()
@@ -306,11 +314,12 @@ def analyze_sentiment_with_llm(articles, symbol=''):
     
     # If we have cached articles, use them
     if cached_articles:
-        print(f"[CACHE] Using {len(cached_articles)} cached news analyses (saving Groq API calls)")
+        print(f"[CACHE] Using {len(cached_articles)} cached AI analyses (saving Groq API calls)")
     
     # Only analyze NEW articles (not in cache)
     if not new_articles and not cached_articles:
-        return 0.0, "No articles to analyze"
+        print("[AI] No articles to analyze")
+        return None, "No news articles available"
     
     all_scores = []
     all_reasons = []
@@ -322,7 +331,7 @@ def analyze_sentiment_with_llm(articles, symbol=''):
     
     # Analyze new articles if any
     if new_articles:
-        print(f"[CACHE] Analyzing {len(new_articles)} new articles with Groq")
+        print(f"[AI] Analyzing {len(new_articles)} new articles with Groq AI")
         
         # Prepare article summaries for NEW articles only
         article_texts = []
@@ -333,13 +342,13 @@ def analyze_sentiment_with_llm(articles, symbol=''):
         
         combined_text = "\n".join(article_texts)
         
-        prompt = f"""Analyze the sentiment of these cryptocurrency news articles about {symbol if symbol else 'the crypto market'}:
+        prompt = f"""Analyze these cryptocurrency news articles about {symbol if symbol else 'the crypto market'}:
 
 {combined_text}
 
 Provide:
-1. Overall sentiment score from -1.0 (very bearish) to +1.0 (very bullish)
-2. Brief reasoning (2-3 sentences)
+1. Overall market sentiment score from -1.0 (very bearish) to +1.0 (very bullish)
+2. Brief AI reasoning (2-3 sentences explaining the analysis)
 
 Format: SCORE: [number] | REASON: [text]"""
         
@@ -355,19 +364,23 @@ Format: SCORE: [number] | REASON: [text]"""
             
             # Check if result is None
             if result is None:
-                score = 0.0
-                reason = "No response from LLM"
-            else:
-                # Parse response
-                score_match = re.search(r'SCORE:\s*([-+]?[0-9]*\.?[0-9]+)', result)
-                reason_match = re.search(r'REASON:\s*(.+)', result, re.S)
-                
-                score = float(score_match.group(1)) if score_match else 0.0
-                reason = reason_match.group(1).strip() if reason_match else result
-                
-                # Clamp score
-                score = max(-1.0, min(1.0, score))
-                reason = reason[:200]
+                print("[AI] No response from LLM - cannot generate signals")
+                return None, "AI failed to respond"
+            
+            # Parse response
+            score_match = re.search(r'SCORE:\s*([-+]?[0-9]*\.?[0-9]+)', result)
+            reason_match = re.search(r'REASON:\s*(.+)', result, re.S)
+            
+            if not score_match:
+                print("[AI] Could not parse AI response - cannot generate signals")
+                return None, "AI response parse error"
+            
+            score = float(score_match.group(1))
+            reason = reason_match.group(1).strip() if reason_match else result
+            
+            # Clamp score
+            score = max(-1.0, min(1.0, score))
+            reason = reason[:200]
             
             # Cache the analysis for each new article
             for article in new_articles:
@@ -379,10 +392,11 @@ Format: SCORE: [number] | REASON: [text]"""
         except Exception as e:
             error_msg = str(e)
             if '403' in error_msg or 'Forbidden' in error_msg:
-                print(f"[WARNING] Groq API access denied - check API key or rate limits")
+                print(f"[AI] Groq API access denied - check API key or rate limits")
             else:
-                print(f"LLM sentiment error: {e}")
-            return 0.0, "LLM unavailable, using fallback sentiment"
+                print(f"[AI] Error: {e}")
+            print("[AI] AI unavailable - cannot generate trade signals")
+            return None, "AI unavailable"
     
     # Combine all scores (cached + new)
     if all_scores:
@@ -390,28 +404,8 @@ Format: SCORE: [number] | REASON: [text]"""
         combined_reason = " | ".join(all_reasons[:3])  # Top 3 reasons
         return avg_score, combined_reason
     
-    return 0.0, "No analysis available"
-        else:
-            print(f"LLM sentiment error: {e}")
-        return 0.0, "LLM unavailable, using fallback sentiment"
-
-def simple_sentiment(text):
-    """Simple rule-based sentiment analysis as fallback"""
-    text_lower = text.lower()
-    
-    positive = ['bullish', 'surge', 'rally', 'gain', 'rise', 'up', 'high', 'pump',
-                'adoption', 'breakthrough', 'partnership', 'launch', 'success']
-    negative = ['bearish', 'crash', 'drop', 'fall', 'down', 'low', 'dump', 'hack',
-                'scam', 'ban', 'regulation', 'sell', 'loss', 'decline']
-    
-    pos_count = sum(1 for word in positive if word in text_lower)
-    neg_count = sum(1 for word in negative if word in text_lower)
-    
-    total = pos_count + neg_count
-    if total == 0:
-        return 0.0
-    
-    return (pos_count - neg_count) / total
+    print("[AI] No AI analysis results available")
+    return None, "No AI analysis available"
 
 @lru_cache(maxsize=200)
 def get_market_data(symbol, period='30d', interval='2h'):
@@ -536,12 +530,12 @@ def calculate_trade_signal(sentiment_score, news_count, market_data, symbol='', 
     else:
         expected_return *= (1 + abs(tech_score_normalized) * 0.5)
     
-    # Calculate stop loss with adaptive risk (optimized for 2-4h SHORT-TERM trades)
+    # Calculate stop loss with adaptive risk (optimized for 2h SHORT-TERM trades)
     # Use ATR as primary method with reasonable bounds for short-term trading
-    atr_stop = market_data['atr_pct'] * 1.2  # 1.2x ATR - tighter for 2-4h trades
+    atr_stop = market_data['atr_pct'] * 1.2  # 1.2x ATR - tighter for 2h trades
     
     # Ensure stop loss is tight for short-term trades
-    # For 2-4h crypto trades: 0.8% min, 2.5% max
+    # For 2h crypto trades: 0.8% min, 2.5% max
     stop_pct = max(MIN_STOP_PCT, min(atr_stop, MAX_STOP_PCT))
     
     # Apply adaptive risk adjustment from learning system
@@ -553,7 +547,7 @@ def calculate_trade_signal(sentiment_score, news_count, market_data, symbol='', 
     stop_pct *= sl_adjustment
     
     # Final validation: ensure stop is within acceptable range for SHORT-TERM trades
-    stop_pct = max(0.008, min(stop_pct, 0.025))  # Hard limits: 0.8% to 2.5% for 2-4h
+    stop_pct = max(0.008, min(stop_pct, 0.025))  # Hard limits: 0.8% to 2.5% for 2h
     
     # Calculate take profit - TARGET 1:3 MINIMUM R/R (can be higher for strong signals)
     # Expected profit is driven by news/sentiment (PRIMARY signal source)
@@ -565,8 +559,8 @@ def calculate_trade_signal(sentiment_score, news_count, market_data, symbol='', 
     expected_profit *= tp_adjustment
     
     # Consider recent actual price movements (use ATR as proxy for realistic movement)
-    # For 2-4h timeframe, typical movements are 1-3x ATR
-    realistic_movement = market_data['atr_pct'] * 2.5  # 2.5x ATR is realistic for 2-4h
+    # For 2h timeframe, typical movements are 1-3x ATR
+    realistic_movement = market_data['atr_pct'] * 2.5  # 2.5x ATR is realistic for 2h
     if expected_profit > realistic_movement * 2:
         # Cap overly ambitious TPs to 2x realistic movement
         expected_profit = realistic_movement * 2
@@ -577,7 +571,7 @@ def calculate_trade_signal(sentiment_score, news_count, market_data, symbol='', 
     if expected_profit < min_profit_for_target_rr:
         expected_profit = min_profit_for_target_rr  # Enforce 1:3 minimum only if below
     
-    # Cap maximum take profit to be realistic for 2-4h SHORT-TERM trades
+    # Cap maximum take profit to be realistic for 2h SHORT-TERM trades
     # Max 5% BUT must respect minimum R/R ratio
     # If stop loss is high (e.g., 2.5%), we need higher TP to maintain 3:1 R/R (7.5%)
     # Strong signals can aim for higher R/R (4:1, 5:1, even 6:1)
@@ -591,7 +585,7 @@ def calculate_trade_signal(sentiment_score, news_count, market_data, symbol='', 
     if rr_ratio < TARGET_RR_RATIO:
         return None  # Not worth the risk
     
-    # Leverage recommendation - More aggressive for 4h timeframe
+    # Leverage recommendation - Optimized for 2h timeframe
     # Formula: Use R/R ratio + confidence to determine leverage
     confidence_factor = combined['confidence']  # 0 to 1
     
@@ -605,7 +599,7 @@ def calculate_trade_signal(sentiment_score, news_count, market_data, symbol='', 
     if llm_analysis and llm_analysis.get('risk') == 'HIGH':
         base_leverage = max(2, base_leverage // 2)  # Halve but minimum 2x
     
-    leverage = max(2, base_leverage)  # Minimum 2x leverage (4h timeframe justifies it)
+    leverage = max(2, base_leverage)  # Minimum 2x leverage (2h timeframe allows this)
     
     # NEW: Apply entry adjustment from learning system
     # If entries not being reached, move entry closer to current price
@@ -664,7 +658,7 @@ def log_trade(symbol, signal, sentiment_reason='', indicators_data=None):
         'technical_score': signal['technical_score'],
         'sentiment_reason': sentiment_reason,
         'status': 'open',
-        'check_time': (datetime.now() + timedelta(hours=4)).isoformat(),
+        'check_time': (datetime.now() + timedelta(hours=2)).isoformat(),  # 2h trade duration
         'indicators': indicators_data  # Store for learning
     }
     
@@ -703,7 +697,7 @@ def check_trade_outcomes():
     - If entry NOT reached yet → keep in queue
     - If entry reached but no TP/SL hit yet → keep in queue
     - ONLY trains on completed trades (TP or SL hit)
-    - Maximum 4h wait time before final check
+    - Maximum 2h wait time before final check
     """
     try:
         with open(TRADE_LOG_FILE, 'r') as f:
@@ -787,8 +781,8 @@ def check_trade_outcomes():
             # SMART QUEUING SYSTEM:
             # 1. If entry NOT reached yet
             if not entry_reached:
-                # Check if max time (4h) has elapsed
-                if time_elapsed >= 4.0:
+                # Check if max time (2h) has elapsed
+                if time_elapsed >= 2.0:
                     # Max time reached, entry never filled
                     trade['status'] = 'entry_not_reached'
                     trade['exit_price'] = current_price
@@ -843,8 +837,8 @@ def check_trade_outcomes():
             
             if not trade_completed:
                 # Entry reached but trade still in progress
-                if time_elapsed >= 4.0:
-                    # Max time reached, close at current price
+                if time_elapsed >= 2.0:
+                    # Max time reached (2h), close at current price
                     if direction == 'LONG':
                         price_change = (current_price - entry_price) / entry_price
                     else:  # SHORT
@@ -1161,8 +1155,8 @@ def main():
     print(f"{'='*60}\n")
     
     # Create summary message for Telegram
-    summary = f"""[NEWS] NEWS-DRIVEN TRADING SYSTEM (85-90% NEWS/AI)
-[TIME] {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC | Duration: 2-4H
+    summary = f"""[AI] AI-DRIVEN TRADING SYSTEM (News: 24h | Trade: 2h)
+[TIME] {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC | Duration: 2H
 [TARGET] {len(signals)} Signals Found\n"""
     
     # Show top signals
