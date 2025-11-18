@@ -552,17 +552,28 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
             
             if entry_fail_rate > 0.3:
                 # Too many trades not opening - entry prices too far
-                # Make entries more conservative (closer to current price)
-                self.strategy_adjustments['entry_adjustment_factor'] = min(0.5, 
-                    self.strategy_adjustments['entry_adjustment_factor'] - 0.1)
-                entry_reason = "Entry too far, moving closer to market"
-            elif entry_fail_rate < 0.05:
-                # Very few failed entries - can be more aggressive
-                self.strategy_adjustments['entry_adjustment_factor'] = max(1.0,
-                    self.strategy_adjustments['entry_adjustment_factor'] + 0.05)
-                entry_reason = "Entry timing good, can be more aggressive"
+                # Gradual adjustment: reduce by 10% each time (not fixed to 0.5x)
+                current = self.strategy_adjustments['entry_adjustment_factor']
+                self.strategy_adjustments['entry_adjustment_factor'] = max(0.7, current - 0.1)
+                entry_reason = f"Entry too far ({entry_fail_rate*100:.0f}%), reducing gradually"
+            elif entry_fail_rate > 0.15:
+                # Moderate failures - small adjustment
+                current = self.strategy_adjustments['entry_adjustment_factor']
+                self.strategy_adjustments['entry_adjustment_factor'] = max(0.85, current - 0.05)
+                entry_reason = f"Entry slightly far ({entry_fail_rate*100:.0f}%), minor adjustment"
+            elif entry_fail_rate <= 0.05:
+                # Excellent rate - DON'T CHANGE IT! It's working well
+                # Only slowly recover toward 1.0 if we had reduced it before
+                current = self.strategy_adjustments['entry_adjustment_factor']
+                if current < 1.0:
+                    # Gradually return to baseline (1.0) if we're below it
+                    self.strategy_adjustments['entry_adjustment_factor'] = min(1.0, current + 0.02)
+                    entry_reason = f"Entry working well ({entry_fail_rate*100:.0f}%), slowly returning to baseline"
+                else:
+                    # Already at baseline (1.0), don't touch it!
+                    entry_reason = f"Entry excellent ({entry_fail_rate*100:.0f}%), maintaining"
             else:
-                entry_reason = "Entry timing acceptable"
+                entry_reason = f"Entry timing acceptable ({entry_fail_rate*100:.0f}%)"
         else:
             entry_reason = "Insufficient data"
         
@@ -572,14 +583,26 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
             
             if sl_early_rate > 0.3:
                 # Too many SL hits - stops too tight
-                self.strategy_adjustments['sl_adjustment_factor'] = min(1.3,
-                    self.strategy_adjustments['sl_adjustment_factor'] + 0.1)
-                sl_reason = "SL hit too often, widening stops"
-            elif sl_early_rate < 0.1 and direction_accuracy > 0.6:
-                # Few SL hits and good direction accuracy - can tighten stops
-                self.strategy_adjustments['sl_adjustment_factor'] = max(0.8,
-                    self.strategy_adjustments['sl_adjustment_factor'] - 0.05)
-                sl_reason = "Direction good, can tighten stops"
+                # Gradual widening: add 10% each time
+                current = self.strategy_adjustments['sl_adjustment_factor']
+                self.strategy_adjustments['sl_adjustment_factor'] = min(1.5, current + 0.1)
+                sl_reason = f"SL hit often ({sl_early_rate*100:.0f}%), widening gradually"
+            elif sl_early_rate > 0.15:
+                # Moderate SL hits - small adjustment
+                current = self.strategy_adjustments['sl_adjustment_factor']
+                self.strategy_adjustments['sl_adjustment_factor'] = min(1.3, current + 0.05)
+                sl_reason = f"SL hit moderately ({sl_early_rate*100:.0f}%), minor widening"
+            elif sl_early_rate < 0.08 and direction_accuracy > 0.65:
+                # Very few SL hits AND good direction - can CAUTIOUSLY tighten
+                # But only if we widened stops before (returning to baseline)
+                current = self.strategy_adjustments['sl_adjustment_factor']
+                if current > 1.0:
+                    # Gradually return to baseline if we had widened before
+                    self.strategy_adjustments['sl_adjustment_factor'] = max(1.0, current - 0.03)
+                    sl_reason = f"SL working well ({sl_early_rate*100:.0f}%), slowly returning to baseline"
+                else:
+                    # Already at or below baseline - don't tighten further!
+                    sl_reason = f"SL excellent ({sl_early_rate*100:.0f}%), maintaining"
             else:
                 sl_reason = "SL width acceptable"
         else:

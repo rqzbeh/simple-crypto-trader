@@ -856,7 +856,6 @@ def check_trade_outcomes():
                         actual_profit = -actual_profit
                     trade['status'] = 'completed'
                     trade['exit_price'] = take_profit
-                failure_reason = None  # Success!
                     failure_reason = None  # Success!
             
             # Only proceed with training if trade is completed or max time reached
@@ -940,10 +939,39 @@ def format_trade_message(symbol, signal, sentiment_reason='', signal_number=None
     # Confidence emoji
     confidence_emoji = '✅' if signal['confidence'] >= 0.7 else '🎯'
     
-    # Format numbers more compactly (without $ for easy copying)
-    entry = f"{signal['entry_price']:.6f}".rstrip('0').rstrip('.')
-    stop_loss = f"{signal['stop_loss']:.6f}".rstrip('0').rstrip('.')
-    take_profit = f"{signal['take_profit']:.6f}".rstrip('0').rstrip('.')
+    # Smart formatting: Add more decimals if values look the same after rounding
+    def smart_format_price(price, reference_prices=None):
+        """Format price with enough decimals to show distinction"""
+        # Start with 6 decimals
+        for decimals in [6, 8, 10, 12]:
+            formatted = f"{price:.{decimals}f}".rstrip('0').rstrip('.')
+            
+            # If we have reference prices, check if this formatted value is distinct
+            if reference_prices:
+                # Format reference prices with same decimals
+                ref_formatted = [f"{ref:.{decimals}f}".rstrip('0').rstrip('.') for ref in reference_prices]
+                # If current price is distinct from all references, we're good
+                if formatted not in ref_formatted:
+                    return formatted
+            else:
+                return formatted
+        
+        # Fallback: 12 decimals max
+        return f"{price:.12f}".rstrip('0').rstrip('.')
+    
+    # Format with smart precision
+    entry_price = signal['entry_price']
+    stop_loss = signal['stop_loss']
+    take_profit = signal['take_profit']
+    
+    # Format entry first
+    entry = smart_format_price(entry_price)
+    
+    # Format SL ensuring it's different from entry
+    stop_loss_str = smart_format_price(stop_loss, [entry_price])
+    
+    # Format TP ensuring it's different from both entry and SL
+    take_profit_str = smart_format_price(take_profit, [entry_price, stop_loss])
     
     # Build message with signal number if provided
     signal_header = f"Signal #{signal_number}" if signal_number else "Signal"
@@ -953,9 +981,9 @@ def format_trade_message(symbol, signal, sentiment_reason='', signal_number=None
 {direction_emoji} {symbol} - {direction_text}
 ━━━━━━━━━━━━━━━━━━━━
 
-💵 Entry: $`{entry}`
-🛑 Stop Loss: $`{stop_loss}` ({signal['stop_pct']*100:.2f}%)
-🎯 Take Profit: $`{take_profit}` ({signal['expected_profit_pct']*100:.2f}%)
+💵 Entry: ${entry}
+🛑 Stop Loss: ${stop_loss_str} ({signal['stop_pct']*100:.2f}%)
+🎯 Take Profit: ${take_profit_str} ({signal['expected_profit_pct']*100:.2f}%)
 
 ⚡️ Leverage: {signal['leverage']}x
 📊 R/R: 1:{signal['rr_ratio']:.1f} {rr_quality}
