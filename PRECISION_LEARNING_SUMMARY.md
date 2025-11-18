@@ -47,9 +47,14 @@ realistic_movement = atr_pct * 2.5  # 2.5x ATR for 2-4h
 if expected_profit > realistic_movement * 2:
     expected_profit = realistic_movement * 2
 
-# Reduced max TP from 7.5% to 5% for better precision
-expected_profit = min(expected_profit, 0.05)
+# Dynamic TP cap that ALWAYS respects 3:1 minimum R/R
+# If SL is 1%, cap is 5% (gives 5:1 R/R)
+# If SL is 2.5%, cap is 7.5% (maintains 3:1 R/R)
+max_tp_cap = max(0.05, stop_pct * 3.0)
+expected_profit = min(expected_profit, max_tp_cap)
 ```
+
+**IMPORTANT**: The TP cap is dynamic and ensures the minimum 3:1 R/R is **NEVER** violated, even with aggressive TP reductions from precision learning.
 
 ### 4. Enhanced Outcome Verification
 
@@ -97,6 +102,26 @@ trade_result = {
 2. **Separate Metrics**: System knows if problem is direction or TP precision
 3. **Continuous Learning**: Adapts to changing market conditions
 4. **More Realistic**: Based on actual market behavior, not just theory
+5. **GUARANTEED 3:1 R/R**: Dynamic TP cap ensures minimum R/R is NEVER violated
+
+## Protection of Minimum R/R Ratio
+
+**Critical Design Feature**: The system ALWAYS maintains the minimum 3:1 risk/reward ratio.
+
+### How It Works:
+```
+If stop_loss = 1.0% → TP cap = max(5%, 3.0%) = 5.0%  (gives 5:1 R/R)
+If stop_loss = 1.5% → TP cap = max(5%, 4.5%) = 5.0%  (gives 3.3:1 R/R)
+If stop_loss = 2.0% → TP cap = max(5%, 6.0%) = 6.0%  (gives 3:1 R/R)
+If stop_loss = 2.5% → TP cap = max(5%, 7.5%) = 7.5%  (gives 3:1 R/R)
+```
+
+### Key Points:
+- TP precision learning reduces TPs when they're too ambitious
+- BUT the minimum R/R enforcement ensures we never go below 3:1
+- When volatility is high (larger SL), TP cap increases automatically
+- The system can still reject trades if conditions aren't favorable
+- **Result**: Win rate improves WITHOUT sacrificing the 3:1 minimum R/R
 
 ## Answers to User Questions
 

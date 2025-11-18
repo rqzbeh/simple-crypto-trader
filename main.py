@@ -534,9 +534,11 @@ def calculate_trade_signal(sentiment_score, news_count, market_data, symbol='', 
         expected_profit = min_profit_for_target_rr  # Enforce 1:3 minimum only if below
     
     # Cap maximum take profit to be realistic for 2-4h SHORT-TERM trades
-    # Max 5% (reduced from 7.5% for better precision)
+    # Max 5% BUT must respect minimum R/R ratio
+    # If stop loss is high (e.g., 2.5%), we need higher TP to maintain 3:1 R/R (7.5%)
     # Strong signals can aim for higher R/R (4:1, 5:1, even 6:1)
-    expected_profit = min(expected_profit, 0.05)
+    max_tp_cap = max(0.05, min_profit_for_target_rr)  # At least 5% or what's needed for 3:1 R/R
+    expected_profit = min(expected_profit, max_tp_cap)
     
     # Risk/Reward ratio (will be >= 3:1, can be much higher)
     rr_ratio = expected_profit / stop_pct if stop_pct > 0 else 0
