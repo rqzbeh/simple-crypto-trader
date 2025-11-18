@@ -19,10 +19,18 @@ class CryptoMarketAnalyzer:
         self.groq_client = groq_client
         self.performance_history = []
         self.indicator_performance = {}  # Track each indicator's accuracy
+        self.precision_metrics = {
+            'direction_accuracy': [],
+            'tp_precision': [],
+            'entry_timing': [],
+            'avg_tp_overshoot': 0.0,  # How much TP is typically too far
+            'avg_price_movement': 0.0  # Actual average price movement
+        }
         self.strategy_adjustments = {
             'indicator_weights': {},
             'risk_multiplier': 1.0,
-            'confidence_threshold': 0.3
+            'confidence_threshold': 0.3,
+            'tp_adjustment_factor': 1.0  # NEW: Adjust TP based on historical precision
         }
         self.last_optimization = datetime.now()
         self.optimization_interval = 20  # Optimize every 20 trades
@@ -272,11 +280,50 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
         """
         Adaptive learning from trade outcomes
         Tracks overall performance AND individual indicator accuracy
+        NOW ALSO TRACKS: TP/SL precision, entry timing, and failure reasons
         """
         self.performance_history.append({
             'timestamp': datetime.now().isoformat(),
             'result': trade_result
         })
+        
+        # Track precision metrics (NEW: separate direction from TP precision)
+        if 'profit' in trade_result:
+            profit = trade_result['profit']
+            direction = trade_result.get('direction', 'LONG')
+            
+            # Track direction accuracy
+            direction_correct = profit > 0
+            self.precision_metrics['direction_accuracy'].append(1 if direction_correct else 0)
+            
+            # Track TP precision: did we reach TP or fall short?
+            if 'tp_distance' in trade_result and 'actual_movement' in trade_result:
+                tp_distance = abs(trade_result['tp_distance'])  # How far TP was set
+                actual_movement = abs(trade_result['actual_movement'])  # How far price actually moved
+                
+                # Calculate TP precision (1.0 = perfect, <1.0 = TP too far, >1.0 = TP too conservative)
+                if tp_distance > 0:
+                    tp_precision = actual_movement / tp_distance
+                    self.precision_metrics['tp_precision'].append(tp_precision)
+                    
+                    # Track overshoot (how much TP is typically too ambitious)
+                    if tp_precision < 1.0:
+                        overshoot = 1.0 - tp_precision
+                        if self.precision_metrics['avg_tp_overshoot'] == 0:
+                            self.precision_metrics['avg_tp_overshoot'] = overshoot
+                        else:
+                            # Exponential moving average
+                            self.precision_metrics['avg_tp_overshoot'] = (
+                                0.7 * self.precision_metrics['avg_tp_overshoot'] + 0.3 * overshoot
+                            )
+                
+                # Track actual average price movement for this timeframe
+                if self.precision_metrics['avg_price_movement'] == 0:
+                    self.precision_metrics['avg_price_movement'] = actual_movement
+                else:
+                    self.precision_metrics['avg_price_movement'] = (
+                        0.8 * self.precision_metrics['avg_price_movement'] + 0.2 * actual_movement
+                    )
         
         # Track indicator performance if available
         if 'indicators' in trade_result and 'profit' in trade_result:
@@ -374,10 +421,51 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
             else:
                 self.strategy_adjustments['risk_multiplier'] = 1.0
         
+        # NEW: Adjust TP based on precision metrics
+        if self.precision_metrics['tp_precision']:
+            # Calculate average TP precision from recent trades
+            recent_tp_precision = self.precision_metrics['tp_precision'][-10:]
+            avg_tp_precision = sum(recent_tp_precision) / len(recent_tp_precision)
+            
+            # If TP is consistently too far (avg < 0.7), reduce it
+            if avg_tp_precision < 0.7:
+                # TPs are too ambitious - reduce by the overshoot amount
+                overshoot = self.precision_metrics['avg_tp_overshoot']
+                self.strategy_adjustments['tp_adjustment_factor'] = max(0.6, 1.0 - overshoot * 0.8)
+                tp_reason = "TPs too ambitious, reducing"
+            elif avg_tp_precision < 0.85:
+                # TPs slightly too far - minor reduction
+                self.strategy_adjustments['tp_adjustment_factor'] = max(0.75, 
+                    self.strategy_adjustments['tp_adjustment_factor'] - 0.05)
+                tp_reason = "TPs slightly high, adjusting"
+            elif avg_tp_precision > 1.2:
+                # TPs too conservative - we're hitting them too easily
+                self.strategy_adjustments['tp_adjustment_factor'] = min(1.2,
+                    self.strategy_adjustments['tp_adjustment_factor'] + 0.05)
+                tp_reason = "TPs too conservative, increasing"
+            else:
+                # TPs are well-calibrated
+                tp_reason = "TP precision good"
+            
+            # Calculate direction accuracy separately
+            if self.precision_metrics['direction_accuracy']:
+                recent_direction = self.precision_metrics['direction_accuracy'][-20:]
+                direction_accuracy = sum(recent_direction) / len(recent_direction)
+            else:
+                direction_accuracy = 0.5
+        else:
+            tp_reason = "Insufficient data"
+            direction_accuracy = 0.5
+        
         print(f"\n📊 Strategy Auto-Adjusted:")
         print(f"   Win Rate: {win_rate*100:.1f}% | Avg Profit: {avg_profit*100:.2f}%")
+        print(f"   Direction Accuracy: {direction_accuracy*100:.1f}%")
+        if self.precision_metrics['tp_precision']:
+            print(f"   TP Precision: {avg_tp_precision*100:.1f}% ({tp_reason})")
+            print(f"   Avg Price Movement: {self.precision_metrics['avg_price_movement']*100:.2f}%")
         print(f"   Confidence Threshold: {self.strategy_adjustments['confidence_threshold']:.2f}")
-        print(f"   Risk Multiplier: {self.strategy_adjustments['risk_multiplier']:.2f}\n")
+        print(f"   Risk Multiplier: {self.strategy_adjustments['risk_multiplier']:.2f}")
+        print(f"   TP Adjustment: {self.strategy_adjustments['tp_adjustment_factor']:.2f}x\n")
     
     def _optimize_indicator_weights(self):
         """
@@ -446,13 +534,25 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
         return self.strategy_adjustments['indicator_weights'].get(indicator, 1.0)
     
     def get_performance_summary(self) -> Dict[str, Any]:
-        """Get comprehensive performance summary"""
+        """Get comprehensive performance summary including precision metrics"""
         if not self.performance_history:
             return {'status': 'No trades yet'}
         
         recent = self.performance_history[-20:]
         profits = [t['result'].get('profit', 0) for t in recent]
         wins = sum(1 for p in profits if p > 0)
+        
+        # Calculate precision metrics
+        precision_summary = {}
+        if self.precision_metrics['direction_accuracy']:
+            recent_dir = self.precision_metrics['direction_accuracy'][-20:]
+            precision_summary['direction_accuracy'] = sum(recent_dir) / len(recent_dir)
+        
+        if self.precision_metrics['tp_precision']:
+            recent_tp = self.precision_metrics['tp_precision'][-20:]
+            precision_summary['tp_precision'] = sum(recent_tp) / len(recent_tp)
+            precision_summary['avg_tp_overshoot'] = self.precision_metrics['avg_tp_overshoot']
+            precision_summary['avg_price_movement'] = self.precision_metrics['avg_price_movement']
         
         return {
             'total_trades': len(self.performance_history),
@@ -465,5 +565,7 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
                 reverse=True
             )[:5],
             'confidence_threshold': self.strategy_adjustments['confidence_threshold'],
-            'risk_multiplier': self.strategy_adjustments['risk_multiplier']
+            'risk_multiplier': self.strategy_adjustments['risk_multiplier'],
+            'tp_adjustment_factor': self.strategy_adjustments.get('tp_adjustment_factor', 1.0),
+            'precision_metrics': precision_summary
         }

@@ -514,6 +514,19 @@ def calculate_trade_signal(sentiment_score, news_count, market_data, symbol='', 
     # Calculate take profit - TARGET 1:3 MINIMUM R/R (can be higher for strong signals)
     # Expected profit is driven by news/sentiment (PRIMARY signal source)
     expected_profit = abs(expected_return)
+    
+    # NEW: Apply TP adjustment factor from learning system
+    # If system learned that TPs are too far, reduce them
+    tp_adjustment = adaptive_params.get('tp_adjustment_factor', 1.0)
+    expected_profit *= tp_adjustment
+    
+    # Consider recent actual price movements (use ATR as proxy for realistic movement)
+    # For 2-4h timeframe, typical movements are 1-3x ATR
+    realistic_movement = market_data['atr_pct'] * 2.5  # 2.5x ATR is realistic for 2-4h
+    if expected_profit > realistic_movement * 2:
+        # Cap overly ambitious TPs to 2x realistic movement
+        expected_profit = realistic_movement * 2
+    
     min_profit_for_target_rr = stop_pct * TARGET_RR_RATIO  # 1:3 minimum
     
     # Ensure we meet MINIMUM R/R ratio (but allow higher if signal is strong)
@@ -521,9 +534,11 @@ def calculate_trade_signal(sentiment_score, news_count, market_data, symbol='', 
         expected_profit = min_profit_for_target_rr  # Enforce 1:3 minimum only if below
     
     # Cap maximum take profit to be realistic for 2-4h SHORT-TERM trades
-    # Max 7.5% (but can go lower based on signal strength)
+    # Max 5% BUT must respect minimum R/R ratio
+    # If stop loss is high (e.g., 2.5%), we need higher TP to maintain 3:1 R/R (7.5%)
     # Strong signals can aim for higher R/R (4:1, 5:1, even 6:1)
-    expected_profit = min(expected_profit, 0.075)
+    max_tp_cap = max(0.05, min_profit_for_target_rr)  # At least 5% or what's needed for 3:1 R/R
+    expected_profit = min(expected_profit, max_tp_cap)
     
     # Risk/Reward ratio (will be >= 3:1, can be much higher)
     rr_ratio = expected_profit / stop_pct if stop_pct > 0 else 0
@@ -572,7 +587,8 @@ def calculate_trade_signal(sentiment_score, news_count, market_data, symbol='', 
         'method': combined.get('method', 'basic'),
         'llm_reasoning': combined.get('llm_reasoning', ''),
         'llm_risk': combined.get('llm_risk', 'UNKNOWN'),
-        'adaptive_threshold': adaptive_params['confidence_threshold']
+        'adaptive_threshold': adaptive_params['confidence_threshold'],
+        'tp_adjustment': tp_adjustment  # Store for learning
     }
 
 def log_trade(symbol, signal, sentiment_reason='', indicators_data=None):
@@ -700,7 +716,17 @@ def check_trade_outcomes():
             trade['actual_profit'] = actual_profit
             trade['verified_at'] = now.isoformat()
             
-            # Feed to learning system
+            # Calculate precision metrics for learning
+            # NEW: Track TP distance vs actual movement
+            tp_price = trade['take_profit']
+            if direction == 'LONG':
+                tp_distance = (tp_price - entry_price) / entry_price
+                actual_movement = (current_price - entry_price) / entry_price
+            else:  # SHORT
+                tp_distance = (entry_price - tp_price) / entry_price
+                actual_movement = (entry_price - current_price) / entry_price
+            
+            # Feed to learning system with precision data
             if market_analyzer and trade.get('indicators'):
                 trade_result = {
                     'profit': actual_profit,
@@ -709,7 +735,12 @@ def check_trade_outcomes():
                     'direction': direction,
                     'confidence': trade.get('confidence', 0),
                     'entry_price': entry_price,
-                    'exit_price': trade['exit_price']
+                    'exit_price': trade['exit_price'],
+                    # NEW: Precision tracking
+                    'tp_distance': tp_distance,  # How far TP was set
+                    'actual_movement': actual_movement,  # How far price actually moved
+                    'hit_tp': hit_tp,  # Did it reach TP?
+                    'hit_sl': hit_sl   # Did it hit SL?
                 }
                 market_analyzer.learn_from_trade(trade_result)
             

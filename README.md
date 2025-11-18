@@ -250,8 +250,19 @@ Agreement Boost: +5% confidence when all methods align
 ### Adaptive Learning
 - Monitors win rate from past 20 trades
 - Adjusts confidence thresholds dynamically
+- **NEW: Tracks TP precision separately from direction accuracy**
+- **NEW: Learns actual price movements in 2-4h timeframe**
+- **NEW: Auto-adjusts TP targets based on historical precision (0.6x-1.2x)**
 - Modifies risk multipliers based on volatility
+- Optimizes indicator weights based on performance
 - Self-optimizes without manual intervention
+
+**Precision Learning:**
+The system now distinguishes between wrong direction vs imprecise TP levels:
+- If direction is correct but TPs too far → Reduces TP targets (e.g., by 30%)
+- If TPs too conservative → Increases TP targets gradually
+- Learns from actual market behavior, not just wins/losses
+- Example: If BTC predicted to move 3% but only moves 2% consistently → Future TPs adjusted to 2.1%
 
 ---
 
