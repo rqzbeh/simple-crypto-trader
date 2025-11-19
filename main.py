@@ -1011,19 +1011,17 @@ def format_trade_message(symbol, signal, sentiment_reason='', signal_number=None
     # Build message with signal number if provided
     signal_header = f"Signal #{signal_number}" if signal_number else "Signal"
     
-    # Format for telegram with code block for easy copying
+    # Format for telegram with individual values copyable (without $ sign)
     msg = f"""{signal_header}
 ━━━━━━━━━━━━━━━━━━━━
 {direction_emoji} {symbol} - {direction_text}
 ━━━━━━━━━━━━━━━━━━━━
 
-```
-Entry: ${entry}
-Stop Loss: ${stop_loss_str} ({signal['stop_pct']*100:.2f}%)
-Take Profit: ${take_profit_str} ({signal['expected_profit_pct']*100:.2f}%)
+Entry: `{entry}`
+Stop Loss: `{stop_loss_str}` ({signal['stop_pct']*100:.2f}%)
+Take Profit: `{take_profit_str}` ({signal['expected_profit_pct']*100:.2f}%)
 Leverage: {signal['leverage']}x
 R/R: 1:{signal['rr_ratio']:.1f} {rr_quality}
-```
 
 {confidence_emoji} Confidence: {signal['confidence']*100:.1f}%
 📰 News: {signal['sentiment_score']:.2f}
