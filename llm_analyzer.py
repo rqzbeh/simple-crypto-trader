@@ -166,6 +166,7 @@ RISK: [LOW/MEDIUM/HIGH]
 TIMEFRAME: [HOURS/DAYS/WEEK]"""
 
         try:
+            print("[AI] Using model: deepseek-r1:70b (optimized for market reasoning)")
             # Use OllamaFreeAPI chat method
             # DeepSeek-R1 70B is superior for reasoning and market analysis
             response = self.llm_client.chat(

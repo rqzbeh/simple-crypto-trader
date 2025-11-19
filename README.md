@@ -32,15 +32,17 @@ An intelligent cryptocurrency trading signal generator that combines news sentim
 - **ATR-Based Stops**: Volatility-adjusted risk management
 
 ### 🤖 Hybrid Intelligence System
-- **10 Optimized Indicators**: Conflict-free technical analysis
-- **AI Market Analysis**: OllamaFreeAPI (DeepSeek-R1 70B + Qwen2.5 7B) for superior reasoning and analysis
+- **AI-Powered Analysis**: OllamaFreeAPI (DeepSeek-R1 70B + Qwen2.5 7B) for superior reasoning and market sentiment analysis
+- **News-Driven Signals**: Primary signal generation from news sentiment and AI interpretation (85-90%)
+- **Technical Validation**: 10 optimized indicators validate setups and calculate precise entry/exit levels (10-15%)
 - **Adaptive Learning**: Self-adjusts parameters based on historical performance
 - **Precision Tracking**: Monitors entry timing, stop loss, and take profit accuracy
 - **Performance-Based**: Automatically adjusts strategy based on trade outcomes
 
-### 📊 Technical Excellence
-- **Proven Indicators**: Stochastic RSI, EMA, MACD, Bollinger Bands, VWAP, Supertrend, ADX
-- **No Redundancy**: Each indicator serves a unique purpose
+### 📊 Technical Validation Layer
+- **Purpose**: Filter contradictory setups and calculate precise entry, stop loss, and take profit levels
+- **Supporting Indicators**: Stochastic RSI, EMA, MACD, Bollinger Bands, VWAP, Supertrend, ADX, ATR, OBV, Pivot Points
+- **Weight in Decisions**: 10-15% (validation and level calculation only)
 - **No Conflicts**: All indicators are independent and complementary
 - **Real-Time Data**: yfinance integration for live price feeds
 
@@ -164,15 +166,21 @@ crontab -e
 
 ---
 
-## 🔧 Technical Indicators
+## 🔧 Technical Validation Layer
 
-The system uses 10 optimized, conflict-free technical indicators:
+The system uses 10 optimized, conflict-free technical indicators for **validation and level calculation only** (10-15% weight in decision making):
+
+### Purpose
+- **Filter contradictions**: Remove setups where technicals strongly disagree with news sentiment
+- **Calculate levels**: Determine precise entry, stop loss, and take profit prices
+- **Validate trends**: Confirm overall market direction and momentum
+- **Adjust confidence**: Fine-tune signal confidence based on technical alignment
 
 ### Core Indicators
 
 1. **Stochastic RSI** (Weight: 2.5)
-   - Primary momentum indicator
-   - Most sensitive for crypto volatility
+   - Momentum validation
+   - Sensitive for crypto volatility
    - Signal: <20 oversold, >80 overbought
 
 2. **EMA Trend** (Weight: 2.3)
@@ -189,7 +197,7 @@ The system uses 10 optimized, conflict-free technical indicators:
    - Signal: Price above/below band
 
 5. **ADX** (Weight: 1.8)
-   - Trend strength measurement
+   - Trend strength validation
    - Signal: >25 = tradeable trend strength
 
 6. **Bollinger Bands** (Weight: 2.0)
@@ -205,13 +213,14 @@ The system uses 10 optimized, conflict-free technical indicators:
    - Signal: Above/below 20-period average
 
 9. **VWAP** (Weight: 2.1)
-   - Institutional price levels
-   - Critical for crypto markets
+   - Institutional price level validation
    - Signal: Price above/below VWAP
 
 10. **Pivot Points** (Weight: 1.5)
     - Classical support/resistance levels
     - Signal: Price near key levels
+
+**Note**: These indicators serve a **supporting role** - they validate news-driven signals and calculate precise levels, but do NOT generate primary trading signals.
 
 ---
 

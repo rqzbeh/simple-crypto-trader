@@ -332,6 +332,7 @@ def analyze_sentiment_with_llm(articles, symbol=''):
     # Analyze new articles if any
     if new_articles:
         print(f"[AI] Analyzing {len(new_articles)} new articles with OllamaFreeAPI")
+        print(f"[AI] Using model: qwen2.5:7b (optimized for sentiment analysis)")
         
         # Prepare article summaries for NEW articles only
         article_texts = []
@@ -1009,17 +1010,19 @@ def format_trade_message(symbol, signal, sentiment_reason='', signal_number=None
     # Build message with signal number if provided
     signal_header = f"Signal #{signal_number}" if signal_number else "Signal"
     
+    # Format for telegram with code block for easy copying
     msg = f"""{signal_header}
 ━━━━━━━━━━━━━━━━━━━━
 {direction_emoji} {symbol} - {direction_text}
 ━━━━━━━━━━━━━━━━━━━━
 
-💵 Entry: ${entry}
-🛑 Stop Loss: ${stop_loss_str} ({signal['stop_pct']*100:.2f}%)
-🎯 Take Profit: ${take_profit_str} ({signal['expected_profit_pct']*100:.2f}%)
-
-⚡️ Leverage: {signal['leverage']}x
-📊 R/R: 1:{signal['rr_ratio']:.1f} {rr_quality}
+```
+Entry: ${entry}
+Stop Loss: ${stop_loss_str} ({signal['stop_pct']*100:.2f}%)
+Take Profit: ${take_profit_str} ({signal['expected_profit_pct']*100:.2f}%)
+Leverage: {signal['leverage']}x
+R/R: 1:{signal['rr_ratio']:.1f} {rr_quality}
+```
 
 {confidence_emoji} Confidence: {signal['confidence']*100:.1f}%
 📰 News: {signal['sentiment_score']:.2f}
@@ -1108,6 +1111,11 @@ def main():
                              for a in symbol_articles_list]
             sentiment_score = sum(simple_sentiment(t) for t in sentiment_texts) / len(sentiment_texts) if sentiment_texts else 0
             sentiment_reason = f"Simple sentiment analysis (no LLM)"
+        
+        # Skip if sentiment analysis failed (AI unavailable)
+        if sentiment_score is None:
+            print(f"  [WARNING] AI analysis unavailable - skipping {symbol_name}\n")
+            continue
         
         news_count = len(symbol_articles_list)
         
