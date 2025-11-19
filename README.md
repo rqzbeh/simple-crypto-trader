@@ -2,7 +2,7 @@
 
 **News-Driven Cryptocurrency Trading Signal Generator**
 
-An intelligent cryptocurrency trading signal generator that combines news sentiment analysis, AI-powered market reasoning, and technical indicators to identify high-probability trading opportunities. Built for 24/7 crypto markets with short-term trades (2-4 hours maximum duration).
+An intelligent cryptocurrency trading signal generator that combines news sentiment analysis, AI-powered market reasoning, and candlestick pattern analysis to identify high-probability trading opportunities. Built for 24/7 crypto markets with short-term trades (2-4 hours maximum duration).
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -13,10 +13,10 @@ An intelligent cryptocurrency trading signal generator that combines news sentim
 
 ### 📰 News-Driven Trading Strategy
 - **Primary Signals**: News sentiment analysis combined with AI/LLM market reasoning
-- **Technical Validation**: Technical indicators filter and validate trading setups
+- **Candlestick Validation**: Candlestick patterns filter and validate trading setups
 - **Multi-Source Data**: Aggregates news from NewsAPI and RSS feeds (CoinDesk, Cointelegraph, etc.)
 - **Real-Time Analysis**: 6-8 hour news lookback window for fresh, relevant market context
-- **Smart Execution**: Technical indicators calculate precise entry, stop loss, and take profit levels
+- **Smart Execution**: ATR-based stop loss and take profit calculation for precise entry/exit levels
 
 ### ⚡ Short-Term Trading Optimization
 - **Trade Duration**: 2-4 hours maximum for quick entries and exits
@@ -32,16 +32,18 @@ An intelligent cryptocurrency trading signal generator that combines news sentim
 - **ATR-Based Stops**: Volatility-adjusted risk management
 
 ### 🤖 Hybrid Intelligence System
-- **10 Optimized Indicators**: Conflict-free technical analysis
-- **AI Market Analysis**: OllamaFreeAPI (DeepSeek-R1 70B + Qwen2.5 7B) for superior reasoning and analysis
+- **AI-Powered Analysis**: OllamaFreeAPI (DeepSeek-R1 70B + Qwen2.5 7B) for superior reasoning and market sentiment analysis
+- **News-Driven Signals**: Primary signal generation from news sentiment and AI interpretation (85-90%)
+- **Candlestick Validation**: Pattern recognition validates setups and calculates precise entry/exit levels (10-15%)
 - **Adaptive Learning**: Self-adjusts parameters based on historical performance
 - **Precision Tracking**: Monitors entry timing, stop loss, and take profit accuracy
 - **Performance-Based**: Automatically adjusts strategy based on trade outcomes
 
-### 📊 Technical Excellence
-- **Proven Indicators**: Stochastic RSI, EMA, MACD, Bollinger Bands, VWAP, Supertrend, ADX
-- **No Redundancy**: Each indicator serves a unique purpose
-- **No Conflicts**: All indicators are independent and complementary
+### 📊 Technical Validation Layer
+- **Purpose**: Filter contradictory setups and calculate precise entry, stop loss, and take profit levels
+- **Analysis Method**: Candlestick pattern recognition using TA-Lib (100% free, no API calls)
+- **Weight in Decisions**: 10-15% (validation and level calculation only)
+- **Pattern Types**: Hammer, Engulfing, Doji, Morning/Evening Star, Shooting Star, and 20+ more patterns
 - **Real-Time Data**: yfinance integration for live price feeds
 
 ---
@@ -164,54 +166,58 @@ crontab -e
 
 ---
 
-## 🔧 Technical Indicators
+## 🔧 Candlestick Pattern Analysis
 
-The system uses 10 optimized, conflict-free technical indicators:
+The system uses **candlestick pattern recognition** via TA-Lib for technical validation (10-15% weight in decision making):
 
-### Core Indicators
+### Purpose
+- **Filter contradictions**: Remove setups where price action strongly disagrees with news sentiment
+- **Calculate levels**: Determine precise entry, stop loss, and take profit prices using ATR
+- **Validate trends**: Confirm overall market direction and momentum through pattern analysis
+- **Adjust confidence**: Fine-tune signal confidence based on pattern strength
 
-1. **Stochastic RSI** (Weight: 2.5)
-   - Primary momentum indicator
-   - Most sensitive for crypto volatility
-   - Signal: <20 oversold, >80 overbought
+### Pattern Recognition (TA-Lib - 100% Free)
 
-2. **EMA Trend** (Weight: 2.3)
-   - Multi-timeframe trend direction (9, 21, 50, 200 EMAs)
-   - Signal: All EMAs aligned = strong trend
+**Bullish Reversal Patterns:**
+- Hammer, Inverted Hammer
+- Bullish Engulfing
+- Morning Star, Morning Doji Star
+- Three White Soldiers
+- Piercing Line
 
-3. **MACD** (Weight: 2.0)
-   - Convergence/divergence momentum
-   - Signal: Histogram crossing zero
+**Bearish Reversal Patterns:**
+- Shooting Star, Hanging Man
+- Bearish Engulfing
+- Evening Star, Evening Doji Star
+- Three Black Crows
+- Dark Cloud Cover
 
-4. **Supertrend** (Weight: 1.9)
-   - Volatility-adjusted trend following
-   - Uses ATR for dynamic adjustments
-   - Signal: Price above/below band
+**Continuation Patterns:**
+- Three Inside Up/Down
+- Three Outside Up/Down
+- Advance Block (bearish)
 
-5. **ADX** (Weight: 1.8)
-   - Trend strength measurement
-   - Signal: >25 = tradeable trend strength
+**Indecision Patterns:**
+- Doji (various types)
+- Spinning Top
+- Harami patterns
 
-6. **Bollinger Bands** (Weight: 2.0)
-   - Volatility and price range measurement
-   - Signal: Position in bands (<10% or >90%)
+### How It Works
 
-7. **ATR** (No directional weight)
-   - Used for stop-loss calculation
-   - 1.5× ATR for stop distance
+1. **Pattern Detection**: Scans last 50+ candles for 20+ candlestick patterns using TA-Lib
+2. **Signal Generation**: Combines bullish/bearish pattern strengths into -1 to +1 signal
+3. **Confidence Calculation**: Based on number and strength of detected patterns
+4. **Contradiction Filter**: Rejects trades where patterns strongly contradict news sentiment
+5. **ATR Stop Loss**: Uses Average True Range for volatility-adjusted stop loss calculation
 
-8. **OBV** (Weight: 1.7)
-   - Volume-based accumulation/distribution
-   - Signal: Above/below 20-period average
+**Key Benefits:**
+- 100% free (no API calls, uses TA-Lib)
+- Proven price action patterns trusted by traders worldwide
+- Works on any timeframe (optimized for 1-hour candles)
+- Automatically adapts to market volatility
+- Complements news sentiment with objective price action
 
-9. **VWAP** (Weight: 2.1)
-   - Institutional price levels
-   - Critical for crypto markets
-   - Signal: Price above/below VWAP
-
-10. **Pivot Points** (Weight: 1.5)
-    - Classical support/resistance levels
-    - Signal: Price near key levels
+**Note**: Candlestick patterns serve a **supporting role** - they validate news-driven signals and calculate precise levels, but do NOT generate primary trading signals.
 
 ---
 
@@ -241,10 +247,10 @@ The system leverages OllamaFreeAPI's best models for trading analysis:
 ### Hybrid Decision Making
 
 ```
-Signal Generation = News Sentiment + AI Analysis + Technical Validation
+Signal Generation = News Sentiment + AI Analysis + Candlestick Validation
 
 Primary Layer: News Sentiment (40%) + LLM Reasoning (50%)
-Validation Layer: Technical Indicators (10% - filters contradictions)
+Validation Layer: Candlestick Patterns (10% - filters contradictions)
 
 Agreement Boost: +5% confidence when all methods align
 ```
@@ -263,7 +269,7 @@ The bot continuously learns from its trading history:
 - **Stop Loss**: Widens or tightens stops based on premature stop-out frequency
 - **Take Profit**: Scales targets based on historical achievement rate (0.6x-1.2x multiplier)
 - **Confidence Thresholds**: Dynamically adjusted based on overall performance
-- **Indicator Weights**: Optimizes weights based on historical accuracy
+- **Pattern Weights**: Optimizes pattern weights based on historical accuracy
 
 **Precision Learning:**
 The system distinguishes between different failure types:
@@ -330,7 +336,7 @@ Bitcoin, Ethereum, Binance Coin, Cardano, Solana, Dogecoin, XRP, Polkadot, Litec
 ```
 simple-crypto-trader/
 ├── main.py                    # Core trading bot engine
-├── technical_indicators.py    # Technical analysis module
+├── candlestick_analyzer.py    # Candlestick pattern recognition module
 ├── llm_analyzer.py           # AI reasoning and market analysis
 ├── requirements.txt          # Python dependencies
 ├── trade_log.json           # Trade history (auto-created)
@@ -402,7 +408,7 @@ News Sentiment: 0.68 (PRIMARY)
 Technical Validation: PASSED
 Strong bullish news momentum with multiple positive articles.
 LLM confirms bullish outlook based on market psychology.
-Technical indicators support trend (no major contradiction).
+Candlestick patterns support trend (no major contradiction).
 Stop loss at 1.0% (ATR-based, tight for 2-4h duration).
 Take profit at 3.0% (news-driven, achievable in 2-4h).
 
@@ -480,7 +486,7 @@ Take profit at 3.0% (news-driven, achievable in 2-4h).
 ## 🤝 Contributing
 
 Contributions are welcome! Areas for improvement:
-- Additional non-conflicting indicators
+- Additional candlestick patterns and price action analysis
 - Enhanced LLM prompts and reasoning
 - Backtesting framework
 - Paper trading mode
