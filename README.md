@@ -247,10 +247,10 @@ The system leverages OllamaFreeAPI's best models for trading analysis:
 ### Hybrid Decision Making
 
 ```
-Signal Generation = News Sentiment + AI Analysis + Technical Validation
+Signal Generation = News Sentiment + AI Analysis + Candlestick Validation
 
 Primary Layer: News Sentiment (40%) + LLM Reasoning (50%)
-Validation Layer: Technical Indicators (10% - filters contradictions)
+Validation Layer: Candlestick Patterns (10% - filters contradictions)
 
 Agreement Boost: +5% confidence when all methods align
 ```
@@ -269,7 +269,7 @@ The bot continuously learns from its trading history:
 - **Stop Loss**: Widens or tightens stops based on premature stop-out frequency
 - **Take Profit**: Scales targets based on historical achievement rate (0.6x-1.2x multiplier)
 - **Confidence Thresholds**: Dynamically adjusted based on overall performance
-- **Indicator Weights**: Optimizes weights based on historical accuracy
+- **Pattern Weights**: Optimizes pattern weights based on historical accuracy
 
 **Precision Learning:**
 The system distinguishes between different failure types:
@@ -336,7 +336,7 @@ Bitcoin, Ethereum, Binance Coin, Cardano, Solana, Dogecoin, XRP, Polkadot, Litec
 ```
 simple-crypto-trader/
 ├── main.py                    # Core trading bot engine
-├── technical_indicators.py    # Technical analysis module
+├── candlestick_analyzer.py    # Candlestick pattern recognition module
 ├── llm_analyzer.py           # AI reasoning and market analysis
 ├── requirements.txt          # Python dependencies
 ├── trade_log.json           # Trade history (auto-created)
@@ -408,7 +408,7 @@ News Sentiment: 0.68 (PRIMARY)
 Technical Validation: PASSED
 Strong bullish news momentum with multiple positive articles.
 LLM confirms bullish outlook based on market psychology.
-Technical indicators support trend (no major contradiction).
+Candlestick patterns support trend (no major contradiction).
 Stop loss at 1.0% (ATR-based, tight for 2-4h duration).
 Take profit at 3.0% (news-driven, achievable in 2-4h).
 
@@ -486,7 +486,7 @@ Take profit at 3.0% (news-driven, achievable in 2-4h).
 ## 🤝 Contributing
 
 Contributions are welcome! Areas for improvement:
-- Additional non-conflicting indicators
+- Additional candlestick patterns and price action analysis
 - Enhanced LLM prompts and reasoning
 - Backtesting framework
 - Paper trading mode
