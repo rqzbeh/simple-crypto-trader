@@ -41,9 +41,9 @@ An intelligent cryptocurrency trading signal generator that combines news sentim
 
 ### 📊 Technical Validation Layer
 - **Purpose**: Filter contradictory setups and calculate precise entry, stop loss, and take profit levels
-- **Supporting Indicators**: Stochastic RSI, EMA, MACD, Bollinger Bands, VWAP, Supertrend, ADX, ATR, OBV, Pivot Points
+- **Analysis Method**: Candlestick pattern recognition using TA-Lib (100% free, no API calls)
 - **Weight in Decisions**: 10-15% (validation and level calculation only)
-- **No Conflicts**: All indicators are independent and complementary
+- **Pattern Types**: Hammer, Engulfing, Doji, Morning/Evening Star, Shooting Star, and 20+ more patterns
 - **Real-Time Data**: yfinance integration for live price feeds
 
 ---
@@ -166,61 +166,58 @@ crontab -e
 
 ---
 
-## 🔧 Technical Validation Layer
+## 🔧 Candlestick Pattern Analysis
 
-The system uses 10 optimized, conflict-free technical indicators for **validation and level calculation only** (10-15% weight in decision making):
+The system uses **candlestick pattern recognition** via TA-Lib for technical validation (10-15% weight in decision making):
 
 ### Purpose
-- **Filter contradictions**: Remove setups where technicals strongly disagree with news sentiment
-- **Calculate levels**: Determine precise entry, stop loss, and take profit prices
-- **Validate trends**: Confirm overall market direction and momentum
-- **Adjust confidence**: Fine-tune signal confidence based on technical alignment
+- **Filter contradictions**: Remove setups where price action strongly disagrees with news sentiment
+- **Calculate levels**: Determine precise entry, stop loss, and take profit prices using ATR
+- **Validate trends**: Confirm overall market direction and momentum through pattern analysis
+- **Adjust confidence**: Fine-tune signal confidence based on pattern strength
 
-### Core Indicators
+### Pattern Recognition (TA-Lib - 100% Free)
 
-1. **Stochastic RSI** (Weight: 2.5)
-   - Momentum validation
-   - Sensitive for crypto volatility
-   - Signal: <20 oversold, >80 overbought
+**Bullish Reversal Patterns:**
+- Hammer, Inverted Hammer
+- Bullish Engulfing
+- Morning Star, Morning Doji Star
+- Three White Soldiers
+- Piercing Line
 
-2. **EMA Trend** (Weight: 2.3)
-   - Multi-timeframe trend direction (9, 21, 50, 200 EMAs)
-   - Signal: All EMAs aligned = strong trend
+**Bearish Reversal Patterns:**
+- Shooting Star, Hanging Man
+- Bearish Engulfing
+- Evening Star, Evening Doji Star
+- Three Black Crows
+- Dark Cloud Cover
 
-3. **MACD** (Weight: 2.0)
-   - Convergence/divergence momentum
-   - Signal: Histogram crossing zero
+**Continuation Patterns:**
+- Three Inside Up/Down
+- Three Outside Up/Down
+- Advance Block (bearish)
 
-4. **Supertrend** (Weight: 1.9)
-   - Volatility-adjusted trend following
-   - Uses ATR for dynamic adjustments
-   - Signal: Price above/below band
+**Indecision Patterns:**
+- Doji (various types)
+- Spinning Top
+- Harami patterns
 
-5. **ADX** (Weight: 1.8)
-   - Trend strength validation
-   - Signal: >25 = tradeable trend strength
+### How It Works
 
-6. **Bollinger Bands** (Weight: 2.0)
-   - Volatility and price range measurement
-   - Signal: Position in bands (<10% or >90%)
+1. **Pattern Detection**: Scans last 50+ candles for 20+ candlestick patterns using TA-Lib
+2. **Signal Generation**: Combines bullish/bearish pattern strengths into -1 to +1 signal
+3. **Confidence Calculation**: Based on number and strength of detected patterns
+4. **Contradiction Filter**: Rejects trades where patterns strongly contradict news sentiment
+5. **ATR Stop Loss**: Uses Average True Range for volatility-adjusted stop loss calculation
 
-7. **ATR** (No directional weight)
-   - Used for stop-loss calculation
-   - 1.5× ATR for stop distance
+**Key Benefits:**
+- 100% free (no API calls, uses TA-Lib)
+- Proven price action patterns trusted by traders worldwide
+- Works on any timeframe (optimized for 1-hour candles)
+- Automatically adapts to market volatility
+- Complements news sentiment with objective price action
 
-8. **OBV** (Weight: 1.7)
-   - Volume-based accumulation/distribution
-   - Signal: Above/below 20-period average
-
-9. **VWAP** (Weight: 2.1)
-   - Institutional price level validation
-   - Signal: Price above/below VWAP
-
-10. **Pivot Points** (Weight: 1.5)
-    - Classical support/resistance levels
-    - Signal: Price near key levels
-
-**Note**: These indicators serve a **supporting role** - they validate news-driven signals and calculate precise levels, but do NOT generate primary trading signals.
+**Note**: Candlestick patterns serve a **supporting role** - they validate news-driven signals and calculate precise levels, but do NOT generate primary trading signals.
 
 ---
 
