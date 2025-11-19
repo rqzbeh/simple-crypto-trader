@@ -1,32 +1,47 @@
 # Model Selection Rationale
 
-## Why DeepSeek-R1 and Qwen2.5?
+## Current Selection: LLM7.io Models
 
-### Original Selection (LLaMA 3)
-- **LLaMA 3.1 8B**: General purpose fast model
-- **LLaMA 3.3 70B**: General purpose large model
+### Selected Models
+- **GPT-4o-mini**: Fast, efficient sentiment analysis
+- **DeepSeek Reasoner**: Superior reasoning and multi-step market analysis
 
-### New Selection (Optimized)
-- **Qwen2.5 7B**: Specialized for analytical and financial tasks
-- **DeepSeek-R1 70B**: Superior reasoning and multi-step analysis
+### Why These Models?
 
-## Performance Comparison
+**GPT-4o-mini Advantages:**
+1. **Speed**: Ultra-fast response times for real-time sentiment analysis
+2. **Efficiency**: Optimized for analytical tasks with low latency
+3. **Accuracy**: High accuracy for sentiment classification
+4. **Reliability**: Proven performance on financial text analysis
 
-### DeepSeek-R1 70B vs LLaMA 3.3 70B
-
-**DeepSeek-R1 Advantages:**
+**DeepSeek Reasoner Advantages:**
 1. **Reasoning Chain**: Explicitly trained for multi-step reasoning (perfect for market analysis)
-2. **Financial Context**: Better understanding of economic and market concepts
-3. **Decision Making**: Superior at evaluating multiple factors and making recommendations
-4. **Risk Assessment**: More nuanced understanding of risk vs reward tradeoffs
+2. **Financial Context**: Superior understanding of economic and market concepts
+3. **Decision Making**: Excellent at evaluating multiple factors and making recommendations
+4. **Risk Assessment**: Nuanced understanding of risk vs reward tradeoffs
 
 **Use Case Match:**
 - Market psychology analysis ✓
 - Multi-factor decision making ✓
 - Risk/reward evaluation ✓
 - Complex pattern interpretation ✓
+- Fast sentiment processing ✓
 
-### Qwen2.5 7B vs LLaMA 3.1 8B
+---
+
+## Previous Selection History
+
+### OllamaFreeAPI Models (Superseded)
+- **Qwen2.5 7B**: Specialized for analytical and financial tasks
+- **DeepSeek-R1 70B**: Superior reasoning and multi-step analysis
+
+### Original Selection (LLaMA 3) (Historical)
+- **LLaMA 3.1 8B**: General purpose fast model
+- **LLaMA 3.3 70B**: General purpose large model
+
+## Performance Comparison
+
+### DeepSeek Reasoner Benefits
 
 **Qwen2.5 Advantages:**
 1. **Analytical Tasks**: Specifically optimized for data analysis
@@ -94,19 +109,19 @@ result = llm_client.chat(
 4. **Risk Management**: Superior understanding of when NOT to trade
 
 ### Performance Impact
-- **Accuracy**: Expected 10-15% improvement in signal quality
-- **Speed**: No degradation (Qwen2.5 is as fast as LLaMA 3.1 8B)
-- **Cost**: Still 100% free (same free tier limits)
-- **Reliability**: Both models have high availability on OllamaFreeAPI
+- **Accuracy**: High-quality analysis from proven models
+- **Speed**: Fast response times from GPT-4o-mini
+- **Reliability**: Enterprise-grade availability on LLM7.io platform
 
 ## Real-World Example
 
 ### Scenario: Bitcoin news analysis
 
-**LLaMA 3.3 Response:**
-> "Bitcoin is up 5% on positive ETF news. Direction: LONG, Confidence: 75%"
+**GPT-4o-mini Sentiment Analysis:**
+> "Bitcoin rallied 5% on ETF approval news. Market sentiment: Very Bullish (+0.8)
+> Key factors: Institutional adoption, regulatory clarity"
 
-**DeepSeek-R1 Response:**
+**DeepSeek Reasoner Market Analysis:**
 > "Bitcoin rallied 5% on ETF approval news. However:
 > 1. Volume is declining (distribution pattern)
 > 2. RSI entering overbought (>80)
@@ -116,17 +131,17 @@ result = llm_client.chat(
 > Direction: NEUTRAL (wait for pullback), Confidence: 65%
 > Risk: HIGH (late to the move)"
 
-**Result:** DeepSeek-R1 provides more nuanced analysis that considers multiple factors, not just headline sentiment.
+**Result:** Combined analysis provides both sentiment (GPT-4o-mini) and nuanced reasoning (DeepSeek Reasoner) for better decision-making.
 
 ## Validation
 
 ### Model Availability
-✅ Both models verified available on OllamaFreeAPI
-✅ Testing confirms both models work correctly
-✅ No additional setup or API keys required
+✅ Models available on LLM7.io platform
+✅ API token pre-configured
+✅ OpenAI-compatible API interface
 
 ### Backward Compatibility
-✅ Same API interface (no code changes needed)
+✅ Similar API interface (minimal code changes)
 ✅ Same response format (parsing unchanged)
 ✅ Same performance (response times similar)
 
@@ -138,10 +153,10 @@ The switch to DeepSeek-R1 70B and Qwen2.5 7B provides:
 3. **No additional cost** (still free)
 4. **Same ease of use** (API compatible)
 
-This is a pure upgrade with no downsides.
+This represents an upgrade to enterprise-grade AI models for trading analysis.
 
 ## References
 
-- DeepSeek-R1 Paper: [arXiv:2401.xxxxx]
-- Qwen2.5 Release: https://qwenlm.github.io/blog/qwen2.5/
-- OllamaFreeAPI Models: https://github.com/mfoud444/ollamafreeapi/
+- DeepSeek: https://www.deepseek.com/
+- GPT-4o-mini: https://openai.com/index/gpt-4o-mini-advancing-cost-efficient-intelligence/
+- LLM7.io Platform: https://llm7.io/

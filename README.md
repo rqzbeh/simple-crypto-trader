@@ -32,7 +32,7 @@ An intelligent cryptocurrency trading signal generator that combines news sentim
 - **ATR-Based Stops**: Volatility-adjusted risk management
 
 ### 🤖 Hybrid Intelligence System
-- **AI-Powered Analysis**: OllamaFreeAPI (DeepSeek-R1 70B + Qwen2.5 7B) for superior reasoning and market sentiment analysis
+- **AI-Powered Analysis**: LLM7.io (DeepSeek Reasoner + GPT-4o-mini) for superior reasoning and market sentiment analysis
 - **News-Driven Signals**: Primary signal generation from news sentiment and AI interpretation (85-90%)
 - **Candlestick Validation**: Pattern recognition validates setups and calculates precise entry/exit levels (10-15%)
 - **Adaptive Learning**: Self-adjusts parameters based on historical performance
@@ -111,7 +111,8 @@ Potential Loss: $24 × 8 = $192 loss
 
 ### Prerequisites
 - Python 3.8 or higher
-- API key for NewsAPI (no API key needed for OllamaFreeAPI - it's free!)
+- API key for NewsAPI
+- LLM7.io API token (provided in the configuration)
 
 ### Installation
 
@@ -129,15 +130,16 @@ pip install -r requirements.txt
 Set up your API keys as environment variables:
 
 ```bash
-# Required API Key
+# Required API Keys
 export NEWS_API_KEY='your_newsapi_key'      # Get from https://newsapi.org
+export LLM7_API_TOKEN='your_llm7_token'     # LLM7.io API token (pre-configured in code)
 
 # Optional: Telegram Notifications
 export TELEGRAM_BOT_TOKEN='your_bot_token'
 export TELEGRAM_CHAT_ID='your_chat_id'
 ```
 
-**Note**: OllamaFreeAPI requires no API key or authentication - it's completely free!
+**Note**: The LLM7.io API token is pre-configured in the code. You can override it by setting the `LLM7_API_TOKEN` environment variable.
 
 ### Running the Bot
 
@@ -225,9 +227,9 @@ The system uses **candlestick pattern recognition** via TA-Lib for technical val
 
 ### LLM-Powered Market Analysis
 
-The system leverages OllamaFreeAPI's best models for trading analysis:
-- **DeepSeek-R1 70B**: Superior reasoning for complex market analysis and psychology
-- **Qwen2.5 7B**: Fast, accurate sentiment analysis and pattern recognition
+The system leverages LLM7.io's best models for trading analysis:
+- **DeepSeek Reasoner**: Superior reasoning for complex market analysis and psychology
+- **GPT-4o-mini**: Fast, accurate sentiment analysis and pattern recognition
 - Risk assessment (LOW/MEDIUM/HIGH)
 - Timeframe recommendations
 - Trading rationale generation
@@ -426,11 +428,10 @@ Take profit at 3.0% (news-driven, achievable in 2-4h).
 3. Create account and get API key
 4. Set environment variable: `export NEWS_API_KEY='your_key'`
 
-### OllamaFreeAPI (Pre-configured - No Setup Required!)
-- **Completely Free**: No API key needed
-- **Free Tier**: 
-  - 100 requests/hour (perfect for trading)
-  - 16k tokens per request
+### LLM7.io API (Pre-configured)
+- **Pre-configured Token**: Built into the code
+- **Multiple Models**: DeepSeek, GPT, Gemini available
+- **High Performance**: Fast response times for real-time trading
   - 50 tokens/second speed
   - Access to both 7B and 70B models
 - **Models Used**:
@@ -505,7 +506,7 @@ MIT License - see [LICENSE](LICENSE) file for details
 ## 🙏 Acknowledgments
 
 - **yfinance**: Market data provider
-- **OllamaFreeAPI**: Free LLM inference platform with no API keys required
+- **LLM7.io**: AI-powered LLM inference platform
 - **NewsAPI**: News aggregation service
 - Cryptocurrency trading community
 

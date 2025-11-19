@@ -33,9 +33,9 @@ All three questions from the user have been addressed with code changes, testing
    - Faster processing with same quality
 
 **Evidence:**
-- Both models verified available on OllamaFreeAPI
-- Tested and working in production
-- See MODEL_SELECTION.md for full benchmarks
+- Models available on LLM7.io platform
+- API token pre-configured
+- See MODEL_SELECTION.md for full details
 
 ---
 

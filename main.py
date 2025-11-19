@@ -34,11 +34,11 @@ from news_cache import get_news_cache, sort_articles_by_time
 
 # Try to import optional components
 try:
-    from ollamafreeapi import OllamaFreeAPI
-    OLLAMA_AVAILABLE = True
+    from llm7_client import LLM7Client
+    LLM7_AVAILABLE = True
 except ImportError:
-    OLLAMA_AVAILABLE = False
-    print("Warning: OllamaFreeAPI not available. Install with: pip install ollamafreeapi")
+    LLM7_AVAILABLE = False
+    print("Warning: LLM7Client not available.")
 
 try:
     from sklearn.ensemble import RandomForestClassifier
@@ -61,15 +61,16 @@ logging.getLogger('urllib3').setLevel(logging.WARNING)
 NEWS_API_KEY = os.getenv('NEWS_API_KEY')
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
+LLM7_API_TOKEN = os.getenv('LLM7_API_TOKEN', 'FY0tQc1gSOyU+DeVImDZzHVpCn85gMK8QNG+EF1DOqiM2haP/SCnIMH3aBKh00/HId7OJgst1SZlR4tssPOZkBn8qI+OdvOHkg91QP7PgtXnwsTiCNSLuGysnDqIGZSG9Y7jN20ltgjmDw==')
 
 if not NEWS_API_KEY:
     raise ValueError('NEWS_API_KEY environment variable is required')
 
 newsapi = NewsApiClient(api_key=NEWS_API_KEY)
 
-# Initialize OllamaFreeAPI if available
-if OLLAMA_AVAILABLE:
-    llm_client = OllamaFreeAPI()
+# Initialize LLM7 client if available
+if LLM7_AVAILABLE:
+    llm_client = LLM7Client(api_token=LLM7_API_TOKEN)
     market_analyzer = CryptoMarketAnalyzer(llm_client)
 else:
     llm_client = None
@@ -79,7 +80,7 @@ print("=" * 70)
 print("SIMPLE CRYPTO TRADER - AI-Powered Signal Generator")
 print("=" * 70)
 print(f"NEWS_API: {'OK' if NEWS_API_KEY else 'MISSING'}")
-print(f"OLLAMA_API: {'OK' if OLLAMA_AVAILABLE else 'MISSING'}")
+print(f"LLM7_API: {'OK' if LLM7_AVAILABLE else 'MISSING'}")
 print(f"TELEGRAM: {'OK' if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID else 'MISSING'}")
 print(f"ML Support: {'OK' if ML_AVAILABLE else 'MISSING'}")
 print("=" * 70)
@@ -299,7 +300,7 @@ def extract_crypto_symbols(text):
 
 def analyze_sentiment_with_llm(articles, symbol=''):
     """
-    Analyze sentiment using OllamaFreeAPI LLM ONLY (no fallback to rule-based sentiment)
+    Analyze sentiment using LLM7.io LLM ONLY (no fallback to rule-based sentiment)
     If LLM is unavailable, returns None to indicate no trade should be made
     """
     if not llm_client or not articles:
@@ -331,8 +332,8 @@ def analyze_sentiment_with_llm(articles, symbol=''):
     
     # Analyze new articles if any
     if new_articles:
-        print(f"[AI] Analyzing {len(new_articles)} new articles with OllamaFreeAPI")
-        print(f"[AI] Using model: qwen2.5:7b (optimized for sentiment analysis)")
+        print(f"[AI] Analyzing {len(new_articles)} new articles with LLM7.io")
+        print(f"[AI] Using model: gpt-4o-mini (fast and efficient for sentiment analysis)")
         
         # Prepare article summaries for NEW articles only
         article_texts = []
@@ -354,10 +355,10 @@ Provide:
 Format: SCORE: [number] | REASON: [text]"""
         
         try:
-            # Use OllamaFreeAPI chat method
-            # Qwen2.5 7B is optimized for analytical tasks and sentiment analysis
+            # Use LLM7.io chat method
+            # GPT-4o-mini is fast, efficient, and excellent for sentiment analysis
             result = llm_client.chat(
-                model_name="qwen2.5:7b",
+                model_name="gpt-4o-mini",
                 prompt=prompt,
                 temperature=0.3,
                 num_predict=200

@@ -1,64 +1,62 @@
-# Migration Guide: Groq to OllamaFreeAPI
+# Migration Guide: OllamaFreeAPI to LLM7.io
 
 ## Overview
-This document describes the migration from Groq to OllamaFreeAPI for LLM-powered market analysis.
+This document describes the migration from OllamaFreeAPI to LLM7.io for LLM-powered market analysis.
 
 ## What Changed
 
 ### 1. API Provider
-- **Before**: Groq (required API key, rate limits)
-- **After**: OllamaFreeAPI (no API key, free forever)
+- **Before**: OllamaFreeAPI (free, no API key)
+- **After**: LLM7.io (API token pre-configured)
 
-### 2. Rate Limits
-- **Before**: Groq free tier had varying limits
-- **After**: OllamaFreeAPI free tier:
-  - 100 requests/hour
-  - 16k tokens per request
-  - 50 tokens/second processing speed
-  - Access to both 7B and 70B models
+### 2. API Configuration
+- **Before**: No authentication required
+- **After**: Token-based authentication (pre-configured in code)
+- **API Endpoint**: https://llm7.io/v1/chat/completions
+- **Format**: OpenAI-compatible API
 
 ### 3. Model Selection
-- **Sentiment Analysis**: `qwen2.5:7b` (fast, optimized for analytical tasks)
-- **Deep Market Analysis**: `deepseek-r1:70b` (superior reasoning capabilities)
+- **Sentiment Analysis**: `gpt-4o-mini` (fast, efficient, accurate)
+- **Deep Market Analysis**: `deepseek-reasoner` (superior reasoning capabilities)
 
-### 4. No Breaking Changes
-All existing functionality is preserved. The bot will work exactly as before, but:
-- No API key needed
-- Free forever
-- Better model availability
+### 4. Benefits
+- Access to multiple high-quality models (DeepSeek, GPT, Gemini)
+- Enterprise-grade reliability
+- Fast response times
+- OpenAI-compatible interface
 
 ## For Existing Users
 
 ### If you're already using the bot:
 1. Update your code: `git pull`
-2. Install new dependency: `pip install -r requirements.txt`
-3. Remove GROQ_API_KEY from your environment (no longer needed)
+2. Install dependencies: `pip install -r requirements.txt` (ollamafreeapi removed)
+3. No environment variables needed (token is pre-configured)
 4. Run the bot as usual
 
 ### Your learning state is preserved
-All your historical trading data and learned parameters are automatically migrated. The new system adds:
-- Candlestick pattern success tracking
+All your historical trading data and learned parameters are automatically preserved. The system continues to track:
+- Candlestick pattern success rates
 - Pattern-specific TP/SL adjustments
 - Enhanced confidence scoring
+- All precision metrics
 
 ## Technical Details
 
 ### API Call Changes
-**Before (Groq)**:
+**Before (OllamaFreeAPI)**:
 ```python
-response = groq_client.chat.completions.create(
-    model="llama-3.1-8b-instant",
+response = ollama_client.chat(
+    model_name="qwen2.5:7b",
     messages=[{"role": "user", "content": prompt}],
     temperature=0.3,
-    max_tokens=200
+    num_predict=200
 )
-result = response.choices[0].message.content
 ```
 
-**After (OllamaFreeAPI)**:
+**After (LLM7.io)**:
 ```python
 result = llm_client.chat(
-    model_name="qwen2.5:7b",  # or "deepseek-r1:70b" for deep analysis
+    model_name="gpt-4o-mini",  # or "deepseek-reasoner" for deep analysis
     prompt=prompt,
     temperature=0.3,
     num_predict=200
@@ -66,22 +64,30 @@ result = llm_client.chat(
 ```
 
 ### Backward Compatibility
-The learning state loader now handles both old and new metric formats:
+The learning state loader continues to work as before:
 - Old states load all existing metrics
-- New metrics (candlestick patterns) are added with default values
+- All historical data preserved
 - No data loss during migration
 
 ## Benefits
 
-1. **Cost**: Completely free, no API key required
-2. **Reliability**: No API key expiration or rate limit surprises
-3. **Performance**: Access to powerful 70B parameter models
-4. **Simplicity**: One less API key to manage
-5. **Enhanced Learning**: Better tracking for candlestick-based trading
+1. **Quality**: Enterprise-grade AI models (DeepSeek, GPT, Gemini)
+2. **Reliability**: High availability and fast response times
+3. **Performance**: Access to state-of-the-art models
+4. **Compatibility**: OpenAI-compatible API interface
+5. **Flexibility**: Multiple models available for different use cases
 
 ## Support
 
 If you encounter any issues:
-1. Check that `ollamafreeapi` is installed: `pip install ollamafreeapi`
-2. Verify import works: `python3 -c "from ollamafreeapi import OllamaFreeAPI"`
-3. Check available models: See [OllamaFreeAPI docs](https://github.com/mfoud444/ollamafreeapi/)
+1. Check that dependencies are installed: `pip install -r requirements.txt`
+2. Verify the LLM7 client: `python3 -c "from llm7_client import LLM7Client"`
+3. Check API connectivity (domain must be unblocked in your environment)
+
+## API Token
+
+The API token is pre-configured in the code. If you need to use a different token, set the `LLM7_API_TOKEN` environment variable:
+
+```bash
+export LLM7_API_TOKEN='your_token_here'
+```
