@@ -10,6 +10,11 @@ The codebase has been successfully migrated from OllamaFreeAPI to LLM7.io.
    - OpenAI-compatible API wrapper
    - Supports all LLM7.io models
    - Pre-configured with API token
+   - **Built-in rate limiting** to respect API limits:
+     - 128k chars/req: Maximum request size validation
+     - 1,500 req/h: Hourly request limit
+     - 60 req/min: Per-minute request limit
+     - 5 req/s: Per-second request limit
 
 2. **Model Selection**
    - **Sentiment Analysis**: `gpt-4o-mini`
@@ -47,11 +52,23 @@ Base URL: `https://llm7.io/v1/chat/completions`
 
 Format: OpenAI-compatible API
 
+### Rate Limiting
+
+The LLM7Client automatically enforces the following rate limits:
+
+- **128k chars/req**: Validates request size before sending
+- **1,500 req/h**: Maximum 1,500 requests per hour
+- **60 req/min**: Maximum 60 requests per minute  
+- **5 req/s**: Maximum 5 requests per second
+
+The client will automatically wait when rate limits are reached, ensuring compliance with API limits.
+
 ### Testing
 
 ✅ Code syntax validated
 ✅ Import tests passed
 ✅ Integration tests passed
+✅ Rate limiting tests passed
 ✅ Model selection verified
 
 ### Known Limitation

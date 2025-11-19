@@ -234,10 +234,15 @@ The system leverages LLM7.io's best models for trading analysis:
 - Timeframe recommendations
 - Trading rationale generation
 
-**Why DeepSeek-R1 and Qwen2.5?**
-- DeepSeek-R1 excels at reasoning and multi-step analysis (perfect for market psychology)
-- Qwen2.5 is optimized for analytical tasks (ideal for quick sentiment scoring)
-- Both outperform LLaMA models in financial analysis benchmarks
+**Built-in Rate Limiting:**
+- Automatically enforces API limits (128k chars/req, 1,500 req/h, 60 req/min, 5 req/s)
+- Prevents rate limit violations
+- Ensures reliable operation
+
+**Why These Models?**
+- DeepSeek Reasoner excels at reasoning and multi-step analysis (perfect for market psychology)
+- GPT-4o-mini is optimized for fast, accurate sentiment scoring
+- Both provide enterprise-grade AI capabilities
 
 **Free Tier Features:**
 - 100 requests per hour (sufficient for trading bot)
