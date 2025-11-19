@@ -2,7 +2,7 @@
 
 **News-Driven Cryptocurrency Trading Signal Generator**
 
-An intelligent cryptocurrency trading signal generator that combines news sentiment analysis, AI-powered market reasoning, and technical indicators to identify high-probability trading opportunities. Built for 24/7 crypto markets with short-term trades (2-4 hours maximum duration).
+An intelligent cryptocurrency trading signal generator that combines news sentiment analysis, AI-powered market reasoning, and candlestick pattern analysis to identify high-probability trading opportunities. Built for 24/7 crypto markets with short-term trades (2-4 hours maximum duration).
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -13,10 +13,10 @@ An intelligent cryptocurrency trading signal generator that combines news sentim
 
 ### 📰 News-Driven Trading Strategy
 - **Primary Signals**: News sentiment analysis combined with AI/LLM market reasoning
-- **Technical Validation**: Technical indicators filter and validate trading setups
+- **Candlestick Validation**: Candlestick patterns filter and validate trading setups
 - **Multi-Source Data**: Aggregates news from NewsAPI and RSS feeds (CoinDesk, Cointelegraph, etc.)
 - **Real-Time Analysis**: 6-8 hour news lookback window for fresh, relevant market context
-- **Smart Execution**: Technical indicators calculate precise entry, stop loss, and take profit levels
+- **Smart Execution**: ATR-based stop loss and take profit calculation for precise entry/exit levels
 
 ### ⚡ Short-Term Trading Optimization
 - **Trade Duration**: 2-4 hours maximum for quick entries and exits
