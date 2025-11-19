@@ -139,17 +139,11 @@ Price: ${market_data['price']:.2f}
 Volatility: {market_data['volatility']*100:.2f}% (annualized)
 ATR: {market_data['atr_pct']*100:.2f}%
 
-TECHNICAL INDICATORS:
-Strong Signals: {', '.join(strong_signals) if strong_signals else 'None'}
-Neutral Signals: {', '.join(weak_signals[:5]) if weak_signals else 'None'}
-
-Stochastic RSI: {indicators['stoch_rsi']['value']:.1f} (Oversold<20, Overbought>80)
-MACD Histogram: {indicators['macd']['value']:.4f}
-Price vs VWAP: {"Above" if indicators['vwap']['signal'] > 0 else "Below"}
-Bollinger Band Position: {indicators['bb']['position']*100:.1f}%
-ADX (Trend Strength): {indicators['adx']['value']:.1f} (Strong>25)
-Supertrend: {"BULLISH" if indicators['supertrend']['signal'] > 0 else "BEARISH"}
-EMA Trend: {indicators['ema_trend'].get('signal', 0)}
+CANDLESTICK PATTERN ANALYSIS:
+Signal: {', '.join(strong_signals) if strong_signals else 'None'}
+Patterns Detected: {indicators.get('candlestick', {}).get('patterns', [])}
+Confidence: {indicators.get('candlestick', {}).get('confidence', 0)*100:.1f}%
+Description: {indicators.get('candlestick', {}).get('description', 'No significant patterns')}
 
 SENTIMENT ANALYSIS:
 Score: {sentiment_data.get('score', 0):.2f} (-1 to +1 scale)

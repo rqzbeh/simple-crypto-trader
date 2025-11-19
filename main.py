@@ -719,14 +719,7 @@ def check_trade_outcomes():
             continue
         
         entry_time = datetime.fromisoformat(trade['timestamp'])
-        # Make timezone-aware if not already
-        if entry_time.tzinfo is None:
-            entry_time = pytz.UTC.localize(entry_time)
-        
         max_check_time = datetime.fromisoformat(trade['check_time'])
-        # Make timezone-aware if not already
-        if max_check_time.tzinfo is None:
-            max_check_time = pytz.UTC.localize(max_check_time)
         
         # Calculate how long the trade has been running
         time_elapsed = (now - entry_time).total_seconds() / 3600  # hours
