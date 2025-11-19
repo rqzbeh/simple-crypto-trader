@@ -34,7 +34,7 @@ An intelligent cryptocurrency trading signal generator that combines news sentim
 ### 🤖 Hybrid Intelligence System
 - **AI-Powered Analysis**: OllamaFreeAPI (DeepSeek-R1 70B + Qwen2.5 7B) for superior reasoning and market sentiment analysis
 - **News-Driven Signals**: Primary signal generation from news sentiment and AI interpretation (85-90%)
-- **Technical Validation**: 10 optimized indicators validate setups and calculate precise entry/exit levels (10-15%)
+- **Candlestick Validation**: Pattern recognition validates setups and calculates precise entry/exit levels (10-15%)
 - **Adaptive Learning**: Self-adjusts parameters based on historical performance
 - **Precision Tracking**: Monitors entry timing, stop loss, and take profit accuracy
 - **Performance-Based**: Automatically adjusts strategy based on trade outcomes
