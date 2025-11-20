@@ -979,10 +979,16 @@ def check_trade_outcomes():
     - ONLY trains on completed trades (TP or SL hit)
     - Maximum 2h wait time before final check
     """
+    print("[DEBUG] Starting trade outcome check...")
     try:
         with open(TRADE_LOG_FILE, 'r') as f:
             logs = json.load(f)
-    except:
+        print(f"[DEBUG] Loaded {len(logs)} trades from log file")
+    except FileNotFoundError:
+        print(f"[DEBUG] No trade log file found at {TRADE_LOG_FILE}")
+        return
+    except Exception as e:
+        print(f"[DEBUG] Error loading trade log: {e}")
         return
     
     now = datetime.now(pytz.UTC)
@@ -1374,29 +1380,33 @@ def main():
     # Fetch news
     print("[NEWS] Fetching crypto news...")
     articles = get_crypto_news()
-    
+
     if not articles:
         print("[WARNING] No news articles found")
         return
-    
+
+    print(f"[NEWS] Found {len(articles)} articles")
+
     # Extract symbols from news
     symbol_articles = {}
     for article in articles:
         text = f"{article.get('title', '')} {article.get('description', '')}"
         symbols = extract_crypto_symbols(text)
-        
+
         for symbol in symbols:
             if symbol not in symbol_articles:
                 symbol_articles[symbol] = []
             symbol_articles[symbol].append(article)
-    
+
+    print(f"[NEWS] Extracted symbols from news: {list(symbol_articles.keys())}")
+
     # Add default symbols
     for sym in DEFAULT_SYMBOLS:
         yf_symbol = CRYPTO_SYMBOL_MAP.get(sym, f"{sym}-USD")
         if yf_symbol not in symbol_articles:
             symbol_articles[yf_symbol] = articles[:5]  # Use general news
-    
-    print(f"[ANALYZE] Analyzing {len(symbol_articles)} cryptocurrencies...\n")
+
+    print(f"[ANALYZE] Analyzing {len(symbol_articles)} cryptocurrencies: {list(symbol_articles.keys())}\n")
     
     # Analyze symbols in parallel for better performance
     signals = analyze_multiple_symbols_parallel(
@@ -1406,9 +1416,41 @@ def main():
         calculate_signal_func=calculate_trade_signal,
         max_workers=8  # Use 8 parallel workers for optimal performance
     )
-    
+
     print(f"\n[PARALLEL] Analysis complete. Found {len(signals)} signals.")
-    
+
+    # Debug: Show signal details
+    if signals:
+        print("[DEBUG] Signal details:")
+        for i, item in enumerate(signals[:3]):  # Show first 3 signals
+            signal = item['signal']
+            print(f"  {i+1}. {item['symbol']}: confidence={signal.get('confidence', 0):.3f}, direction={signal.get('direction', 'N/A')}")
+    else:
+        print("[DEBUG] No signals generated. Checking why...")
+        # Test one symbol manually
+        test_symbol = list(symbol_articles.keys())[0] if symbol_articles else "BTC-USD"
+        print(f"[DEBUG] Testing {test_symbol} manually...")
+
+        try:
+            market_data = get_market_data(test_symbol)
+            if market_data:
+                print(f"[DEBUG] Market data OK for {test_symbol}: ${market_data['price']:.2f}")
+                articles_for_symbol = symbol_articles.get(test_symbol, [])
+                if articles_for_symbol:
+                    sentiment = analyze_sentiment_with_llm(articles_for_symbol)
+                    print(f"[DEBUG] Sentiment OK: {sentiment:.3f}")
+                    test_signal = calculate_trade_signal(sentiment, len(articles_for_symbol), market_data, test_symbol)
+                    if test_signal:
+                        print(f"[DEBUG] Signal generated: {test_signal['direction']} with confidence {test_signal['confidence']:.3f}")
+                    else:
+                        print("[DEBUG] calculate_trade_signal returned None")
+                else:
+                    print(f"[DEBUG] No articles for {test_symbol}")
+            else:
+                print(f"[DEBUG] Market data fetch failed for {test_symbol}")
+        except Exception as e:
+            print(f"[DEBUG] Error testing {test_symbol}: {e}")
+
     # Sort signals by confidence
     signals.sort(key=lambda x: x['signal']['confidence'], reverse=True)
     
@@ -1441,18 +1483,33 @@ def main():
         )
         print(msg)
         print()
-        
+
         # Add to summary
         summary += f"\n{msg}\n"
-        
+
         # Log trade with indicators for learning
+        print(f"[LOG] Logging trade for {item['symbol']}...")
         log_trade(item['symbol'], item['signal'], item['sentiment_reason'], item.get('indicators'))
+        print(f"[LOG] Trade logged successfully for {item['symbol']}")
     
     # Send combined message to Telegram
     send_telegram_message(summary)
     
     print(f"\n[OK] Analysis complete. {len(signals)} signals generated.")
     print(f"[TIME] {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC\n")
+
+    # Debug: Check if trades were logged
+    try:
+        with open(TRADE_LOG_FILE, 'r') as f:
+            logged_trades = json.load(f)
+        print(f"[DEBUG] Successfully logged {len(logged_trades)} trades to {TRADE_LOG_FILE}")
+        if logged_trades:
+            latest_trade = logged_trades[-1]
+            print(f"[DEBUG] Latest trade: {latest_trade['symbol']} {latest_trade['direction']} (status: {latest_trade['status']})")
+    except FileNotFoundError:
+        print(f"[DEBUG] No trades logged - {TRADE_LOG_FILE} not found")
+    except Exception as e:
+        print(f"[DEBUG] Error checking logged trades: {e}")
 
 if __name__ == '__main__':
     try:

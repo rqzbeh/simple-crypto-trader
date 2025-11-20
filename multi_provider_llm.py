@@ -287,7 +287,7 @@ class MultiProviderLLMClient:
             temperature: Sampling temperature
             max_tokens: Maximum tokens to generate
             max_retries: Retry attempts per provider
-            timeout: Request timeout in seconds
+            timeout: Request timeout in seconds (default: 3 seconds for fast trading)
             
         Returns:
             str: LLM response text
