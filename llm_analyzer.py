@@ -185,8 +185,8 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
             response = self.llm_client.chat(
                 prompt=prompt,
                 temperature=0.1,  # Low temperature for consistent analysis
-                max_tokens=500,  # Use max_tokens instead of num_predict
-                timeout=15  # Longer timeout for Cloudflare 70B model
+                max_tokens=300,  # Reduced for faster response
+                timeout=8  # Shorter timeout for faster 3B model
             )
             
             # Parse LLM response

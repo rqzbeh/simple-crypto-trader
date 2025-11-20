@@ -10,7 +10,7 @@ MODEL SELECTION RATIONALE:
   * Reliable on Groq infrastructure for real-time signals
   
 - Cloudflare AI Workers (Fallback):
-  * Free tier with models like @cf/meta/llama-3.3-70b-instruct-fp8-fast
+  * Free tier with models like @cf/meta/llama-3.2-3b-instruct
   * Fast edge computing for backup when Groq limits hit
   * Cost-effective redundancy for 24/7 trading
 
@@ -173,8 +173,8 @@ class MultiProviderLLMClient:
     Multi-provider LLM client with automatic failover and budget tracking.
     
     Provider Priority:
-    1. Cloudflare AI Workers (@cf/meta/llama-3.3-70b-instruct-fp8-fast) - Primary, free unlimited
-    2. Groq (llama-3.3-70b-versatile) - Backup, superior speed
+    1. Cloudflare AI Workers (@cf/meta/llama-3.2-3b-instruct) - Primary, fast & free
+    2. Groq (llama-3.1-8b-instant) - Backup, superior speed
     
     Features:
     - Auto-retry with exponential backoff
@@ -191,7 +191,7 @@ class MultiProviderLLMClient:
                 'name': 'Groq',
                 'api_key': os.getenv('GROQ_API_KEY'),
                 'base_url': 'https://api.groq.com/openai/v1',
-                'model': os.getenv('GROQ_MODEL', 'llama-3.3-70b-versatile'),
+                'model': os.getenv('GROQ_MODEL', 'llama-3.1-8b-instant'),
                 'success_count': 0,
                 'error_count': 0,
                 'total_time': 0.0,
@@ -203,7 +203,7 @@ class MultiProviderLLMClient:
                 'name': 'Cloudflare AI Workers',
                 'api_key': os.getenv('CLOUDFLARE_API_TOKEN'),  # Optional, free tier may not require
                 'base_url': 'https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run',
-                'model': '@cf/meta/llama-3.3-70b-instruct-fp8-fast',  # Free tier model
+                'model': '@cf/meta/llama-3.2-3b-instruct',  # Fast 3B model
                 'success_count': 0,
                 'error_count': 0,
                 'total_time': 0.0,
@@ -342,7 +342,9 @@ class MultiProviderLLMClient:
                             'max_tokens': max_tokens
                         }
                         
-                        response = requests.post(url, headers=headers, json=payload, timeout=15)  # Cloudflare needs longer timeout
+                        # Cloudflare models need appropriate timeouts (3B models are fast, 70B need more time)
+                        cloudflare_timeout = 8 if '70b' in provider['model'] else 5
+                        response = requests.post(url, headers=headers, json=payload, timeout=cloudflare_timeout)
                         
                         if response.status_code == 200:
                             data = response.json()
