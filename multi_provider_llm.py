@@ -342,7 +342,7 @@ class MultiProviderLLMClient:
                             'max_tokens': max_tokens
                         }
                         
-                        response = requests.post(url, headers=headers, json=payload, timeout=timeout)
+                        response = requests.post(url, headers=headers, json=payload, timeout=15)  # Cloudflare needs longer timeout
                         
                         if response.status_code == 200:
                             data = response.json()
