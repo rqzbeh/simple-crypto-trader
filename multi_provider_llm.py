@@ -277,7 +277,7 @@ class MultiProviderLLMClient:
             if error_msg:
                 provider['last_error'] = error_msg
     
-    def chat(self, prompt=None, messages=None, temperature=0.7, max_tokens=1000, max_retries=2, timeout=30, **kwargs):
+    def chat(self, prompt=None, messages=None, temperature=0.7, max_tokens=1000, max_retries=2, timeout=3, **kwargs):
         """
         Send a chat request to LLM with automatic failover and budget tracking.
         
@@ -287,7 +287,7 @@ class MultiProviderLLMClient:
             temperature: Sampling temperature
             max_tokens: Maximum tokens to generate
             max_retries: Retry attempts per provider
-            timeout: Request timeout in seconds
+            timeout: Request timeout in seconds (default: 3 seconds for fast trading)
             
         Returns:
             str: LLM response text
