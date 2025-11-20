@@ -277,7 +277,7 @@ class MultiProviderLLMClient:
             if error_msg:
                 provider['last_error'] = error_msg
     
-    def chat(self, prompt=None, messages=None, temperature=0.7, max_tokens=1000, max_retries=2, timeout=30, **kwargs):
+    def chat(self, prompt=None, messages=None, temperature=0.7, max_tokens=1000, max_retries=2, timeout=3, **kwargs):
         """
         Send a chat request to LLM with automatic failover and budget tracking.
         

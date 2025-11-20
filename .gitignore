@@ -86,3 +86,8 @@ test_*.json
 test_trade_log.json
 
 news_cache.json
+
+# Usage and log files
+llm_usage.json
+logs/
+*.log
