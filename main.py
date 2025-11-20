@@ -918,6 +918,55 @@ def check_daily_risk():
         pass
     return False
 
+def get_current_price_robust(symbol):
+    """
+    Get current price using multiple fallback sources
+    Priority: Yahoo Finance -> CoinGecko API -> Return None
+    """
+    # First try Yahoo Finance
+    try:
+        yf_symbol = CRYPTO_SYMBOL_MAP.get(symbol, f"{symbol}-USD")
+        ticker = yf.Ticker(yf_symbol)
+        data = ticker.history(period='1d', interval='1h')
+        if not data.empty:
+            return float(data['Close'].iloc[-1])
+    except Exception:
+        pass
+    
+    # Fallback to CoinGecko API (free, no auth required)
+    try:
+        # Map symbol to CoinGecko ID
+        coingecko_ids = {
+            'BTC': 'bitcoin',
+            'ETH': 'ethereum', 
+            'BNB': 'binancecoin',
+            'ADA': 'cardano',
+            'XRP': 'ripple',
+            'SOL': 'solana',
+            'DOT': 'polkadot',
+            'DOGE': 'dogecoin',
+            'AVAX': 'avalanche-2',
+            'LINK': 'chainlink',
+            'LTC': 'litecoin',
+            'MATIC': 'matic-network',
+            'SHIB': 'shiba-inu',
+            'FLOW': 'flow',
+            'NEAR': 'near'
+        }
+        
+        cg_id = coingecko_ids.get(symbol.upper())
+        if cg_id:
+            url = f"https://api.coingecko.com/api/v3/simple/price?ids={cg_id}&vs_currencies=usd"
+            response = requests.get(url, timeout=10)
+            if response.status_code == 200:
+                data = response.json()
+                if cg_id in data and 'usd' in data[cg_id]:
+                    return float(data[cg_id]['usd'])
+    except Exception:
+        pass
+    
+    return None
+
 def check_trade_outcomes():
     """
     Check open trades and verify if predictions were correct
@@ -969,40 +1018,55 @@ def check_trade_outcomes():
             intraday_data = ticker.history(period='5d', interval='1h')
             
             if intraday_data.empty:
-                continue
-            
-            # Get the time window for the trade (from entry time to now)
-            
-            # Filter data to just the trade window (from entry to now)
-            trade_window = intraday_data[
-                (intraday_data.index >= entry_time) & 
-                (intraday_data.index <= now)
-            ]
-            
-            if trade_window.empty:
-                # Fallback to single point check if no intraday data
-                current_data = ticker.history(period='1d', interval='1h')
-                if current_data.empty:
-                    continue
-                current_price = float(current_data['Close'].iloc[-1])
-                entry_reached = True  # Assume entry reached if no data
+                # Yahoo Finance failed, try robust price fetching
+                current_price = get_current_price_robust(symbol)
+                if current_price is None:
+                    continue  # Skip this trade if no price data available
+                # For fallback, assume entry was reached and use current price for high/low
+                entry_reached = True
                 high_price = current_price
                 low_price = current_price
+                trade_window = None  # No historical data available
             else:
-                current_price = float(trade_window['Close'].iloc[-1])
-                high_price = float(trade_window['High'].max())
-                low_price = float(trade_window['Low'].min())
+                # Get the time window for the trade (from entry time to now)
+                trade_window = intraday_data[
+                    (intraday_data.index >= entry_time) & 
+                    (intraday_data.index <= now)
+                ]
                 
-                # Check if entry price was actually reached
-                entry_price = trade['entry_price']
-                direction = trade['direction']
-                
-                if direction == 'LONG':
-                    # For LONG, entry needs to be reached from above (price needs to dip to/below entry)
-                    entry_reached = low_price <= entry_price
-                else:  # SHORT
-                    # For SHORT, entry needs to be reached from below (price needs to rise to/above entry)
-                    entry_reached = high_price >= entry_price
+                if trade_window.empty:
+                    # Fallback to single point check if no intraday data
+                    current_data = ticker.history(period='1d', interval='1h')
+                    if current_data.empty:
+                        # Try robust fetching as last resort
+                        current_price = get_current_price_robust(symbol)
+                        if current_price is None:
+                            continue
+                        entry_reached = True
+                        high_price = current_price
+                        low_price = current_price
+                        trade_window = None
+                    else:
+                        current_price = float(current_data['Close'].iloc[-1])
+                        entry_reached = True  # Assume entry reached if no data
+                        high_price = current_price
+                        low_price = current_price
+                        trade_window = None
+                else:
+                    current_price = float(trade_window['Close'].iloc[-1])
+                    high_price = float(trade_window['High'].max())
+                    low_price = float(trade_window['Low'].min())
+                    
+                    # Check if entry price was actually reached
+                    entry_price = trade['entry_price']
+                    direction = trade['direction']
+                    
+                    if direction == 'LONG':
+                        # For LONG, entry needs to be reached from above (price needs to dip to/below entry)
+                        entry_reached = low_price <= entry_price
+                    else:  # SHORT
+                        # For SHORT, entry needs to be reached from below (price needs to rise to/above entry)
+                        entry_reached = high_price >= entry_price
             
             entry_price = trade['entry_price']
             direction = trade['direction']

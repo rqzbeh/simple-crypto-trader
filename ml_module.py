@@ -58,10 +58,10 @@ class TradeOutcomeModel:
 
         rows = []
         for t in data:
-            if t.get('status') not in ['closed', 'won', 'lost']:
+            if t.get('status') not in ['closed', 'won', 'lost', 'completed', 'stopped']:
                 continue
-            result = t.get('result', {})
-            profit = result.get('profit', 0)
+            # Look for profit in actual_profit field (used by main.py) or result.profit (legacy)
+            profit = t.get('actual_profit', t.get('result', {}).get('profit', 0))
             # Binary label: profit > 0 => success
             label = 1 if profit > 0 else 0
             rows.append({
