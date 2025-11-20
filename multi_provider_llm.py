@@ -1,25 +1,24 @@
 """
 Multi-Provider LLM Client with Auto-Failover and Budget Tracking
-Supports Groq with automatic model selection and budget tracking
+Supports Groq (primary) and Cloudflare AI Workers (free fallback)
 
 MODEL SELECTION RATIONALE:
-- Llama 3.1 8B Instant: Fast, reliable model for trading analysis
-  * 8B parameters = good balance of speed and intelligence
-  * "Instant" variant = optimized for low latency
-  * Excellent at sentiment analysis and reasoning
-  * Very fast on Groq infrastructure
-  * Cost-effective for high-frequency trading signals
+- Llama 3.3 70B Versatile: Superior reasoning for complex trading analysis
+  * 70B parameters = excellent for nuanced sentiment and market psychology
+  * Versatile variant = balances accuracy and speed
+  * Outstanding at news-driven reasoning and avoiding hallucinations
+  * Reliable on Groq infrastructure for real-time signals
   
-- Alternative models available on Groq:
-  * Llama 3.3 70B: More powerful but slower
-  * Mixtral 8x7B: Fast mixture of experts
-  * Choose based on GROQ_MODEL environment variable
+- Cloudflare AI Workers (Fallback):
+  * Free tier with models like @cf/meta/llama-3.3-70b-instruct-fp8-fast
+  * Fast edge computing for backup when Groq limits hit
+  * Cost-effective redundancy for 24/7 trading
 
-WHY SINGLE PROVIDER:
-- Groq provides excellent reliability and speed
-- No need for fallbacks when primary provider works well
-- Simpler architecture, easier maintenance
-- Focus on quality over redundancy for trading use case
+WHY MULTI-PROVIDER:
+- Groq primary for speed/accuracy, Cloudflare free fallback for limits
+- Automatic failover prevents downtime during high-volume news
+- Budget tracking ensures cost control
+- Optimized for short-term crypto trades (2h duration)
 
 BUDGET TRACKING:
 - Automatic usage tracking per provider and model
@@ -171,14 +170,16 @@ class LLMUsageTracker:
 
 class MultiProviderLLMClient:
     """
-    Groq LLM client with budget tracking and health monitoring.
+    Multi-provider LLM client with automatic failover and budget tracking.
     
-    Provider:
-    - Groq (llama-3.1-8b-instant) - Primary, fastest and most reliable
+    Provider Priority:
+    1. Cloudflare AI Workers (@cf/meta/llama-3.3-70b-instruct-fp8-fast) - Primary, free unlimited
+    2. Groq (llama-3.3-70b-versatile) - Backup, superior speed
     
     Features:
     - Auto-retry with exponential backoff
-    - Health tracking for provider
+    - Health tracking per provider
+    - Smart provider selection based on error history
     - Detailed logging of failures and successes
     - Budget tracking to stay within free-tier limits
     """
@@ -190,18 +191,31 @@ class MultiProviderLLMClient:
                 'name': 'Groq',
                 'api_key': os.getenv('GROQ_API_KEY'),
                 'base_url': 'https://api.groq.com/openai/v1',
-                'model': os.getenv('GROQ_MODEL', 'llama-3.1-8b-instant'),
+                'model': os.getenv('GROQ_MODEL', 'llama-3.3-70b-versatile'),
                 'success_count': 0,
                 'error_count': 0,
                 'total_time': 0.0,
                 'avg_time': 0.0,
                 'last_error': None,
                 'type': 'rest_api'
+            },
+            'cloudflare': {
+                'name': 'Cloudflare AI Workers',
+                'api_key': os.getenv('CLOUDFLARE_API_TOKEN'),  # Optional, free tier may not require
+                'base_url': 'https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run',
+                'model': '@cf/meta/llama-3.3-70b-instruct-fp8-fast',  # Free tier model
+                'success_count': 0,
+                'error_count': 0,
+                'total_time': 0.0,
+                'avg_time': 0.0,
+                'last_error': None,
+                'type': 'cloudflare'
             }
         }
         
         self.request_history = {
-            'groq': deque(maxlen=100)
+            'groq': deque(maxlen=100),
+            'cloudflare': deque(maxlen=100)
         }
         
         self.lock = Lock()
@@ -214,17 +228,31 @@ class MultiProviderLLMClient:
             raise ValueError("No LLM providers configured! Set GROQ_API_KEY")
         
         print(f"✓ Multi-Provider LLM Client initialized")
-        print(f"  - Primary: {self.providers['groq']['name']} ({self.providers['groq']['model']})")
+        provider_order = self._get_provider_order()
+        if provider_order:
+            primary_id = provider_order[0]
+            print(f"  - Primary: {self.providers[primary_id]['name']} ({self.providers[primary_id]['model']})")
+            if len(provider_order) > 1:
+                fallback_id = provider_order[1]
+                print(f"  - Fallback: {self.providers[fallback_id]['name']} ({self.providers[fallback_id]['model']})")
         
         # Show budget status
         for provider_id, provider in self.providers.items():
-            if provider['api_key']:
+            if provider['api_key'] or provider_id == 'cloudflare':
                 budget = self.usage_tracker.get_remaining_budget(provider_id, provider['model'])
                 print(f"  - {provider['name']} budget: {budget['used_today']}/{budget['limits']['requests_per_day']} used today")
     
     def _get_provider_order(self):
-        """Get provider order - only Groq available"""
-        return ['groq']
+        """Get provider order based on health (prefer providers with fewer errors)"""
+        providers = []
+        for pid, prov in self.providers.items():
+            if prov['api_key'] or pid == 'cloudflare':  # Cloudflare may not require API key for free tier
+                error_rate = prov['error_count'] / (prov['success_count'] + prov['error_count'] + 1)
+                providers.append((pid, error_rate))
+        
+        # Sort by error rate (ascending), but prioritize Cloudflare (free tier)
+        providers.sort(key=lambda x: (0 if x[0] == 'cloudflare' else 1, x[1]))
+        return [p[0] for p in providers]
     
     def _mark_provider_success(self, provider_id, elapsed_time):
         """Mark a successful request for a provider"""
@@ -276,8 +304,8 @@ class MultiProviderLLMClient:
         for provider_id in providers_to_try:
             provider = self.providers[provider_id]
             
-            # Skip if no API key
-            if not provider['api_key']:
+            # Skip if no API key (except Cloudflare which may work without)
+            if not provider['api_key'] and provider_id != 'cloudflare':
                 continue
             
             # Check budget before attempting (only for free providers to prevent waste)
@@ -295,21 +323,52 @@ class MultiProviderLLMClient:
                 try:
                     start_time = time.time()
                     
-                    # Handle REST API providers (Groq)
-                    response = requests.post(
-                        f"{provider['base_url']}/chat/completions",
-                        headers={
-                            'Authorization': f"Bearer {provider['api_key']}",
-                            'Content-Type': 'application/json'
-                        },
-                        json={
-                            'model': provider['model'],
-                            'messages': messages,
+                    # Handle Cloudflare AI Workers
+                    if provider['type'] == 'cloudflare':
+                        # Cloudflare uses a different API format
+                        account_id = os.getenv('CLOUDFLARE_ACCOUNT_ID')  # Required for Cloudflare
+                        if not account_id:
+                            raise Exception("CLOUDFLARE_ACCOUNT_ID not set")
+                        
+                        url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{provider['model']}"
+                        headers = {'Authorization': f"Bearer {provider['api_key']}"} if provider['api_key'] else {}
+                        
+                        # Convert messages to prompt for Cloudflare
+                        prompt_text = "\n".join([msg['content'] for msg in messages if msg['role'] == 'user']) if messages else prompt
+                        
+                        payload = {
+                            'prompt': prompt_text,
                             'temperature': temperature,
                             'max_tokens': max_tokens
-                        },
-                        timeout=timeout
-                    )
+                        }
+                        
+                        response = requests.post(url, headers=headers, json=payload, timeout=timeout)
+                        
+                        if response.status_code == 200:
+                            data = response.json()
+                            content = data.get('result', {}).get('response', '') if isinstance(data, dict) else str(data)
+                            if not content:
+                                raise Exception("Empty response from Cloudflare")
+                        else:
+                            error_msg = f"HTTP {response.status_code}: {response.text[:200]}"
+                            raise Exception(error_msg)
+                    
+                    # Handle REST API providers (Groq)
+                    else:
+                        response = requests.post(
+                            f"{provider['base_url']}/chat/completions",
+                            headers={
+                                'Authorization': f"Bearer {provider['api_key']}",
+                                'Content-Type': 'application/json'
+                            },
+                            json={
+                                'model': provider['model'],
+                                'messages': messages,
+                                'temperature': temperature,
+                                'max_tokens': max_tokens
+                            },
+                            timeout=timeout
+                        )
                     
                     elapsed = time.time() - start_time
                     

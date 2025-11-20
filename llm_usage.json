@@ -2,10 +2,15 @@
   "date": "2025-11-20",
   "providers": {
     "groq:llama-3.3-70b-versatile": {
-      "requests_today": 34,
-      "requests_this_hour": 34,
+      "requests_today": 38,
+      "requests_this_hour": 38,
       "hour_start": "2025-11-20T03:41:19.156725",
-      "requests_this_minute": 34
+      "requests_this_minute": 38
+    },
+    "cloudflare:@cf/meta/llama-3.3-70b-instruct-fp8-fast": {
+      "requests_today": 0,
+      "requests_this_hour": 0,
+      "hour_start": "2025-11-20T17:32:15.083624"
     }
   },
   "last_reset": "2025-11-20T03:41:07.289236"
