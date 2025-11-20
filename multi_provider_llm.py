@@ -1,24 +1,25 @@
 """
 Multi-Provider LLM Client with Auto-Failover and Budget Tracking
-Supports Groq (primary) and OllamaFreeAPI (fallback via Python package)
+Supports Groq with automatic model selection and budget tracking
 
 MODEL SELECTION RATIONALE:
-- Llama 3.3 70B: Best open-source model for reasoning and analysis
-  * 70B parameters = smart enough for market analysis
-  * Trained on diverse data including finance/news
+- Llama 3.1 8B Instant: Fast, reliable model for trading analysis
+  * 8B parameters = good balance of speed and intelligence
+  * "Instant" variant = optimized for low latency
   * Excellent at sentiment analysis and reasoning
-  * Fast on Groq infrastructure (400+ tok/s)
-  * Better than GPT-3.5, competitive with GPT-4
+  * Very fast on Groq infrastructure
+  * Cost-effective for high-frequency trading signals
   
 - Alternative models available on Groq:
-  * Mixtral 8x7B: Mixture of experts, very fast, good quality
-  * Gemma 2 9B: Google's model, fast but smaller
-  * Choose Llama 3.3 70B for best accuracy vs speed balance
+  * Llama 3.3 70B: More powerful but slower
+  * Mixtral 8x7B: Fast mixture of experts
+  * Choose based on GROQ_MODEL environment variable
 
-WHY MULTI-PROVIDER:
-- Different APIs = true redundancy (if one down, other works)
-- Separate rate limits = stay under free tiers
-- Groq (14.4k/day) + OllamaFreeAPI (100/hr free tier) = plenty for trading
+WHY SINGLE PROVIDER:
+- Groq provides excellent reliability and speed
+- No need for fallbacks when primary provider works well
+- Simpler architecture, easier maintenance
+- Focus on quality over redundancy for trading use case
 
 BUDGET TRACKING:
 - Automatic usage tracking per provider and model
@@ -170,62 +171,37 @@ class LLMUsageTracker:
 
 class MultiProviderLLMClient:
     """
-    Multi-provider LLM client with automatic failover and budget tracking.
+    Groq LLM client with budget tracking and health monitoring.
     
-    Provider Priority:
-    1. Groq (llama-3.3-70b-versatile) - Primary, fastest
-    2. OllamaFreeAPI (deepseek-r1:7b) - Fallback, free distributed API
+    Provider:
+    - Groq (llama-3.1-8b-instant) - Primary, fastest and most reliable
     
     Features:
     - Auto-retry with exponential backoff
-    - Health tracking per provider
-    - Smart provider selection based on error history
+    - Health tracking for provider
     - Detailed logging of failures and successes
     - Budget tracking to stay within free-tier limits
     """
     
     def __init__(self):
-        # Try to import ollamafreeapi (fallback provider)
-        self.ollama_client = None
-        try:
-            print("⏳ Initializing OllamaFreeAPI fallback...")
-            from ollamafreeapi import OllamaFreeAPI
-            self.ollama_client = OllamaFreeAPI()
-            print("✓ OllamaFreeAPI loaded")
-        except Exception as e:
-            print(f"⚠ OllamaFreeAPI unavailable: {str(e)[:100]}")
-        
         # Provider configurations
         self.providers = {
             'groq': {
                 'name': 'Groq',
                 'api_key': os.getenv('GROQ_API_KEY'),
                 'base_url': 'https://api.groq.com/openai/v1',
-                'model': os.getenv('GROQ_MODEL', 'llama-3.3-70b-versatile'),
+                'model': os.getenv('GROQ_MODEL', 'llama-3.1-8b-instant'),
                 'success_count': 0,
                 'error_count': 0,
                 'total_time': 0.0,
                 'avg_time': 0.0,
                 'last_error': None,
                 'type': 'rest_api'
-            },
-            'ollamafree': {
-                'name': 'OllamaFreeAPI',
-                'api_key': 'available' if self.ollama_client else None,
-                'base_url': None,
-                'model': 'deepseek-r1:7b',  # Better model - more reliable and powerful
-                'success_count': 0,
-                'error_count': 0,
-                'total_time': 0.0,
-                'avg_time': 0.0,
-                'last_error': None,
-                'type': 'python_package'
             }
         }
         
         self.request_history = {
-            'groq': deque(maxlen=100),
-            'ollamafree': deque(maxlen=100)
+            'groq': deque(maxlen=100)
         }
         
         self.lock = Lock()
@@ -239,8 +215,6 @@ class MultiProviderLLMClient:
         
         print(f"✓ Multi-Provider LLM Client initialized")
         print(f"  - Primary: {self.providers['groq']['name']} ({self.providers['groq']['model']})")
-        if self.ollama_client:
-            print(f"  - Fallback: {self.providers['ollamafree']['name']} ({self.providers['ollamafree']['model']})")
         
         # Show budget status
         for provider_id, provider in self.providers.items():
@@ -249,16 +223,8 @@ class MultiProviderLLMClient:
                 print(f"  - {provider['name']} budget: {budget['used_today']}/{budget['limits']['requests_per_day']} used today")
     
     def _get_provider_order(self):
-        """Get provider order based on health (prefer providers with fewer errors)"""
-        providers = []
-        for pid, prov in self.providers.items():
-            if prov['api_key']:
-                error_rate = prov['error_count'] / (prov['success_count'] + prov['error_count'] + 1)
-                providers.append((pid, error_rate))
-        
-        # Sort by error rate (ascending)
-        providers.sort(key=lambda x: x[1])
-        return [p[0] for p in providers]
+        """Get provider order - only Groq available"""
+        return ['groq']
     
     def _mark_provider_success(self, provider_id, elapsed_time):
         """Mark a successful request for a provider"""
@@ -329,32 +295,6 @@ class MultiProviderLLMClient:
                 try:
                     start_time = time.time()
                     
-                    # Handle OllamaFreeAPI - simple direct call
-                    if provider['type'] == 'python_package' and provider_id == 'ollamafree':
-                        if not self.ollama_client:
-                            raise Exception("OllamaFreeAPI not available")
-                        
-                        # Convert messages to prompt
-                        prompt_text = "\n".join([msg['content'] for msg in messages if msg['role'] == 'user']) if messages else prompt
-                        
-                        # Simple direct call as per docs - FIXED parameter name
-                        content = self.ollama_client.chat(
-                            prompt=prompt_text,
-                            model='deepseek-r1:7b',
-                            temperature=temperature
-                        )
-                        
-                        if not content:
-                            raise Exception("Empty response from OllamaFreeAPI")
-                        
-                        elapsed = time.time() - start_time
-                        self.usage_tracker.record_request(provider_id, provider['model'])
-                        self._mark_provider_success(provider_id, elapsed)
-                        
-                        print(f"✓ {provider['name']} responded in {elapsed:.2f}s")
-                        
-                        return content
-                    
                     # Handle REST API providers (Groq)
                     response = requests.post(
                         f"{provider['base_url']}/chat/completions",
@@ -411,22 +351,6 @@ class MultiProviderLLMClient:
                             wait_time = 2 ** attempt
                             print(f"  Retrying in {wait_time}s...")
                             time.sleep(wait_time)
-                
-                except RuntimeError as e:
-                    # OllamaFreeAPI raises RuntimeError when no servers available or all fail
-                    error_msg = f"OllamaFreeAPI unavailable: {str(e)}"
-                    print(f"✗ {provider['name']} error: {error_msg}")
-                    all_errors.append(f"{provider['name']}: {error_msg}")
-                    # Don't retry RuntimeError - indicates fundamental server/library issues
-                    break
-                
-                except TypeError as e:
-                    # OllamaFreeAPI has internal bugs (like string indexing errors)
-                    error_msg = f"OllamaFreeAPI library error: {str(e)}"
-                    print(f"✗ {provider['name']} error: {error_msg}")
-                    all_errors.append(f"{provider['name']}: {error_msg}")
-                    # Don't retry TypeError - indicates library bugs
-                    break
                 
                 except requests.exceptions.Timeout:
                     error_msg = f"Timeout after {timeout}s"

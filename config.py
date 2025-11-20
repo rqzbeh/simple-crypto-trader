@@ -111,23 +111,6 @@ GROQ_LIMITS = {
     }
 }
 
-# OllamaFreeAPI Limits (community service, estimated)
-# Based on typical free API patterns
-OLLAMA_FREE_LIMITS = {
-    'llama3.1:8b': {
-        'requests_per_minute': 20,
-        'requests_per_hour': 1000,
-        'requests_per_day': 10000,  # Estimated safe limit
-        'tokens_per_minute': 4000
-    },
-    'llama3.3:70b': {
-        'requests_per_minute': 10,
-        'requests_per_hour': 500,
-        'requests_per_day': 5000,
-        'tokens_per_minute': 3000
-    }
-}
-
 # Default safe daily budget if model not found (conservative)
 DEFAULT_DAILY_BUDGET = 1000
 DEFAULT_HOURLY_BUDGET = 100
@@ -192,14 +175,6 @@ def get_llm_limits(provider: str, model: str) -> dict:
                 'requests_per_minute': int(limits['requests_per_minute'] * RATE_LIMIT_BUFFER),
                 'requests_per_day': int(limits['requests_per_day'] * RATE_LIMIT_BUFFER),
                 'tokens_per_minute': int(limits['tokens_per_minute'] * RATE_LIMIT_BUFFER)
-            }
-    elif provider.lower() in ['ollamafreeapi', 'ollama']:
-        limits = OLLAMA_FREE_LIMITS.get(model, None)
-        if limits:
-            return {
-                'requests_per_minute': int(limits['requests_per_minute'] * RATE_LIMIT_BUFFER),
-                'requests_per_hour': int(limits['requests_per_hour'] * RATE_LIMIT_BUFFER),
-                'requests_per_day': int(limits['requests_per_day'] * RATE_LIMIT_BUFFER)
             }
     
     # Default conservative limits if model not found
