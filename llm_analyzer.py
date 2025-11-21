@@ -391,11 +391,10 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
             self.precision_metrics['entry_not_reached_count'] += 1
             # Track consecutive unavailable trades
             self.precision_metrics['consecutive_entry_not_reached'] += 1
-            max_streak = max(
+            self.precision_metrics['max_consecutive_entry_not_reached'] = max(
                 self.precision_metrics['max_consecutive_entry_not_reached'],
                 self.precision_metrics['consecutive_entry_not_reached']
             )
-            self.precision_metrics['max_consecutive_entry_not_reached'] = max_streak
             # TRIGGER: If threshold consecutive unavailable trades, aggressively loosen parameters
             if self.precision_metrics['consecutive_entry_not_reached'] >= self.CONSECUTIVE_ENTRY_FAIL_THRESHOLD:
                 self._handle_consecutive_unavailable_trades()
