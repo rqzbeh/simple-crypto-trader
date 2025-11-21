@@ -1,6 +1,7 @@
 """
 Multi-Provider LLM Client with Auto-Failover and Budget Tracking
-Supports Groq (primary) and Cloudflare AI Workers (free fallback)
+Supports Groq (primary) and Cloudflare AI Workers (fallback)
+Both providers use OpenAI-compatible API for standardization
 
 MODEL SELECTION RATIONALE:
 - Llama 3.3 70B Versatile: Superior reasoning for complex trading analysis
@@ -13,12 +14,14 @@ MODEL SELECTION RATIONALE:
   * Free tier with models like @cf/meta/llama-3.2-3b-instruct
   * Fast edge computing for backup when Groq limits hit
   * Cost-effective redundancy for 24/7 trading
+  * Uses OpenAI-compatible Gateway API
 
 WHY MULTI-PROVIDER:
 - Groq primary for speed/accuracy, Cloudflare free fallback for limits
 - Automatic failover prevents downtime during high-volume news
 - Budget tracking ensures cost control
 - Optimized for short-term crypto trades (2h duration)
+- Unified OpenAI-compatible API reduces code complexity
 
 BUDGET TRACKING:
 - Automatic usage tracking per provider and model
@@ -171,12 +174,14 @@ class LLMUsageTracker:
 class MultiProviderLLMClient:
     """
     Multi-provider LLM client with automatic failover and budget tracking.
+    Uses OpenAI-compatible API for all providers (standardized interface).
     
     Provider Priority:
     1. Groq (llama-3.1-8b-instant) - Primary, superior speed & quality
     2. Cloudflare AI Workers (@cf/meta/llama-3.2-3b-instruct) - Backup, fast & free
     
     Features:
+    - OpenAI-compatible API for all providers (simplified, standardized)
     - Auto-retry with exponential backoff
     - Health tracking per provider
     - Smart provider selection based on error history
@@ -185,7 +190,10 @@ class MultiProviderLLMClient:
     """
     
     def __init__(self):
-        # Provider configurations
+        # Provider configurations - both use OpenAI-compatible API
+        # Reference: https://developers.cloudflare.com/workers-ai/configuration/open-ai-compatibility/
+        cloudflare_account_id = os.getenv('CLOUDFLARE_ACCOUNT_ID', '')
+        
         self.providers = {
             'groq': {
                 'name': 'Groq',
@@ -196,20 +204,20 @@ class MultiProviderLLMClient:
                 'error_count': 0,
                 'total_time': 0.0,
                 'avg_time': 0.0,
-                'last_error': None,
-                'type': 'rest_api'
+                'last_error': None
             },
             'cloudflare': {
                 'name': 'Cloudflare AI Workers',
-                'api_key': os.getenv('CLOUDFLARE_API_TOKEN'),  # Optional, free tier may not require
-                'base_url': 'https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run',
+                'api_key': os.getenv('CLOUDFLARE_API_TOKEN'),
+                # Cloudflare Workers AI with OpenAI-compatible endpoint
+                # Format: https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1
+                'base_url': f'https://api.cloudflare.com/client/v4/accounts/{cloudflare_account_id}/ai/v1',
                 'model': '@cf/meta/llama-3.2-3b-instruct',  # Fast 3B model
                 'success_count': 0,
                 'error_count': 0,
                 'total_time': 0.0,
                 'avg_time': 0.0,
-                'last_error': None,
-                'type': 'cloudflare'
+                'last_error': None
             }
         }
         
@@ -225,9 +233,9 @@ class MultiProviderLLMClient:
         
         # Validate at least one provider is configured
         if not any(p['api_key'] for p in self.providers.values()):
-            raise ValueError("No LLM providers configured! Set GROQ_API_KEY")
+            raise ValueError("No LLM providers configured! Set GROQ_API_KEY or CLOUDFLARE_API_TOKEN")
         
-        print(f"✓ Multi-Provider LLM Client initialized")
+        print(f"✓ Multi-Provider LLM Client initialized (OpenAI-compatible API)")
         provider_order = self._get_provider_order()
         if provider_order:
             primary_id = provider_order[0]
@@ -238,7 +246,7 @@ class MultiProviderLLMClient:
         
         # Show budget status
         for provider_id, provider in self.providers.items():
-            if provider['api_key'] or provider_id == 'cloudflare':
+            if provider['api_key']:
                 budget = self.usage_tracker.get_remaining_budget(provider_id, provider['model'])
                 print(f"  - {provider['name']} budget: {budget['used_today']}/{budget['limits']['requests_per_day']} used today")
     
@@ -246,7 +254,7 @@ class MultiProviderLLMClient:
         """Get provider order based on health (prefer providers with fewer errors)"""
         providers = []
         for pid, prov in self.providers.items():
-            if prov['api_key'] or pid == 'cloudflare':  # Cloudflare may not require API key for free tier
+            if prov['api_key']:
                 error_rate = prov['error_count'] / (prov['success_count'] + prov['error_count'] + 1)
                 providers.append((pid, error_rate))
         
@@ -304,8 +312,8 @@ class MultiProviderLLMClient:
         for provider_id in providers_to_try:
             provider = self.providers[provider_id]
             
-            # Skip if no API key (except Cloudflare which may work without)
-            if not provider['api_key'] and provider_id != 'cloudflare':
+            # Skip if no API key
+            if not provider['api_key']:
                 continue
             
             # Check budget before attempting (only for free providers to prevent waste)
@@ -323,54 +331,21 @@ class MultiProviderLLMClient:
                 try:
                     start_time = time.time()
                     
-                    # Handle Cloudflare AI Workers
-                    if provider['type'] == 'cloudflare':
-                        # Cloudflare uses a different API format
-                        account_id = os.getenv('CLOUDFLARE_ACCOUNT_ID')  # Required for Cloudflare
-                        if not account_id:
-                            raise Exception("CLOUDFLARE_ACCOUNT_ID not set")
-                        
-                        url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/{provider['model']}"
-                        headers = {'Authorization': f"Bearer {provider['api_key']}"} if provider['api_key'] else {}
-                        
-                        # Convert messages to prompt for Cloudflare
-                        prompt_text = "\n".join([msg['content'] for msg in messages if msg['role'] == 'user']) if messages else prompt
-                        
-                        payload = {
-                            'prompt': prompt_text,
+                    # Use OpenAI-compatible API for all providers
+                    response = requests.post(
+                        f"{provider['base_url']}/chat/completions",
+                        headers={
+                            'Authorization': f"Bearer {provider['api_key']}",
+                            'Content-Type': 'application/json'
+                        },
+                        json={
+                            'model': provider['model'],
+                            'messages': messages,
                             'temperature': temperature,
                             'max_tokens': max_tokens
-                        }
-                        
-                        # Cloudflare models need appropriate timeouts (3B models are fast, 70B need more time)
-                        cloudflare_timeout = 8 if '70b' in provider['model'] else 5
-                        response = requests.post(url, headers=headers, json=payload, timeout=cloudflare_timeout)
-                        
-                        if response.status_code == 200:
-                            data = response.json()
-                            content = data.get('result', {}).get('response', '') if isinstance(data, dict) else str(data)
-                            if not content:
-                                raise Exception("Empty response from Cloudflare")
-                        else:
-                            error_msg = f"HTTP {response.status_code}: {response.text[:200]}"
-                            raise Exception(error_msg)
-                    
-                    # Handle REST API providers (Groq)
-                    else:
-                        response = requests.post(
-                            f"{provider['base_url']}/chat/completions",
-                            headers={
-                                'Authorization': f"Bearer {provider['api_key']}",
-                                'Content-Type': 'application/json'
-                            },
-                            json={
-                                'model': provider['model'],
-                                'messages': messages,
-                                'temperature': temperature,
-                                'max_tokens': max_tokens
-                            },
-                            timeout=timeout
-                        )
+                        },
+                        timeout=timeout
+                    )
                     
                     elapsed = time.time() - start_time
                     
