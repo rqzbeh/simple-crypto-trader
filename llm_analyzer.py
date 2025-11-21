@@ -44,6 +44,9 @@ class CryptoMarketAnalyzer:
             'current_loss_streak': 0,
             'max_win_streak': 0,
             'max_loss_streak': 0,
+            # Consecutive unavailable trade tracking (for aggressive loosening)
+            'consecutive_entry_not_reached': 0,  # Current streak of unavailable trades
+            'max_consecutive_entry_not_reached': 0,  # Historical max
         }
         self.strategy_adjustments = {
             'indicator_weights': {},
@@ -374,7 +377,20 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
         if not entry_reached:
             # Entry price was never reached
             self.precision_metrics['entry_not_reached_count'] += 1
-        elif failure_reason == 'sl_hit':
+            # Track consecutive unavailable trades
+            self.precision_metrics['consecutive_entry_not_reached'] += 1
+            self.precision_metrics['max_consecutive_entry_not_reached'] = max(
+                self.precision_metrics['max_consecutive_entry_not_reached'],
+                self.precision_metrics['consecutive_entry_not_reached']
+            )
+            # TRIGGER: If 2 consecutive unavailable trades, aggressively loosen parameters
+            if self.precision_metrics['consecutive_entry_not_reached'] >= 2:
+                self._handle_consecutive_unavailable_trades()
+        else:
+            # Entry was reached - reset consecutive counter
+            self.precision_metrics['consecutive_entry_not_reached'] = 0
+        
+        if failure_reason == 'sl_hit':
             # Stop loss hit before trend could work
             self.precision_metrics['sl_hit_early_count'] += 1
         elif failure_reason == 'tp_not_reached':
@@ -671,6 +687,52 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
             print(f"     • TP too far: {tp_fail_rate*100:.1f}%")
             print(f"     • Wrong direction: {wrong_dir_rate*100:.1f}%")
         print()
+    
+    def _handle_consecutive_unavailable_trades(self):
+        """
+        AGGRESSIVE intervention when 2+ consecutive trades have entry not reached.
+        This indicates entry prices are consistently too far from market.
+        Loosen parameters significantly to increase trade availability.
+        """
+        streak = self.precision_metrics['consecutive_entry_not_reached']
+        
+        print(f"\n⚠️  CONSECUTIVE UNAVAILABLE TRADES DETECTED: {streak} in a row")
+        print("🔧 LOOSENING PARAMETERS AGGRESSIVELY...")
+        print("=" * 60)
+        
+        # 1. Move entry much closer to current price (aggressive adjustment)
+        current_entry = self.strategy_adjustments['entry_adjustment_factor']
+        if streak == 2:
+            # First trigger: reduce by 20%
+            new_entry = max(0.7, current_entry - 0.2)
+            print(f"   Entry Adjustment: {current_entry:.2f}x → {new_entry:.2f}x (20% reduction)")
+        else:
+            # Subsequent triggers: reduce by 15% more
+            new_entry = max(0.7, current_entry - 0.15)
+            print(f"   Entry Adjustment: {current_entry:.2f}x → {new_entry:.2f}x (15% reduction)")
+        self.strategy_adjustments['entry_adjustment_factor'] = new_entry
+        
+        # 2. Widen stop loss to avoid tight stops blocking entry
+        current_sl = self.strategy_adjustments['sl_adjustment_factor']
+        new_sl = min(1.5, current_sl + 0.15)
+        print(f"   SL Adjustment: {current_sl:.2f}x → {new_sl:.2f}x (15% widening)")
+        self.strategy_adjustments['sl_adjustment_factor'] = new_sl
+        
+        # 3. Lower confidence threshold to take more trades
+        current_conf = self.strategy_adjustments['confidence_threshold']
+        new_conf = max(0.2, current_conf - 0.1)
+        print(f"   Confidence Threshold: {current_conf:.2f} → {new_conf:.2f} (more aggressive)")
+        self.strategy_adjustments['confidence_threshold'] = new_conf
+        
+        # 4. Adjust take profit to be more realistic
+        current_tp = self.strategy_adjustments['tp_adjustment_factor']
+        new_tp = max(0.6, current_tp - 0.1)
+        print(f"   TP Adjustment: {current_tp:.2f}x → {new_tp:.2f}x (10% reduction)")
+        self.strategy_adjustments['tp_adjustment_factor'] = new_tp
+        
+        print("=" * 60)
+        print("✅ Parameters loosened to improve trade availability")
+        print(f"💡 Strategy will automatically tighten again if trades start filling\n")
     
     def _optimize_indicator_weights(self):
         """

@@ -75,6 +75,111 @@ The system generates trading signals with:
    python main.py
    ```
 
+## ⏰ Automated Trading with Crontab (VPS)
+
+For automated trading on a VPS, you can use crontab to run the system at regular intervals. The system is optimized for 2-hour trading windows, so running every 2 hours is recommended.
+
+### Setting Up Crontab
+
+1. **Open crontab editor**
+   ```bash
+   crontab -e
+   ```
+
+2. **Add automation schedule** (example: run every 2 hours)
+   ```bash
+   # Run crypto trader every 2 hours
+   0 */2 * * * cd /path/to/simple-crypto-trader && /usr/bin/python3 main.py >> logs/cron.log 2>&1
+   ```
+
+3. **Alternative schedules**
+   ```bash
+   # Run every 4 hours (less aggressive)
+   0 */4 * * * cd /path/to/simple-crypto-trader && /usr/bin/python3 main.py >> logs/cron.log 2>&1
+   
+   # Run at specific times (e.g., 6 AM, 12 PM, 6 PM, 12 AM)
+   0 6,12,18,0 * * * cd /path/to/simple-crypto-trader && /usr/bin/python3 main.py >> logs/cron.log 2>&1
+   
+   # Run every hour (more aggressive, monitor API limits)
+   0 * * * * cd /path/to/simple-crypto-trader && /usr/bin/python3 main.py >> logs/cron.log 2>&1
+   ```
+
+### Best Practices for VPS Deployment
+
+1. **Use absolute paths**
+   ```bash
+   # Find your Python path
+   which python3
+   # Find your project path
+   pwd
+   ```
+
+2. **Set environment variables in crontab**
+   ```bash
+   # Add these lines BEFORE your cron jobs
+   NEWS_API_KEY=your_key_here
+   GROQ_API_KEY=your_key_here
+   TELEGRAM_BOT_TOKEN=your_token_here
+   TELEGRAM_CHAT_ID=your_chat_id
+   
+   # Then add your cron job
+   0 */2 * * * cd /path/to/simple-crypto-trader && /usr/bin/python3 main.py >> logs/cron.log 2>&1
+   ```
+
+3. **Or use a wrapper script** (recommended)
+   ```bash
+   # Create run_trader.sh
+   #!/bin/bash
+   cd /path/to/simple-crypto-trader
+   export NEWS_API_KEY="your_key"
+   export GROQ_API_KEY="your_key"
+   export TELEGRAM_BOT_TOKEN="your_token"
+   export TELEGRAM_CHAT_ID="your_chat_id"
+   /usr/bin/python3 main.py
+   ```
+   
+   ```bash
+   # Make it executable
+   chmod +x run_trader.sh
+   
+   # Add to crontab
+   0 */2 * * * /path/to/simple-crypto-trader/run_trader.sh >> /path/to/simple-crypto-trader/logs/cron.log 2>&1
+   ```
+
+4. **Monitor logs**
+   ```bash
+   # View recent cron output
+   tail -f logs/cron.log
+   
+   # View application logs
+   tail -f logs/crypto_trader.log
+   
+   # Check for errors
+   tail -f logs/crypto_trader_errors.log
+   ```
+
+5. **Verify crontab is running**
+   ```bash
+   # List current cron jobs
+   crontab -l
+   
+   # Check cron service status
+   sudo systemctl status cron  # Ubuntu/Debian
+   sudo systemctl status crond  # CentOS/RHEL
+   ```
+
+### Adaptive Learning & Auto-Adjustment
+
+The system includes intelligent learning that automatically adjusts trading parameters based on performance:
+
+- **Entry Price Adjustment**: If trades aren't filling (entry not reached), the system gradually moves entry prices closer to current market price
+- **Stop Loss Optimization**: Widens stops if getting stopped out too frequently
+- **Take Profit Calibration**: Reduces targets if they're consistently too far
+- **Confidence Threshold**: Becomes more selective after losses, more aggressive after wins
+- **Consecutive Failure Recovery**: Automatically loosens parameters after 2 consecutive unavailable trades
+
+All learning persists across runs in `learning_state.json`, so the system gets smarter over time even with crontab automation.
+
 ## 📊 Usage Examples
 
 ### Generate Trading Signals
