@@ -371,19 +371,14 @@ class MultiProviderLLMClient:
                     
                     if response.status_code == 200:
                         data = response.json()
-                        content = ''
-                        # Try common response formats
-                        if isinstance(data, dict):
-                            if 'choices' in data and data['choices']:
-                                choice0 = data['choices'][0]
-                                if 'message' in choice0 and 'content' in choice0['message']:
-                                    content = choice0['message']['content']
-                                elif 'text' in choice0:
-                                    content = choice0['text']
-                            elif 'response' in data:
-                                content = data['response']
-                        if not content:
-                            content = response.text.strip()
+                        
+                        # Parse OpenAI-compatible response format
+                        # Standard format: data['choices'][0]['message']['content']
+                        if isinstance(data, dict) and 'choices' in data and data['choices']:
+                            content = data['choices'][0]['message']['content']
+                        else:
+                            # If response doesn't match OpenAI format, log and raise error
+                            raise Exception(f"Unexpected response format from {provider['name']}: {str(data)[:200]}")
                         
                         # Record successful request
                         self.usage_tracker.record_request(provider_id, provider['model'])
