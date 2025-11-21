@@ -20,6 +20,18 @@ class CryptoMarketAnalyzer:
     
     LEARNING_DATA_FILE = 'learning_state.json'
     
+    # Consecutive unavailable trade adjustment constants
+    CONSECUTIVE_ENTRY_FAIL_THRESHOLD = 2  # Trigger after 2 consecutive failures
+    AGGRESSIVE_ENTRY_REDUCTION_FIRST = 0.2  # 20% reduction on first trigger
+    AGGRESSIVE_ENTRY_REDUCTION_SUBSEQUENT = 0.15  # 15% reduction on subsequent
+    AGGRESSIVE_SL_WIDENING = 0.15  # 15% wider stop loss
+    AGGRESSIVE_CONF_REDUCTION = 0.1  # Lower confidence by 0.1
+    AGGRESSIVE_TP_REDUCTION = 0.1  # 10% TP reduction
+    MIN_ENTRY_ADJUSTMENT = 0.7  # Don't go below 70% entry adjustment
+    MAX_SL_ADJUSTMENT = 1.5  # Don't widen SL beyond 150%
+    MIN_CONFIDENCE_THRESHOLD = 0.2  # Don't lower confidence below 0.2
+    MIN_TP_ADJUSTMENT = 0.6  # Don't reduce TP below 60%
+    
     def __init__(self, llm_client=None):
         self.llm_client = llm_client
         self.performance_history = []
@@ -379,12 +391,13 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
             self.precision_metrics['entry_not_reached_count'] += 1
             # Track consecutive unavailable trades
             self.precision_metrics['consecutive_entry_not_reached'] += 1
-            self.precision_metrics['max_consecutive_entry_not_reached'] = max(
+            max_streak = max(
                 self.precision_metrics['max_consecutive_entry_not_reached'],
                 self.precision_metrics['consecutive_entry_not_reached']
             )
-            # TRIGGER: If 2 consecutive unavailable trades, aggressively loosen parameters
-            if self.precision_metrics['consecutive_entry_not_reached'] >= 2:
+            self.precision_metrics['max_consecutive_entry_not_reached'] = max_streak
+            # TRIGGER: If threshold consecutive unavailable trades, aggressively loosen parameters
+            if self.precision_metrics['consecutive_entry_not_reached'] >= self.CONSECUTIVE_ENTRY_FAIL_THRESHOLD:
                 self._handle_consecutive_unavailable_trades()
         else:
             # Entry was reached - reset consecutive counter
@@ -690,7 +703,7 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
     
     def _handle_consecutive_unavailable_trades(self):
         """
-        AGGRESSIVE intervention when 2+ consecutive trades have entry not reached.
+        AGGRESSIVE intervention when CONSECUTIVE_ENTRY_FAIL_THRESHOLD+ consecutive trades have entry not reached.
         This indicates entry prices are consistently too far from market.
         Loosen parameters significantly to increase trade availability.
         """
@@ -702,32 +715,34 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
         
         # 1. Move entry much closer to current price (aggressive adjustment)
         current_entry = self.strategy_adjustments['entry_adjustment_factor']
-        if streak == 2:
-            # First trigger: reduce by 20%
-            new_entry = max(0.7, current_entry - 0.2)
-            print(f"   Entry Adjustment: {current_entry:.2f}x → {new_entry:.2f}x (20% reduction)")
+        if streak == self.CONSECUTIVE_ENTRY_FAIL_THRESHOLD:
+            # First trigger: reduce by configured percentage
+            reduction = self.AGGRESSIVE_ENTRY_REDUCTION_FIRST
+            new_entry = max(self.MIN_ENTRY_ADJUSTMENT, current_entry - reduction)
+            print(f"   Entry Adjustment: {current_entry:.2f}x → {new_entry:.2f}x ({reduction*100:.0f}% reduction)")
         else:
-            # Subsequent triggers: reduce by 15% more
-            new_entry = max(0.7, current_entry - 0.15)
-            print(f"   Entry Adjustment: {current_entry:.2f}x → {new_entry:.2f}x (15% reduction)")
+            # Subsequent triggers: reduce by smaller percentage
+            reduction = self.AGGRESSIVE_ENTRY_REDUCTION_SUBSEQUENT
+            new_entry = max(self.MIN_ENTRY_ADJUSTMENT, current_entry - reduction)
+            print(f"   Entry Adjustment: {current_entry:.2f}x → {new_entry:.2f}x ({reduction*100:.0f}% reduction)")
         self.strategy_adjustments['entry_adjustment_factor'] = new_entry
         
         # 2. Widen stop loss to avoid tight stops blocking entry
         current_sl = self.strategy_adjustments['sl_adjustment_factor']
-        new_sl = min(1.5, current_sl + 0.15)
-        print(f"   SL Adjustment: {current_sl:.2f}x → {new_sl:.2f}x (15% widening)")
+        new_sl = min(self.MAX_SL_ADJUSTMENT, current_sl + self.AGGRESSIVE_SL_WIDENING)
+        print(f"   SL Adjustment: {current_sl:.2f}x → {new_sl:.2f}x ({self.AGGRESSIVE_SL_WIDENING*100:.0f}% widening)")
         self.strategy_adjustments['sl_adjustment_factor'] = new_sl
         
         # 3. Lower confidence threshold to take more trades
         current_conf = self.strategy_adjustments['confidence_threshold']
-        new_conf = max(0.2, current_conf - 0.1)
+        new_conf = max(self.MIN_CONFIDENCE_THRESHOLD, current_conf - self.AGGRESSIVE_CONF_REDUCTION)
         print(f"   Confidence Threshold: {current_conf:.2f} → {new_conf:.2f} (more aggressive)")
         self.strategy_adjustments['confidence_threshold'] = new_conf
         
         # 4. Adjust take profit to be more realistic
         current_tp = self.strategy_adjustments['tp_adjustment_factor']
-        new_tp = max(0.6, current_tp - 0.1)
-        print(f"   TP Adjustment: {current_tp:.2f}x → {new_tp:.2f}x (10% reduction)")
+        new_tp = max(self.MIN_TP_ADJUSTMENT, current_tp - self.AGGRESSIVE_TP_REDUCTION)
+        print(f"   TP Adjustment: {current_tp:.2f}x → {new_tp:.2f}x ({self.AGGRESSIVE_TP_REDUCTION*100:.0f}% reduction)")
         self.strategy_adjustments['tp_adjustment_factor'] = new_tp
         
         print("=" * 60)
