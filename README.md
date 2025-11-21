@@ -83,12 +83,32 @@ The system generates trading signals with:
 
 3. **Set up environment variables**
    ```bash
-   # Create .env file or set environment variables
-   export NEWS_API_KEY="your_newsapi_key"
-   export COINMARKETCAP_API_KEY="your_cmc_key"  # Free plan available
-   export GROQ_API_KEY="your_groq_key"
-   export TELEGRAM_BOT_TOKEN="your_telegram_token"  # Optional
+   # Copy the example file and fill in your API keys
+   cp .env.example .env
+   
+   # Edit .env with your actual API keys:
+   # - NewsAPI: Get free key at https://newsapi.org
+   # - CoinMarketCap: Get free key at https://coinmarketcap.com/api/
+   # - Groq: Get free key at https://console.groq.com
+   # - Telegram: Optional, for notifications
    ```
+
+### API Keys Setup
+
+**CoinMarketCap API (Free Plan)**
+- Sign up at [coinmarketcap.com/api](https://coinmarketcap.com/api/)
+- Get your free API key (10K calls/month)
+- Add to `.env`: `COINMARKETCAP_API_KEY=your_key_here`
+
+**NewsAPI (Free Plan)**
+- Sign up at [newsapi.org](https://newsapi.org)
+- Get your free API key (100 requests/day)
+- Add to `.env`: `NEWS_API_KEY=your_key_here`
+
+**Groq API (Free Plan)**
+- Sign up at [console.groq.com](https://console.groq.com)
+- Get your free API key (14K requests/day)
+- Add to `.env`: `GROQ_API_KEY=your_key_here`
 
 4. **Run the trader**
    ```bash

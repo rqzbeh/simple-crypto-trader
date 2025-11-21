@@ -18,8 +18,12 @@ class CoinMarketCapMonitor:
     Uses free plan with caching to avoid rate limits
     """
 
-    def __init__(self, api_key: str = "ef534dd08cb04f37b83edd972bc2b6a7"):
-        self.api_key = api_key
+    def __init__(self, api_key: str = None):
+        # Use environment variable or provided key
+        self.api_key = api_key or os.getenv('COINMARKETCAP_API_KEY')
+        if not self.api_key:
+            raise ValueError("CoinMarketCap API key not found. Set COINMARKETCAP_API_KEY environment variable or pass api_key parameter.")
+        
         self.base_url = "https://pro-api.coinmarketcap.com/v1"
         self.session = requests.Session()
         self.session.headers.update({
