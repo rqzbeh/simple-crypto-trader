@@ -193,6 +193,7 @@ class MultiProviderLLMClient:
         # Provider configurations - both use OpenAI-compatible API
         # Reference: https://developers.cloudflare.com/workers-ai/configuration/open-ai-compatibility/
         cloudflare_account_id = os.getenv('CLOUDFLARE_ACCOUNT_ID', '')
+        cloudflare_api_token = os.getenv('CLOUDFLARE_API_TOKEN')
         
         self.providers = {
             'groq': {
@@ -205,10 +206,14 @@ class MultiProviderLLMClient:
                 'total_time': 0.0,
                 'avg_time': 0.0,
                 'last_error': None
-            },
-            'cloudflare': {
+            }
+        }
+        
+        # Only add Cloudflare if account ID is provided (required for endpoint URL)
+        if cloudflare_account_id:
+            self.providers['cloudflare'] = {
                 'name': 'Cloudflare AI Workers',
-                'api_key': os.getenv('CLOUDFLARE_API_TOKEN'),
+                'api_key': cloudflare_api_token,  # May be None for free tier
                 # Cloudflare Workers AI with OpenAI-compatible endpoint
                 # Format: https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1
                 'base_url': f'https://api.cloudflare.com/client/v4/accounts/{cloudflare_account_id}/ai/v1',
@@ -217,14 +222,15 @@ class MultiProviderLLMClient:
                 'error_count': 0,
                 'total_time': 0.0,
                 'avg_time': 0.0,
-                'last_error': None
+                'last_error': None,
+                'requires_auth': cloudflare_api_token is not None  # Track if auth is available
             }
-        }
         
         self.request_history = {
-            'groq': deque(maxlen=100),
-            'cloudflare': deque(maxlen=100)
+            'groq': deque(maxlen=100)
         }
+        if 'cloudflare' in self.providers:
+            self.request_history['cloudflare'] = deque(maxlen=100)
         
         self.lock = Lock()
         
@@ -232,8 +238,12 @@ class MultiProviderLLMClient:
         self.usage_tracker = LLMUsageTracker()
         
         # Validate at least one provider is configured
-        if not any(p['api_key'] for p in self.providers.values()):
-            raise ValueError("No LLM providers configured! Set GROQ_API_KEY or CLOUDFLARE_API_TOKEN")
+        if not self.providers:
+            raise ValueError("No LLM providers configured! Set GROQ_API_KEY")
+        
+        groq_configured = self.providers.get('groq', {}).get('api_key') is not None
+        if not groq_configured and 'cloudflare' not in self.providers:
+            raise ValueError("No LLM providers configured! Set GROQ_API_KEY or (CLOUDFLARE_ACCOUNT_ID + CLOUDFLARE_API_TOKEN)")
         
         print(f"✓ Multi-Provider LLM Client initialized (OpenAI-compatible API)")
         provider_order = self._get_provider_order()
@@ -246,15 +256,21 @@ class MultiProviderLLMClient:
         
         # Show budget status
         for provider_id, provider in self.providers.items():
-            if provider['api_key']:
+            # Groq always requires API key; Cloudflare may work without (free tier)
+            if provider.get('api_key') or (provider_id == 'cloudflare' and not provider.get('requires_auth')):
                 budget = self.usage_tracker.get_remaining_budget(provider_id, provider['model'])
-                print(f"  - {provider['name']} budget: {budget['used_today']}/{budget['limits']['requests_per_day']} used today")
+                auth_status = "authenticated" if provider.get('api_key') else "unauthenticated"
+                print(f"  - {provider['name']} budget: {budget['used_today']}/{budget['limits']['requests_per_day']} used today ({auth_status})")
     
     def _get_provider_order(self):
         """Get provider order based on health (prefer providers with fewer errors)"""
         providers = []
         for pid, prov in self.providers.items():
-            if prov['api_key']:
+            # Groq requires API key; Cloudflare may work without for free tier
+            has_auth = prov.get('api_key') is not None
+            requires_auth = prov.get('requires_auth', True)  # Default True for backwards compat
+            
+            if has_auth or not requires_auth:
                 error_rate = prov['error_count'] / (prov['success_count'] + prov['error_count'] + 1)
                 providers.append((pid, error_rate))
         
@@ -312,8 +328,11 @@ class MultiProviderLLMClient:
         for provider_id in providers_to_try:
             provider = self.providers[provider_id]
             
-            # Skip if no API key
-            if not provider['api_key']:
+            # Skip if authentication required but not available
+            requires_auth = provider.get('requires_auth', True)
+            has_auth = provider.get('api_key') is not None
+            
+            if requires_auth and not has_auth:
                 continue
             
             # Check budget before attempting (only for free providers to prevent waste)
@@ -332,12 +351,13 @@ class MultiProviderLLMClient:
                     start_time = time.time()
                     
                     # Use OpenAI-compatible API for all providers
+                    headers = {'Content-Type': 'application/json'}
+                    if provider.get('api_key'):
+                        headers['Authorization'] = f"Bearer {provider['api_key']}"
+                    
                     response = requests.post(
                         f"{provider['base_url']}/chat/completions",
-                        headers={
-                            'Authorization': f"Bearer {provider['api_key']}",
-                            'Content-Type': 'application/json'
-                        },
+                        headers=headers,
                         json={
                             'model': provider['model'],
                             'messages': messages,
