@@ -705,6 +705,11 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
         AGGRESSIVE intervention when CONSECUTIVE_ENTRY_FAIL_THRESHOLD+ consecutive trades have entry not reached.
         This indicates entry prices are consistently too far from market.
         Loosen parameters significantly to increase trade availability.
+        
+        NOTE: This method is called on EVERY unavailable trade after the threshold is reached.
+        This is intentional - if the problem persists (3rd, 4th failure), we loosen even more.
+        First trigger (streak==2): Uses AGGRESSIVE_ENTRY_REDUCTION_FIRST (20%)
+        Subsequent triggers (streak>=3): Uses AGGRESSIVE_ENTRY_REDUCTION_SUBSEQUENT (15%)
         """
         streak = self.precision_metrics['consecutive_entry_not_reached']
         
