@@ -20,8 +20,9 @@ class CryptoMarketAnalyzer:
     
     LEARNING_DATA_FILE = 'learning_state.json'
     
-    # Consecutive unavailable trade adjustment constants
-    CONSECUTIVE_ENTRY_FAIL_THRESHOLD = 2  # Trigger after 2 consecutive failures
+    # Consecutive "no signals" adjustment constants
+    # Tracks when bot outputs "no trade available" due to tight ML barriers
+    CONSECUTIVE_NO_SIGNALS_THRESHOLD = 2  # Trigger after 2 consecutive "no signals"
     AGGRESSIVE_ENTRY_REDUCTION_FIRST = 0.2  # 20% reduction on first trigger
     AGGRESSIVE_ENTRY_REDUCTION_SUBSEQUENT = 0.15  # 15% reduction on subsequent
     AGGRESSIVE_SL_WIDENING = 0.15  # 15% wider stop loss
@@ -56,9 +57,10 @@ class CryptoMarketAnalyzer:
             'current_loss_streak': 0,
             'max_win_streak': 0,
             'max_loss_streak': 0,
-            # Consecutive unavailable trade tracking (for aggressive loosening)
-            'consecutive_entry_not_reached': 0,  # Current streak of unavailable trades
-            'max_consecutive_entry_not_reached': 0,  # Historical max
+            # Consecutive "no signals" tracking (for aggressive loosening)
+            # Tracks when bot outputs "no trade available" due to tight ML barriers
+            'consecutive_no_signals': 0,  # Current streak of "no signals" runs
+            'max_consecutive_no_signals': 0,  # Historical max
         }
         self.strategy_adjustments = {
             'indicator_weights': {},
@@ -387,20 +389,8 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
         entry_reached = trade_result.get('entry_reached', True)
         
         if not entry_reached:
-            # Entry price was never reached
+            # Entry price was never reached (track for statistics)
             self.precision_metrics['entry_not_reached_count'] += 1
-            # Track consecutive unavailable trades
-            self.precision_metrics['consecutive_entry_not_reached'] += 1
-            self.precision_metrics['max_consecutive_entry_not_reached'] = max(
-                self.precision_metrics['max_consecutive_entry_not_reached'],
-                self.precision_metrics['consecutive_entry_not_reached']
-            )
-            # TRIGGER: If threshold consecutive unavailable trades, aggressively loosen parameters
-            if self.precision_metrics['consecutive_entry_not_reached'] >= self.CONSECUTIVE_ENTRY_FAIL_THRESHOLD:
-                self._handle_consecutive_unavailable_trades()
-        else:
-            # Entry was reached - reset consecutive counter
-            self.precision_metrics['consecutive_entry_not_reached'] = 0
         
         if failure_reason == 'sl_hit':
             # Stop loss hit before trend could work
@@ -700,26 +690,58 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
             print(f"     • Wrong direction: {wrong_dir_rate*100:.1f}%")
         print()
     
-    def _handle_consecutive_unavailable_trades(self):
+    def track_no_signals_run(self):
         """
-        AGGRESSIVE intervention when CONSECUTIVE_ENTRY_FAIL_THRESHOLD+ consecutive trades have entry not reached.
-        This indicates entry prices are consistently too far from market.
-        Loosen parameters significantly to increase trade availability.
+        Track when the bot produces NO trading signals (no trade available).
+        This happens when ML barriers/thresholds are too tight.
+        After CONSECUTIVE_NO_SIGNALS_THRESHOLD consecutive runs with no signals,
+        aggressively loosen parameters to allow trades through.
+        """
+        # Increment consecutive no-signals counter
+        self.precision_metrics['consecutive_no_signals'] += 1
+        self.precision_metrics['max_consecutive_no_signals'] = max(
+            self.precision_metrics['max_consecutive_no_signals'],
+            self.precision_metrics['consecutive_no_signals']
+        )
         
-        NOTE: This method is called on EVERY unavailable trade after the threshold is reached.
-        This is intentional - if the problem persists (3rd, 4th failure), we loosen even more.
+        # TRIGGER: If threshold consecutive "no signals" runs, aggressively loosen parameters
+        if self.precision_metrics['consecutive_no_signals'] >= self.CONSECUTIVE_NO_SIGNALS_THRESHOLD:
+            self._handle_consecutive_no_signals()
+        
+        # Save state after tracking
+        self._save_learning_state()
+    
+    def track_signals_generated(self):
+        """
+        Track when the bot successfully generates trading signals.
+        This resets the consecutive no-signals counter.
+        """
+        # Reset consecutive no-signals counter
+        self.precision_metrics['consecutive_no_signals'] = 0
+        
+        # Save state after tracking
+        self._save_learning_state()
+    
+    def _handle_consecutive_no_signals(self):
+        """
+        AGGRESSIVE intervention when CONSECUTIVE_NO_SIGNALS_THRESHOLD+ consecutive runs produce no signals.
+        This indicates ML barriers/confidence thresholds are too tight.
+        Loosen parameters significantly to allow trades through.
+        
+        NOTE: This method is called on EVERY "no signals" run after the threshold is reached.
+        This is intentional - if the problem persists (3rd, 4th run), we loosen even more.
         First trigger (streak==2): Uses AGGRESSIVE_ENTRY_REDUCTION_FIRST (20%)
         Subsequent triggers (streak>=3): Uses AGGRESSIVE_ENTRY_REDUCTION_SUBSEQUENT (15%)
         """
-        streak = self.precision_metrics['consecutive_entry_not_reached']
+        streak = self.precision_metrics['consecutive_no_signals']
         
-        print(f"\n⚠️  CONSECUTIVE UNAVAILABLE TRADES DETECTED: {streak} in a row")
-        print("🔧 LOOSENING PARAMETERS AGGRESSIVELY...")
+        print(f"\n⚠️  CONSECUTIVE NO SIGNALS DETECTED: {streak} runs with no trades available")
+        print("🔧 LOOSENING ML BARRIERS AGGRESSIVELY...")
         print("=" * 60)
         
         # 1. Move entry much closer to current price (aggressive adjustment)
         current_entry = self.strategy_adjustments['entry_adjustment_factor']
-        if streak == self.CONSECUTIVE_ENTRY_FAIL_THRESHOLD:
+        if streak == self.CONSECUTIVE_NO_SIGNALS_THRESHOLD:
             # First trigger: reduce by configured percentage
             reduction = self.AGGRESSIVE_ENTRY_REDUCTION_FIRST
             new_entry = max(self.MIN_ENTRY_ADJUSTMENT, current_entry - reduction)
@@ -731,13 +753,13 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
             print(f"   Entry Adjustment: {current_entry:.2f}x → {new_entry:.2f}x ({reduction*100:.0f}% reduction)")
         self.strategy_adjustments['entry_adjustment_factor'] = new_entry
         
-        # 2. Widen stop loss to avoid tight stops blocking entry
+        # 2. Widen stop loss to avoid tight stops blocking trades
         current_sl = self.strategy_adjustments['sl_adjustment_factor']
         new_sl = min(self.MAX_SL_ADJUSTMENT, current_sl + self.AGGRESSIVE_SL_WIDENING)
         print(f"   SL Adjustment: {current_sl:.2f}x → {new_sl:.2f}x ({self.AGGRESSIVE_SL_WIDENING*100:.0f}% widening)")
         self.strategy_adjustments['sl_adjustment_factor'] = new_sl
         
-        # 3. Lower confidence threshold to take more trades
+        # 3. Lower confidence threshold to take more trades (KEY FIX)
         current_conf = self.strategy_adjustments['confidence_threshold']
         new_conf = max(self.MIN_CONFIDENCE_THRESHOLD, current_conf - self.AGGRESSIVE_CONF_REDUCTION)
         print(f"   Confidence Threshold: {current_conf:.2f} → {new_conf:.2f} (more aggressive)")
@@ -750,8 +772,8 @@ TIMEFRAME: [HOURS/DAYS/WEEK]"""
         self.strategy_adjustments['tp_adjustment_factor'] = new_tp
         
         print("=" * 60)
-        print("✅ Parameters loosened to improve trade availability")
-        print(f"💡 Strategy will automatically tighten again if trades start filling\n")
+        print("✅ Parameters loosened to allow more trades through")
+        print(f"💡 Strategy will automatically tighten again when signals start generating\n")
     
     def _optimize_indicator_weights(self):
         """

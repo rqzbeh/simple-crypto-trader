@@ -1462,7 +1462,18 @@ def main():
         msg = "[INFO] No actionable trading signals found at this time."
         print(msg)
         send_telegram_message(msg)
+        
+        # Track "no signals" event for consecutive loosening
+        if market_analyzer:
+            market_analyzer.track_no_signals_run()
+            print("[LEARN] Tracked no-signals run (consecutive loosening may trigger)")
+        
         return
+    
+    # Track that signals were generated (resets consecutive no-signals counter)
+    if market_analyzer:
+        market_analyzer.track_signals_generated()
+        print("[LEARN] Signals generated - consecutive no-signals counter reset")
     
     print(f"\n{'='*60}")
     print(f"[TARGET] FOUND {len(signals)} TRADING SIGNALS")

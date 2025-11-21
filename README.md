@@ -176,7 +176,7 @@ The system includes intelligent learning that automatically adjusts trading para
 - **Stop Loss Optimization**: Widens stops if getting stopped out too frequently
 - **Take Profit Calibration**: Reduces targets if they're consistently too far
 - **Confidence Threshold**: Becomes more selective after losses, more aggressive after wins
-- **Consecutive Failure Recovery**: Automatically loosens parameters after 2 consecutive unavailable trades
+- **No Trade Recovery**: Automatically loosens ML barriers after 2 consecutive runs with "no trade available" output (when thresholds are too tight)
 
 All learning persists across runs in `learning_state.json`, so the system gets smarter over time even with crontab automation.
 
