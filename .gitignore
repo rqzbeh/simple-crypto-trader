@@ -1,0 +1,93 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ML models and data
+ml_model.pkl
+ml_scaler.pkl
+ml_last_train.json
+trade_log.json
+daily_risk.json
+news_impact_model.pkl
+news_impact_vectorizer.pkl
+news_impact_scaler.pkl
+news_impact_last_train.json
+analyzed_news_cache.json
+groq_usage.json
+ai_performance_data.json
+advanced_risk_data.json
+learnable_params.json
+learning_state.json
+
+# Test/demo data files (but not test scripts)
+test_*.pkl
+test_*.json
+test_trade_log.json
+
+news_cache.json
+
+# Usage and log files
+llm_usage.json
+logs/
+*.log
