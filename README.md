@@ -10,7 +10,7 @@ An advanced cryptocurrency trading system that combines **artificial intelligenc
 ## 🚀 Key Features
 
 ### 🤖 AI-Powered Analysis
-- **Multi-Provider LLM Integration**: Groq (primary) + OllamaFreeAPI (fallback)
+- **Multi-Provider LLM Integration**: Groq (primary) + Cloudflare AI Workers (fallback)
 - **Adaptive Learning**: System learns from market conditions and adjusts parameters
 - **Sentiment Analysis**: Real-time news and social media sentiment scoring
 - **Ensemble Voting**: Combines multiple AI models for robust signal generation

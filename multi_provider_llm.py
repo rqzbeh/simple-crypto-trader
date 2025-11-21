@@ -173,8 +173,8 @@ class MultiProviderLLMClient:
     Multi-provider LLM client with automatic failover and budget tracking.
     
     Provider Priority:
-    1. Cloudflare AI Workers (@cf/meta/llama-3.2-3b-instruct) - Primary, fast & free
-    2. Groq (llama-3.1-8b-instant) - Backup, superior speed
+    1. Groq (llama-3.1-8b-instant) - Primary, superior speed & quality
+    2. Cloudflare AI Workers (@cf/meta/llama-3.2-3b-instruct) - Backup, fast & free
     
     Features:
     - Auto-retry with exponential backoff
@@ -250,8 +250,8 @@ class MultiProviderLLMClient:
                 error_rate = prov['error_count'] / (prov['success_count'] + prov['error_count'] + 1)
                 providers.append((pid, error_rate))
         
-        # Sort by error rate (ascending), but prioritize Cloudflare (free tier)
-        providers.sort(key=lambda x: (0 if x[0] == 'cloudflare' else 1, x[1]))
+        # Sort by error rate (ascending), but prioritize Groq (better quality)
+        providers.sort(key=lambda x: (0 if x[0] == 'groq' else 1, x[1]))
         return [p[0] for p in providers]
     
     def _mark_provider_success(self, provider_id, elapsed_time):
