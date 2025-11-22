@@ -1365,8 +1365,11 @@ def display_learning_status():
             open_trades = len([t for t in logs if t.get('status') in ['open', 'queued']])
             completed_trades = len([t for t in logs if t.get('status') not in ['open', 'queued']])
             print(f"[TRADES] Pending: {open_trades} | Completed: {completed_trades}")
-        except:
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            # Expected if no trades logged yet
             pass
+        except Exception as e:
+            logger.debug(f"Could not read trade log: {e}")
         
         # Consecutive no-signals tracking
         no_signals_streak = metrics.get('consecutive_no_signals', 0)
@@ -1384,16 +1387,17 @@ def display_learning_status():
         print(f"  • Take Profit Adjustment: {params.get('tp_adjustment_factor', 1.0):.2f}x")
         
         # Win rate if available
-        if total_trades >= 5:
-            recent = market_analyzer.performance_history[-20:]
-            if recent:
-                wins = sum(1 for t in recent if t['result'].get('profit', 0) > 0)
-                win_rate = wins / len(recent)
-                print(f"\n[PERFORMANCE] Recent Win Rate: {win_rate*100:.1f}%")
+        if total_trades >= 5 and hasattr(market_analyzer, 'performance_history'):
+            if market_analyzer.performance_history and len(market_analyzer.performance_history) > 0:
+                recent = market_analyzer.performance_history[-20:]
+                if recent:
+                    wins = sum(1 for t in recent if t['result'].get('profit', 0) > 0)
+                    win_rate = wins / len(recent)
+                    print(f"\n[PERFORMANCE] Recent Win Rate: {win_rate*100:.1f}%")
         
         print("=" * 70 + "\n")
     except Exception as e:
-        print(f"[DEBUG] Could not display learning status: {e}")
+        logger.debug(f"Could not display learning status: {e}")
 
 def main():
     """Main trading loop - NEWS-DRIVEN SHORT-TERM trading system (85-90% news/AI)"""
