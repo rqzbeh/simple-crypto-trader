@@ -1371,8 +1371,12 @@ def display_learning_status():
         except json.JSONDecodeError as e:
             # Trade log file is corrupted
             logger.warning(f"Trade log file corrupted, skipping pending trades display: {e}")
+        except (PermissionError, IOError) as e:
+            # File access issues
+            logger.warning(f"Could not access trade log file: {e}")
         except Exception as e:
-            logger.debug(f"Could not read trade log: {e}")
+            # Unexpected errors should be visible
+            logger.error(f"Unexpected error reading trade log: {e}")
         
         # Consecutive no-signals tracking
         no_signals_streak = metrics.get('consecutive_no_signals', 0)
@@ -1518,9 +1522,6 @@ def main():
         except Exception as e:
             print(f"[DEBUG] Error testing {test_symbol}: {e}")
 
-    # Sort signals by confidence
-    signals.sort(key=lambda x: x['signal']['confidence'], reverse=True)
-    
     # Sort signals by confidence
     signals.sort(key=lambda x: x['signal']['confidence'], reverse=True)
     
