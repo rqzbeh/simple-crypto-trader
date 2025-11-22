@@ -1341,6 +1341,60 @@ R/R: 1:{signal['rr_ratio']:.1f} {rr_quality}
 
 # ==================== MAIN EXECUTION ====================
 
+def display_learning_status():
+    """Display comprehensive learning system status for cron visibility"""
+    if not market_analyzer:
+        return
+    
+    try:
+        params = market_analyzer.get_adjusted_parameters()
+        metrics = market_analyzer.precision_metrics
+        
+        print("\n" + "=" * 70)
+        print("📚 LEARNING SYSTEM STATUS")
+        print("=" * 70)
+        
+        # Trade counts
+        total_trades = metrics.get('total_trades', 0)
+        print(f"[TRADES] Total Verified: {total_trades}/20 (next optimization at 20)")
+        
+        # Check pending trades
+        try:
+            with open(TRADE_LOG_FILE, 'r') as f:
+                logs = json.load(f)
+            open_trades = len([t for t in logs if t.get('status') in ['open', 'queued']])
+            completed_trades = len([t for t in logs if t.get('status') not in ['open', 'queued']])
+            print(f"[TRADES] Pending: {open_trades} | Completed: {completed_trades}")
+        except:
+            pass
+        
+        # Consecutive no-signals tracking
+        no_signals_streak = metrics.get('consecutive_no_signals', 0)
+        max_no_signals = metrics.get('max_consecutive_no_signals', 0)
+        if no_signals_streak > 0:
+            print(f"[ALERT] No-Signals Streak: {no_signals_streak} (triggers at 2, max was {max_no_signals})")
+        else:
+            print(f"[STATUS] No-Signals Streak: {no_signals_streak} (OK)")
+        
+        # Current adaptive parameters
+        print(f"\n[ADAPTIVE] Current Parameters:")
+        print(f"  • Confidence Threshold: {params.get('confidence_threshold', 0.3):.2f}")
+        print(f"  • Entry Adjustment: {params.get('entry_adjustment_factor', 1.0):.2f}x")
+        print(f"  • Stop Loss Adjustment: {params.get('sl_adjustment_factor', 1.0):.2f}x")
+        print(f"  • Take Profit Adjustment: {params.get('tp_adjustment_factor', 1.0):.2f}x")
+        
+        # Win rate if available
+        if total_trades >= 5:
+            recent = market_analyzer.performance_history[-20:]
+            if recent:
+                wins = sum(1 for t in recent if t['result'].get('profit', 0) > 0)
+                win_rate = wins / len(recent)
+                print(f"\n[PERFORMANCE] Recent Win Rate: {win_rate*100:.1f}%")
+        
+        print("=" * 70 + "\n")
+    except Exception as e:
+        print(f"[DEBUG] Could not display learning status: {e}")
+
 def main():
     """Main trading loop - NEWS-DRIVEN SHORT-TERM trading system (85-90% news/AI)"""
     print("\n[*] Starting Crypto Trading Signal Generator...")
@@ -1365,6 +1419,9 @@ def main():
     print(f"[CACHE] News Cache: {cache_stats['total_cached']} analyzed, resets in {cache_stats['will_reset_in_hours']:.1f}h")
     print("=" * 70)
     print()
+    
+    # Display learning system status (NEW - for cron visibility)
+    display_learning_status()
     
     # Check and verify outcomes of previous trades
     print("[CHECK] Checking previous trade outcomes...")
@@ -1465,12 +1522,27 @@ def main():
     if not signals:
         msg = "[INFO] No actionable trading signals found at this time."
         print(msg)
-        send_telegram_message(msg)
         
         # Track "no signals" event for consecutive loosening
         if market_analyzer:
             market_analyzer.track_no_signals_run()
-            print("[LEARN] Tracked no-signals run (consecutive loosening may trigger)")
+            # Show updated parameters after tracking
+            params = market_analyzer.get_adjusted_parameters()
+            no_signals_count = market_analyzer.precision_metrics.get('consecutive_no_signals', 0)
+            print(f"\n[LEARN] No-signals streak: {no_signals_count}")
+            if no_signals_count >= 2:
+                print(f"[LEARN] ⚠️  Parameters loosened automatically!")
+                print(f"  • Confidence Threshold: {params.get('confidence_threshold', 0.3):.2f}")
+                print(f"  • Entry Adjustment: {params.get('entry_adjustment_factor', 1.0):.2f}x")
+                print(f"  • SL Adjustment: {params.get('sl_adjustment_factor', 1.0):.2f}x")
+                print(f"  • TP Adjustment: {params.get('tp_adjustment_factor', 1.0):.2f}x")
+            else:
+                print(f"[LEARN] Will loosen after {2 - no_signals_count} more consecutive no-signal run(s)")
+        
+        send_telegram_message(msg)
+        
+        # Display final summary
+        display_learning_status()
         
         return
     
@@ -1517,7 +1589,7 @@ def main():
     try:
         with open(TRADE_LOG_FILE, 'r') as f:
             logged_trades = json.load(f)
-        print(f"[DEBUG] Successfully logged {len(logged_trades)} trades to {TRADE_LOG_FILE}")
+        print(f"[DEBUG] Successfully logged {len(logged_trades)} total trades to {TRADE_LOG_FILE}")
         if logged_trades:
             latest_trade = logged_trades[-1]
             print(f"[DEBUG] Latest trade: {latest_trade['symbol']} {latest_trade['direction']} (status: {latest_trade['status']})")
@@ -1525,6 +1597,9 @@ def main():
         print(f"[DEBUG] No trades logged - {TRADE_LOG_FILE} not found")
     except Exception as e:
         print(f"[DEBUG] Error checking logged trades: {e}")
+    
+    # Display final learning status summary
+    display_learning_status()
 
 if __name__ == '__main__':
     try:
