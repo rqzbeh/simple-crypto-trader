@@ -1365,9 +1365,12 @@ def display_learning_status():
             open_trades = len([t for t in logs if t.get('status') in ['open', 'queued']])
             completed_trades = len([t for t in logs if t.get('status') not in ['open', 'queued']])
             print(f"[TRADES] Pending: {open_trades} | Completed: {completed_trades}")
-        except (FileNotFoundError, json.JSONDecodeError) as e:
+        except FileNotFoundError:
             # Expected if no trades logged yet
             pass
+        except json.JSONDecodeError as e:
+            # Trade log file is corrupted
+            logger.warning(f"Trade log file corrupted, skipping pending trades display: {e}")
         except Exception as e:
             logger.debug(f"Could not read trade log: {e}")
         
@@ -1388,12 +1391,11 @@ def display_learning_status():
         
         # Win rate if available
         if total_trades >= 5 and hasattr(market_analyzer, 'performance_history'):
-            if market_analyzer.performance_history and len(market_analyzer.performance_history) > 0:
-                recent = market_analyzer.performance_history[-20:]
-                if recent:
-                    wins = sum(1 for t in recent if t['result'].get('profit', 0) > 0)
-                    win_rate = wins / len(recent)
-                    print(f"\n[PERFORMANCE] Recent Win Rate: {win_rate*100:.1f}%")
+            recent = market_analyzer.performance_history[-20:]
+            if recent:
+                wins = sum(1 for t in recent if t['result'].get('profit', 0) > 0)
+                win_rate = wins / len(recent)
+                print(f"\n[PERFORMANCE] Recent Win Rate: {win_rate*100:.1f}%")
         
         print("=" * 70 + "\n")
     except Exception as e:

@@ -357,13 +357,17 @@ Key parameters can be adjusted in `config.py`:
 
 **Manual override (if needed):**
 ```bash
-# Reset learning state to defaults
+# SAFEST: Reset learning state to defaults by removing the file
 rm learning_state.json
+# The system will recreate it with default values on next run
 
-# Or edit manually to lower confidence threshold
+# ADVANCED: Edit manually (BE CAREFUL - validate JSON syntax after editing)
 # File: learning_state.json
 # Look for: "confidence_threshold": 0.5
 # Change to: "confidence_threshold": 0.25
+
+# After manual editing, validate JSON syntax:
+python3 -m json.tool learning_state.json > /dev/null && echo "JSON is valid" || echo "JSON is INVALID - fix syntax errors!"
 ```
 
 ### Monitoring Learning Progress
