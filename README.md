@@ -221,6 +221,33 @@ The system includes intelligent learning that automatically adjusts trading para
 - **Bidirectional Learning**: System both loosens parameters when no signals (after 2 consecutive runs) AND gradually tightens them back toward baseline when signals resume
 - **No Trade Recovery**: Automatically loosens ML barriers after 2 consecutive runs with "no trade available" output (when thresholds are too tight), then tightens back when trades resume
 
+#### Understanding Learning Progress (for Cron Users)
+
+When running via crontab, the learning system displays clear status information:
+
+```
+📚 LEARNING SYSTEM STATUS
+======================================================================
+[TRADES] Total Verified: 5/20 (next optimization at 20)
+[TRADES] Pending: 2 | Completed: 3
+[STATUS] No-Signals Streak: 0 (OK)
+
+[ADAPTIVE] Current Parameters:
+  • Confidence Threshold: 0.30
+  • Entry Adjustment: 1.00x
+  • Stop Loss Adjustment: 1.00x
+  • Take Profit Adjustment: 1.00x
+
+[PERFORMANCE] Recent Win Rate: 60.0%
+======================================================================
+```
+
+**Key Points:**
+- **0/20 Learning Counter**: This is NORMAL initially. Learning happens when trades are VERIFIED (after 2h completion), not when they're generated
+- **No Trade Available**: After 2 consecutive runs with no signals, parameters automatically loosen (confidence ↓, stops ↑, targets ↓)
+- **Pending vs Completed**: Pending trades are waiting for entry or haven't reached TP/SL yet
+- **Automatic Recovery**: When signals start generating again, parameters gradually tighten back to baseline over several runs
+
 ## 📊 Usage Examples
 
 ### Generate Trading Signals
@@ -297,6 +324,75 @@ Key parameters can be adjusted in `config.py`:
 - **Rate Limiting**: Built-in API protection for all services
 - **Logging**: Structured logging with rotation
 - **Monitoring**: Real-time health checks and alerts
+
+## 🔧 Troubleshooting (Cron Users)
+
+### Learning Counter Stuck at 0/20
+
+**This is normal behavior!** The learning counter increases only when:
+1. Trades are generated (logged)
+2. **AND** verified after completion (2h later)
+3. **AND** the results are used to update the learning model
+
+**Solutions:**
+- Wait at least 2 hours after first trades are generated before checking learning progress
+- Check `trade_log.json` to see pending trades: `grep -c '"status": "open"' trade_log.json`
+- Review the learning status display at startup and end of each run
+- Be patient: 10-20 completed trades are needed before significant learning occurs
+
+### No Trade Available (Thresholds Too Tight)
+
+**Automatic fix already built-in!** After 2 consecutive runs with no signals:
+- Confidence threshold automatically lowers (0.30 → 0.20)
+- Entry adjustment eases (1.0x → 0.8x → 0.7x)
+- Stop loss widens (1.0x → 1.15x → 1.30x)
+- Take profit reduces (1.0x → 0.9x → 0.8x)
+
+**Check the output:**
+```bash
+# You should see this after 2 consecutive "no trade" runs:
+⚠️  CONSECUTIVE NO SIGNALS DETECTED: 2 runs with no trades available
+🔧 LOOSENING ML BARRIERS AGGRESSIVELY...
+```
+
+**Manual override (if needed):**
+```bash
+# Reset learning state to defaults
+rm learning_state.json
+
+# Or edit manually to lower confidence threshold
+# File: learning_state.json
+# Look for: "confidence_threshold": 0.5
+# Change to: "confidence_threshold": 0.25
+```
+
+### Monitoring Learning Progress
+
+Check the learning state file:
+```bash
+# View current parameters
+cat learning_state.json | python3 -m json.tool | head -30
+
+# Check consecutive no-signals streak
+cat learning_state.json | grep consecutive_no_signals
+
+# View all pending trades
+cat trade_log.json | python3 -m json.tool | grep -A 5 '"status": "open"'
+```
+
+### Verifying Cron is Working
+
+```bash
+# Check cron logs
+tail -f /var/log/syslog | grep CRON  # Ubuntu/Debian
+tail -f /var/log/cron                # CentOS/RHEL
+
+# Check your custom log file
+tail -f logs/cron.log
+
+# Verify last run timestamp
+ls -lt learning_state.json trade_log.json
+```
 
 ## 📄 License
 
