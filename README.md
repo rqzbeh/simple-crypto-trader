@@ -115,6 +115,16 @@ The system generates trading signals with:
    python main.py
    ```
 
+5. **Run tests (development only)**
+   - Install the development/testing dependencies (recommended in a virtual environment)
+   ```bash
+   pip install -r requirements-dev.txt
+   ```
+   - Run the unit tests
+   ```bash
+   pytest -q
+   ```
+
 ## ⏰ Automated Trading with Crontab (VPS)
 
 For automated trading on a VPS, you can use crontab to run the system at regular intervals. The system is optimized for 2-hour trading windows, so running every 2 hours is recommended.
